@@ -42,6 +42,31 @@
 	can_hold = list() // any
 	cant_hold = list(/obj/item/disk/nuclear)
 
+/obj/item/storage/bag/trash/proc/update_weight()
+	if(!length(contents))
+		w_class = WEIGHT_CLASS_NORMAL
+		return
+
+	w_class = WEIGHT_CLASS_BULKY
+
+/obj/item/storage/bag/trash/remove_from_storage(obj/item/I, atom/new_location)
+	. = ..()
+	update_weight()
+
+/obj/item/storage/bag/trash/can_be_inserted(obj/item/I, stop_messages = FALSE)
+	if(isstorage(loc) && !istype(loc, /obj/item/storage/backpack/holding))
+		to_chat(usr, "<span class='warning'>You can't seem to fit [I] into [src].</span>")
+		return FALSE
+	. = ..()
+
+/obj/item/storage/bag/trash/Initialize(mapload)
+	. = ..()
+	update_weight()
+
+/obj/item/storage/bag/trash/handle_item_insertion(obj/item/I, prevent_warning)
+	. = ..()
+	update_weight()
+
 /obj/item/storage/bag/trash/suicide_act(mob/user)
 	user.visible_message("<span class='suicide'>[user] puts [src] over [user.p_their()] head and starts chomping at the insides! Disgusting!</span>")
 	playsound(loc, 'sound/items/eatfood.ogg', 50, 1, -1)
@@ -506,5 +531,24 @@
 	storage_slots = 25
 	max_combined_w_class = 200
 	w_class = WEIGHT_CLASS_TINY
-	can_hold = list(/obj/item/slime_extract,/obj/item/reagent_containers/food/snacks/monkeycube,/obj/item/reagent_containers/syringe,/obj/item/reagent_containers/glass/beaker,/obj/item/reagent_containers/glass/bottle,/obj/item/reagent_containers/iv_bag,/obj/item/reagent_containers/hypospray/autoinjector)
+	can_hold = list(/obj/item/slime_extract, /obj/item/reagent_containers/food/snacks/monkeycube,
+					/obj/item/reagent_containers/syringe, /obj/item/reagent_containers/glass/beaker,
+					/obj/item/reagent_containers/glass/bottle, /obj/item/reagent_containers/iv_bag,
+					/obj/item/reagent_containers/hypospray/autoinjector/epinephrine)
+	resistance_flags = FLAMMABLE
+
+/*
+ *	Mail bag
+ */
+
+/obj/item/storage/bag/mail
+	name = "mail bag"
+	desc = "A bag for envelopes, stamps, pens, and papers."
+	icon = 'icons/obj/bureaucracy.dmi'
+	icon_state = "mailbag"
+	item_state = "mailbag"
+	storage_slots = 14
+	max_combined_w_class = 28
+	w_class = WEIGHT_CLASS_TINY
+	can_hold = list(/obj/item/envelope, /obj/item/stamp, /obj/item/pen, /obj/item/paper, /obj/item/mail_scanner)
 	resistance_flags = FLAMMABLE

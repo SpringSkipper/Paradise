@@ -285,6 +285,7 @@ GLOBAL_LIST_INIT(cloth_recipes, list (
 		new /datum/stack_recipe("chemistry bag", /obj/item/storage/bag/chemistry, 4),
 		new /datum/stack_recipe("bio bag", /obj/item/storage/bag/bio, 4),
 		new /datum/stack_recipe("fish bag", /obj/item/storage/bag/fish, 4),
+		new /datum/stack_recipe("mail bag", /obj/item/storage/bag/mail, 4),
 	)),
 	null,
 	new /datum/stack_recipe("improvised gauze", /obj/item/stack/medical/bruise_pack/improvised, 1, 2, 6),
@@ -514,6 +515,7 @@ GLOBAL_LIST_INIT(brass_recipes, list (
 	throw_range = 3
 	turf_type = /turf/simulated/floor/clockwork
 	table_type = /obj/structure/table/reinforced/brass
+	dynamic_icon_state = TRUE
 
 /obj/item/stack/tile/brass/narsie_act()
 	new /obj/item/stack/sheet/runed_metal(loc, amount)

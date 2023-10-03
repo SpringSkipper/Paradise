@@ -28,6 +28,8 @@
 /obj/item/sord
 	name = "\improper SORD"
 	desc = "This thing is so unspeakably shitty you are having a hard time even holding it."
+	lefthand_file = 'icons/mob/inhands/weapons_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/weapons_righthand.dmi'
 	icon_state = "sord"
 	item_state = "sord"
 	slot_flags = SLOT_BELT
@@ -74,7 +76,9 @@
 
 /obj/item/katana
 	name = "katana"
-	desc = "Woefully underpowered in D20"
+	desc = "Woefully underpowered in D20."
+	lefthand_file = 'icons/mob/inhands/weapons_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/weapons_righthand.dmi'
 	icon_state = "katana"
 	item_state = "katana"
 	flags = CONDUCT
@@ -103,6 +107,8 @@
 	name = "harpoon"
 	sharp = TRUE
 	desc = "Tharr she blows!"
+	lefthand_file = 'icons/mob/inhands/weapons_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/weapons_righthand.dmi'
 	icon_state = "harpoon"
 	item_state = "harpoon"
 	force = 20
@@ -125,12 +131,9 @@
 /obj/item/wirerod/attackby(obj/item/I, mob/user, params)
 	..()
 	if(istype(I, /obj/item/shard))
-		var/obj/item/twohanded/spear/S = new /obj/item/twohanded/spear
+		var/obj/item/spear/S = new /obj/item/spear
 		if(istype(I, /obj/item/shard/plasma))
-			S.force_wielded = 19
-			S.force_unwielded = 11
-			S.throwforce = 21
-			S.icon_prefix = "spearplasma"
+			S.add_plasmaglass()
 			S.update_icon()
 		if(!remove_item_from_storage(user))
 			user.unEquip(src)
@@ -170,7 +173,6 @@
 	resistance_flags = FIRE_PROOF
 
 /obj/item/spear/kidan
-	icon_state = "kidanspear"
 	name = "\improper Kidan spear"
 	desc = "A one-handed spear brought over from the Kidan homeworld."
 	icon_state = "kidanspear"
@@ -283,7 +285,7 @@
 		return
 	if(!(target.status_flags & CANPUSH))
 		// No throwing mobs specifically flagged as immune to being pushed.
-		// Covers: revenant, hostile/blob/*, most borgs, juggernauts, hivebot/tele, spaceworms, shades, bots, alien queens, hostile/syndicate/melee, hostile/asteroid
+		// Covers: revenant, hostile/blob/*, most borgs, juggernauts, hivebot/tele, shades, bots, alien queens, hostile/syndicate/melee, hostile/asteroid
 		return
 	if(target.move_resist > MOVE_RESIST_DEFAULT)
 		// No throwing mobs that have higher than normal move_resist.

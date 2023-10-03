@@ -1618,6 +1618,14 @@
 		if(!check_rights(R_ADMIN))
 			return
 		var/datum/team/team
+		if(href_list["team_command"] == "new_custom_team") // this needs to be handled before all the other stuff, as the team doesn't exist yet
+			message_admins("[key_name_admin(usr)] created a new custom team.")
+			log_admin("[key_name(usr)] created a new custom team.")
+			team = new()
+			team.admin_rename_team(usr)
+			check_teams()
+			return
+
 		var/datum/mind/member
 		if(href_list["team"])
 			team = locateUID(href_list["team"])
@@ -1646,6 +1654,8 @@
 				show_player_panel(member.current)
 			if("add_objective")
 				team.admin_add_objective(usr)
+			if("announce_objectives")
+				team.admin_announce_objectives(usr)
 			if("remove_objective")
 				var/datum/objective/O = locateUID(href_list["objective"])
 				if(O)
@@ -2143,11 +2153,12 @@
 							possible_traitors -= player
 				if(possible_traitors.len)
 					var/datum/mind/newtraitormind = pick(possible_traitors)
+
 					var/datum/objective/assassinate/kill_objective = new()
 					kill_objective.target = H.mind
-					kill_objective.owner = newtraitormind
 					kill_objective.explanation_text = "Assassinate [H.mind.name], the [H.mind.assigned_role]"
-					newtraitormind.objectives += kill_objective
+					newtraitormind.add_mind_objective(kill_objective)
+
 					var/datum/antagonist/traitor/T = new()
 					T.give_objectives = FALSE
 					to_chat(newtraitormind.current, "<span class='danger'>ATTENTION:</span> It is time to pay your debt to the Syndicate...")
@@ -3026,11 +3037,11 @@
 					W.item_state = "w_suit"
 					W.item_color = "schoolgirl"
 				message_admins("[key_name_admin(usr)] activated Japanese Animes mode")
-				world << sound('sound/AI/animes.ogg')
+				SEND_SOUND(world, sound('sound/AI/animes.ogg'))
 			if("eagles")//SCRAW
 				SSblackbox.record_feedback("tally", "admin_secrets_fun_used", 1, "Egalitarian Station")
 				for(var/obj/machinery/door/airlock/W in GLOB.airlocks)
-					if(is_station_level(W.z) && !istype(get_area(W), /area/bridge) && !istype(get_area(W), /area/crew_quarters) && !istype(get_area(W), /area/security/prison))
+					if(is_station_level(W.z) && !istype(get_area(W), /area/station/command/bridge) && !istype(get_area(W), /area/station/public) && !istype(get_area(W), /area/station/security/prison))
 						W.req_access = list()
 				message_admins("[key_name_admin(usr)] activated Egalitarian Station mode")
 				GLOB.minor_announcement.Announce("Centcomm airlock control override activated. Please take this time to get acquainted with your coworkers.", new_sound = 'sound/AI/commandreport.ogg')
@@ -3360,6 +3371,73 @@
 		var/mob/about_to_be_banned = locateUID(href_list["adminalert"])
 		usr.client.cmd_admin_alert_message(about_to_be_banned)
 
+	else if(href_list["spawnjsondatum"])
+		// Get the name and JSON to spawn
+		var/datum/db_query/dbq = SSdbcore.NewQuery("SELECT slotname, slotjson FROM json_datum_saves WHERE ckey=:ckey AND id=:id", list(
+			"ckey" = usr.ckey,
+			"id" = href_list["spawnjsondatum"]
+		))
+		if(!dbq.warn_execute())
+			qdel(dbq)
+			return
+
+		var/slot_name = null
+		var/slot_json = null
+
+		// Read it
+		while(dbq.NextRow())
+			slot_name = dbq.item[1]
+			slot_json = dbq.item[2]
+
+		qdel(dbq)
+
+		// Double check
+		var/spawn_choice = alert(usr, "Are you sure you wish to spawn '[slot_name]' at your current location?", "Warning", "Yes", "No")
+		if(spawn_choice != "Yes")
+			return
+
+		// Log this for gods sake
+		message_admins("[key_name_admin(usr)] spawned an atom from a JSON DB save.")
+		log_admin("[key_name(usr)] spawned an atom from a JSON DB save, JSON Text: [slot_json]")
+		json_to_object(slot_json, get_turf(usr))
+
+	else if(href_list["deletejsondatum"])
+		// Get the name
+		var/datum/db_query/dbq = SSdbcore.NewQuery("SELECT slotname FROM json_datum_saves WHERE ckey=:ckey AND id=:id", list(
+			"ckey" = usr.ckey,
+			"id" = href_list["deletejsondatum"]
+		))
+		if(!dbq.warn_execute())
+			qdel(dbq)
+			return
+
+		var/slot_name = null
+
+		// Read it
+		while(dbq.NextRow())
+			slot_name = dbq.item[1]
+
+		qdel(dbq)
+
+		// Double check
+		var/delete_choice = alert(usr, "Are you sure you wish to delete '[slot_name]'? This cannot be undone!", "Warning", "Yes", "No")
+		if(delete_choice != "Yes")
+			return
+
+		var/datum/db_query/dbq2 = SSdbcore.NewQuery("DELETE FROM json_datum_saves WHERE ckey=:ckey AND id=:id", list(
+			"ckey" = usr.ckey,
+			"id" = href_list["deletejsondatum"]
+		))
+
+		if(!dbq2.warn_execute())
+			qdel(dbq2)
+			return
+
+		qdel(dbq2)
+		owner.json_spawn_menu() // Refresh their menu
+		to_chat(usr, "Slot <code>[slot_name]</code> deleted.")
+
+
 /client/proc/create_eventmob_for(mob/living/carbon/human/H, killthem = 0)
 	if(!check_rights(R_EVENT))
 		return
@@ -3400,16 +3478,14 @@
 		D.implant(hunter_mob)
 	if(killthem)
 		var/datum/objective/assassinate/kill_objective = new
-		kill_objective.owner = hunter_mind
 		kill_objective.target = H.mind
 		kill_objective.explanation_text = "Kill [H.real_name], the [H.mind.assigned_role]."
-		hunter_mind.objectives += kill_objective
+		hunter_mind.add_mind_objective(kill_objective)
 	else
 		var/datum/objective/protect/protect_objective = new
-		protect_objective.owner = hunter_mind
 		protect_objective.target = H.mind
 		protect_objective.explanation_text = "Protect [H.real_name], the [H.mind.assigned_role]."
-		hunter_mind.objectives += protect_objective
+		hunter_mind.add_mind_objective(protect_objective)
 	SSticker.mode.traitors |= hunter_mob.mind
 	to_chat(hunter_mob, "<span class='danger'>ATTENTION:</span> You are now on a mission!")
 	to_chat(hunter_mob, "<b>Goal: <span class='danger'>[killthem ? "MURDER" : "PROTECT"] [H.real_name]</span>, currently in [get_area(H.loc)].</b>");
