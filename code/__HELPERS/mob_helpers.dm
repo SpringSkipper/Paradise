@@ -1,15 +1,3 @@
-/proc/GetOppositeDir(dir)
-	switch(dir)
-		if(NORTH)     return SOUTH
-		if(SOUTH)     return NORTH
-		if(EAST)      return WEST
-		if(WEST)      return EAST
-		if(SOUTHWEST) return NORTHEAST
-		if(NORTHWEST) return SOUTHEAST
-		if(NORTHEAST) return SOUTHWEST
-		if(SOUTHEAST) return NORTHWEST
-	return 0
-
 /proc/random_underwear(gender, species = "Human")
 	var/list/pick_list = list()
 	switch(gender)
@@ -42,7 +30,7 @@
 			continue
 		valid_picks += test
 
-	if(!valid_picks.len) valid_picks += "Nude"
+	if(!length(valid_picks)) valid_picks += "Nude"
 
 	return pick(valid_picks)
 
@@ -54,8 +42,6 @@
 
 		if(hairstyle == "Bald") //Just in case.
 			valid_hairstyles += hairstyle
-			continue
-		if((gender == MALE && S.gender == FEMALE) || (gender == FEMALE && S.gender == MALE))
 			continue
 		if(species == "Machine") //If the user is a species who can have a robotic head...
 			if(!robohead)
@@ -70,7 +56,7 @@
 			if(species in S.species_allowed) //If the user's head is of a species the hairstyle allows, add it to the list.
 				valid_hairstyles += hairstyle
 
-	if(valid_hairstyles.len)
+	if(length(valid_hairstyles))
 		h_style = pick(valid_hairstyles)
 
 	return h_style
@@ -83,8 +69,6 @@
 
 		if(facialhairstyle == "Shaved") //Just in case.
 			valid_facial_hairstyles += facialhairstyle
-			continue
-		if((gender == MALE && S.gender == FEMALE) || (gender == FEMALE && S.gender == MALE))
 			continue
 		if(species == "Machine") //If the user is a species who can have a robotic head...
 			if(!robohead)
@@ -99,10 +83,49 @@
 			if(species in S.species_allowed) //If the user's head is of a species the facial hair style allows, add it to the list.
 				valid_facial_hairstyles += facialhairstyle
 
-	if(valid_facial_hairstyles.len)
+	if(length(valid_facial_hairstyles))
 		f_style = pick(valid_facial_hairstyles)
 
 	return f_style
+
+// it might be made species related, but it is pretty okay now
+/proc/random_hair_color(tint = TRUE, range)
+	if(prob(1))
+		return rand_hex_color() // sPaCe PuNk
+	var/list/color_options = list(
+		// gray, black, blue - 5 total
+		COLOR_GRAY15,
+		COLOR_GRAY40,
+		COLOR_SILVER,
+		COLOR_DARK_BLUE_GRAY,
+		COLOR_WALL_GUNMETAL,
+		// yellow, red, orange - 5 total
+		COLOR_YELLOW_GRAY,
+		COLOR_WARM_YELLOW,
+		COLOR_DARK_ORANGE,
+		COLOR_PALE_ORANGE,
+		COLOR_SUN,
+		// brownish. there is not much of them so they are repeated - 5 total
+		COLOR_CHESTNUT,
+		COLOR_CHESTNUT,
+		COLOR_BEASTY_BROWN,
+		COLOR_BEASTY_BROWN,
+		COLOR_BROWN_ORANGE,
+	)
+	if(tint) // returns a tint of selected color
+		return tint_color(pick(color_options), range)
+	return pick(color_options)
+
+/// Returns a purely random tint for specific color
+/proc/tint_color(color, range = 25)
+	if(!is_color_text(color)) // if it's not a hex color
+		return color // just leave it as it is
+
+	var/R = clamp(color2R(color) + rand(-range, range), 0, 255)
+	var/G = clamp(color2G(color) + rand(-range, range), 0, 255)
+	var/B = clamp(color2B(color) + rand(-range, range), 0, 255)
+
+	return rgb(R, G, B)
 
 /proc/random_head_accessory(species = "Human")
 	var/ha_style = "None"
@@ -114,7 +137,7 @@
 			continue
 		valid_head_accessories += head_accessory
 
-	if(valid_head_accessories.len)
+	if(length(valid_head_accessories))
 		ha_style = pick(valid_head_accessories)
 
 	return ha_style
@@ -153,7 +176,7 @@
 					continue
 		valid_markings += marking
 
-	if(valid_markings.len)
+	if(length(valid_markings))
 		m_style = pick(valid_markings)
 
 	return m_style
@@ -183,62 +206,24 @@
 		current_species = GLOB.all_species[species]
 
 	if(!current_species || current_species.name == "Human")
-		if(gender==FEMALE)
-			return capitalize(pick(GLOB.first_names_female)) + " " + capitalize(pick(GLOB.last_names))
-		else
-			return capitalize(pick(GLOB.first_names_male)) + " " + capitalize(pick(GLOB.last_names))
+		switch(gender)
+			if(FEMALE)
+				return capitalize(pick(GLOB.first_names_female)) + " " + capitalize(pick(GLOB.last_names))
+			if(MALE)
+				return capitalize(pick(GLOB.first_names_male)) + " " + capitalize(pick(GLOB.last_names))
+			else
+				return capitalize(pick(GLOB.first_names_male + GLOB.first_names_female)) + " " + capitalize(pick(GLOB.last_names))
 	else
 		return current_species.get_random_name(gender)
 
+/// Randomises skin tone, specifically for each species that has a skin tone. Otherwise keeps a default of 1
 /proc/random_skin_tone(species = "Human")
-	if(species == "Human" || species == "Drask")
-		switch(pick(60;"caucasian", 15;"afroamerican", 10;"african", 10;"latino", 5;"albino"))
-			if("caucasian")		. = -10
-			if("afroamerican")	. = -115
-			if("african")		. = -165
-			if("latino")		. = -55
-			if("albino")		. = 34
-			else				. = rand(-185, 34)
-		return min(max(. + rand(-25, 25), -185), 34)
-	else if(species == "Vox")
-		. = rand(1, 6)
-		return .
-
-/proc/skintone2racedescription(tone, species = "Human")
-	if(species == "Human")
-		switch(tone)
-			if(30 to INFINITY)		return "albino"
-			if(20 to 30)			return "pale"
-			if(5 to 15)				return "light skinned"
-			if(-10 to 5)			return "white"
-			if(-25 to -10)			return "tan"
-			if(-45 to -25)			return "darker skinned"
-			if(-65 to -45)			return "brown"
-			if(-INFINITY to -65)	return "black"
-			else					return "unknown"
-	else if(species == "Vox")
-		switch(tone)
-			if(2)					return "dark green"
-			if(3)					return "brown"
-			if(4)					return "gray"
-			if(5)					return "emerald"
-			if(6)					return "azure"
-			else					return "green"
-	else
-		return "unknown"
-
-/proc/age2agedescription(age)
-	switch(age)
-		if(0 to 1)			return "infant"
-		if(1 to 3)			return "toddler"
-		if(3 to 13)			return "child"
-		if(13 to 19)		return "teenager"
-		if(19 to 30)		return "young adult"
-		if(30 to 45)		return "adult"
-		if(45 to 60)		return "middle-aged"
-		if(60 to 70)		return "aging"
-		if(70 to INFINITY)	return "elderly"
-		else				return "unknown"
+	var/datum/species/species_selected = GLOB.all_species[species]
+	if(species_selected?.bodyflags & HAS_SKIN_TONE)
+		return rand(1, 220)
+	else if(species_selected?.bodyflags & HAS_ICON_SKIN_TONE)
+		return rand(1, length(species_selected.icon_skin_tones))
+	return 1
 
 /proc/set_criminal_status(mob/living/user, datum/data/record/target_records , criminal_status, comment, user_rank, list/authcard_access = list(), user_name)
 	var/status = criminal_status
@@ -312,12 +297,16 @@
 	if(istype(MT))
 		MT.create_log(DEFENSE_LOG, what_done, user, get_turf(MT))
 		MT.create_attack_log("<font color='orange'>Attacked by [user_str]: [what_done]</font>")
-	log_attack(user_str, target_str, what_done)
+	log_attack(user, target_str, what_done)
 
 	var/loglevel = ATKLOG_MOST
 	if(!isnull(custom_level))
 		loglevel = custom_level
-	var/area/A = get_area(MT)
+	var/area/A
+	if(isatom(MT) && !QDELETED(MT))
+		A = get_area(MT)
+	else
+		A = get_area(user)
 	if(A && A.hide_attacklogs)
 		loglevel = ATKLOG_ALL
 	else if(istype(MT))
@@ -334,21 +323,25 @@
 
 	msg_admin_attack("[key_name_admin(user)] vs [target_info]: [what_done]", loglevel)
 
-/proc/do_mob(mob/user, mob/target, time = 30, progress = 1, list/extra_checks = list(), only_use_extra_checks = FALSE, requires_upright = TRUE)
+/proc/do_mob(mob/user, mob/target, time = 30, progress = 1, list/extra_checks = list(), only_use_extra_checks = FALSE, requires_upright = TRUE, hidden = FALSE)
 	if(!user || !target)
 		return 0
 	var/user_loc = user.loc
 
 	var/drifting = 0
-	if(!user.Process_Spacemove(0) && user.inertia_dir)
+	if(GLOB.move_manager.processing_on(user, SSspacedrift))
 		drifting = 1
 
 	var/target_loc = target.loc
 
 	var/holding = user.get_active_hand()
 	var/datum/progressbar/progbar
+	var/datum/cogbar/cog
 	if(progress)
 		progbar = new(user, time, target)
+
+		if(!hidden && time >= 1 SECONDS)
+			cog = new(user)
 
 	var/endtime = world.time+time
 	var/starttime = world.time
@@ -371,7 +364,7 @@
 				break
 			continue
 
-		if(drifting && !user.inertia_dir)
+		if(drifting && !GLOB.move_manager.processing_on(user, SSspacedrift))
 			drifting = 0
 			user_loc = user.loc
 
@@ -380,6 +373,7 @@
 			break
 	if(progress)
 		qdel(progbar)
+		cog?.remove()
 
 /*	Use this proc when you want to have code under it execute after a delay, and ensure certain conditions are met during that delay...
  *	Such as the user not being interrupted via getting stunned or by moving off the tile they're currently on.
@@ -391,10 +385,16 @@
  *
  *	This will create progress bar that lasts for 5 seconds. If the user doesn't move or otherwise do something that would cause the checks to fail in those 5 seconds, do_stuff() would execute.
  *	The Proc returns TRUE upon success (the progress bar reached the end), or FALSE upon failure (the user moved or some other check failed)
+ *	param {boolean} hidden - By default, any action 1 second or longer shows a cog over the user while it is in progress. If hidden is set to TRUE, the cog will not be shown.
+ *	If allow_sleeping_or_dead is true, dead and sleeping mobs will continue. Good if you want to show a progress bar to the user but it doesn't need them to do anything, like modsuits.
  */
-/proc/do_after(mob/user, delay, needhand = 1, atom/target = null, progress = 1, allow_moving = 0, must_be_held = 0, list/extra_checks = list(), use_default_checks = TRUE)
+/proc/do_after(mob/user, delay, needhand = 1, atom/target = null, progress = 1, allow_moving = 0, must_be_held = 0, list/extra_checks = list(), interaction_key = null, use_default_checks = TRUE, allow_moving_target = FALSE, hidden = FALSE, allow_sleeping_or_dead = FALSE)
 	if(!user)
 		return FALSE
+
+	if(interaction_key)
+		var/current_interaction_count = LAZYACCESS(user.do_afters, interaction_key) || 0
+		LAZYSET(user.do_afters, interaction_key, current_interaction_count + 1)
 	var/atom/Tloc = null
 	if(target)
 		Tloc = target.loc
@@ -402,7 +402,7 @@
 	var/atom/Uloc = user.loc
 
 	var/drifting = FALSE
-	if(!allow_moving && !user.Process_Spacemove(0) && user.inertia_dir)
+	if(!allow_moving && GLOB.move_manager.processing_on(user, SSspacedrift))
 		drifting = TRUE
 
 	var/holding = user.get_active_hand()
@@ -412,9 +412,14 @@
 		holdingnull = FALSE //Users hand started holding something, check to see if it's still holding that
 
 	var/datum/progressbar/progbar
+	var/datum/cogbar/cog
 	if(progress)
 		progbar = new(user, delay, target)
 
+		if(!hidden && delay >= 1 SECONDS)
+			cog = new(user)
+
+	SEND_SIGNAL(user, COMSIG_DO_AFTER_BEGAN)
 	var/endtime = world.time + delay
 	var/starttime = world.time
 	. = TRUE
@@ -430,18 +435,18 @@
 		if(progress)
 			progbar.update(world.time - starttime)
 		if(!allow_moving)
-			if(drifting && !user.inertia_dir)
+			if(drifting && !GLOB.move_manager.processing_on(user, SSspacedrift))
 				drifting = FALSE
 				Uloc = user.loc
 			if(!drifting && user.loc != Uloc)
 				. = FALSE
 				break
 
-		if(!user || user.stat || check_for_true_callbacks(extra_checks))
+		if(!user || (user.stat && !allow_sleeping_or_dead) || check_for_true_callbacks(extra_checks))
 			. = FALSE
 			break
 
-		if(Tloc && (!target || Tloc != target.loc))
+		if(!allow_moving_target && Tloc && (!target || Tloc != target.loc))
 			. = FALSE
 			break
 
@@ -461,6 +466,15 @@
 				break
 	if(progress)
 		qdel(progbar)
+		cog?.remove()
+		if(interaction_key)
+			var/reduced_interaction_count = (LAZYACCESS(user.do_afters, interaction_key) || 0) - 1
+			if(reduced_interaction_count > 0) // Not done yet!
+				LAZYSET(user.do_afters, interaction_key, reduced_interaction_count)
+				return
+			// all out, let's clear er out fully
+			LAZYREMOVE(user.do_afters, interaction_key)
+		SEND_SIGNAL(user, COMSIG_DO_AFTER_ENDED)
 
 // Upon any of the callbacks in the list returning TRUE, the proc will return TRUE.
 /proc/check_for_true_callbacks(list/extra_checks)
@@ -470,8 +484,8 @@
 	return FALSE
 
 #define DOAFTERONCE_MAGIC "Magic~~"
-GLOBAL_LIST_INIT(do_after_once_tracker, list())
-/proc/do_after_once(mob/user, delay, needhand = 1, atom/target = null, progress = 1, allow_moving, must_be_held, attempt_cancel_message = "Attempt cancelled.", special_identifier)
+GLOBAL_LIST_EMPTY(do_after_once_tracker)
+/proc/do_after_once(mob/user, delay, needhand = 1, atom/target = null, progress = 1, allow_moving, must_be_held, attempt_cancel_message = "Attempt cancelled.", special_identifier, hidden = FALSE, interaction_key = null)
 	if(!user || !target)
 		return
 
@@ -481,8 +495,16 @@ GLOBAL_LIST_INIT(do_after_once_tracker, list())
 		to_chat(user, "<span class='warning'>[attempt_cancel_message]</span>")
 		return FALSE
 	GLOB.do_after_once_tracker[cache_key] = TRUE
-	. = do_after(user, delay, needhand, target, progress, allow_moving, must_be_held, extra_checks = list(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(do_after_once_checks), cache_key)))
+	. = do_after(user, delay, needhand, target, progress, allow_moving, must_be_held, extra_checks = list(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(do_after_once_checks), cache_key, hidden)), interaction_key = interaction_key)
 	GLOB.do_after_once_tracker[cache_key] = FALSE
+
+// Please don't use this unless you absolutely need to. Just have a direct call to do_after_once whenever possible.
+/proc/interrupt_do_after_once(mob/user, atom/target, special_identifier)
+	var/cache_key = "[user.UID()][target.UID()][special_identifier]"
+	if(GLOB.do_after_once_tracker[cache_key])
+		GLOB.do_after_once_tracker[cache_key] = DOAFTERONCE_MAGIC
+		return TRUE
+	return FALSE
 
 /proc/do_after_once_checks(cache_key)
 	if(GLOB.do_after_once_tracker[cache_key] && GLOB.do_after_once_tracker[cache_key] == DOAFTERONCE_MAGIC)
@@ -496,19 +518,6 @@ GLOBAL_LIST_INIT(do_after_once_tracker, list())
 		var/mob/living/carbon/human/H = A
 		if(H.dna && istype(H.dna.species, species_datum))
 			. = TRUE
-
-/proc/spawn_atom_to_turf(spawn_type, target, amount, admin_spawn=FALSE, list/extra_args)
-	var/turf/T = get_turf(target)
-	if(!T)
-		CRASH("attempt to spawn atom type: [spawn_type] in nullspace")
-
-	var/list/new_args = list(T)
-	if(extra_args)
-		new_args += extra_args
-
-	for(var/j in 1 to amount)
-		var/atom/X = new spawn_type(arglist(new_args))
-		X.admin_spawned = admin_spawn
 
 /proc/admin_mob_info(mob/M, mob/user = usr)
 	if(!ismob(M))
@@ -550,7 +559,7 @@ GLOBAL_LIST_INIT(do_after_once_tracker, list())
 	else
 		health_description = "This mob type has no health to speak of."
 
-	//Gener
+	//Gender
 	switch(M.gender)
 		if(MALE, FEMALE)
 			gender_description = "[M.gender]"
@@ -562,7 +571,7 @@ GLOBAL_LIST_INIT(do_after_once_tracker, list())
 	to_chat(user, "Name = <b>[M.name]</b>; Real_name = [M.real_name]; Mind_name = [M.mind?"[M.mind.name]":""]; Key = <b>[M.key]</b>;")
 	to_chat(user, "Location = [location_description];")
 	to_chat(user, "[special_role_description]")
-	to_chat(user, "(<a href='?src=[usr.UID()];priv_msg=[M.client?.ckey]'>PM</a>) ([ADMIN_PP(M,"PP")]) ([ADMIN_VV(M,"VV")]) ([ADMIN_TP(M,"TP")]) ([ADMIN_SM(M,"SM")]) ([ADMIN_FLW(M,"FLW")])")
+	to_chat(user, "(<a href='byond://?src=[usr.UID()];priv_msg=[M.client?.ckey]'>PM</a>) ([ADMIN_PP(M,"PP")]) ([ADMIN_VV(M,"VV")]) ([ADMIN_TP(M,"TP")]) ([ADMIN_SM(M,"SM")]) ([ADMIN_FLW(M,"FLW")]) ([ADMIN_OBS(M, "OBS")])")
 
 // Gets the first mob contained in an atom, and warns the user if there's not exactly one
 /proc/get_mob_in_atom_with_warning(atom/A, mob/user = usr)
@@ -570,6 +579,10 @@ GLOBAL_LIST_INIT(do_after_once_tracker, list())
 		return null
 	if(ismob(A))
 		return A
+	if(istype(A, /obj/structure/blob/core))
+		var/obj/structure/blob/core/blob = A
+		if(blob.overmind)
+			return blob.overmind
 
 	. = null
 	for(var/mob/M in A)
@@ -582,7 +595,6 @@ GLOBAL_LIST_INIT(do_after_once_tracker, list())
 		to_chat(user, "<span class='warning'>No mob located in [A].</span>")
 
 // Suppress the mouse macros
-/client/var/next_mouse_macro_warning
 /mob/proc/LogMouseMacro(verbused, params)
 	if(!client)
 		return
@@ -592,14 +604,17 @@ GLOBAL_LIST_INIT(do_after_once_tracker, list())
 	if(client.next_mouse_macro_warning < world.time) // Warn occasionally
 		SEND_SOUND(usr, sound('sound/misc/sadtrombone.ogg'))
 		client.next_mouse_macro_warning = world.time + 600
+
 /mob/verb/ClickSubstitute(params as command_text)
 	set hidden = 1
 	set name = ".click"
 	LogMouseMacro(".click", params)
+
 /mob/verb/DblClickSubstitute(params as command_text)
 	set hidden = 1
 	set name = ".dblclick"
 	LogMouseMacro(".dblclick", params)
+
 /mob/verb/MouseSubstitute(params as command_text)
 	set hidden = 1
 	set name = ".mouse"
@@ -610,28 +625,53 @@ GLOBAL_LIST_INIT(do_after_once_tracker, list())
 		var/mob/living/carbon/human/H = thing
 		H.sec_hud_set_security_status()
 
+/proc/update_all_mob_malf_hud()
+	for(var/mob/living/carbon/human/H in GLOB.human_list)
+		H.malf_hud_set_status()
+
 /proc/getviewsize(view)
 	var/viewX
 	var/viewY
 	if(isnum(view))
-		var/totalviewrange = 1 + 2 * view
+		var/totalviewrange = (view < 0 ? -1 : 1) + 2 * view
 		viewX = totalviewrange
 		viewY = totalviewrange
-	else
+	else if(istext(view))
 		var/list/viewrangelist = splittext(view, "x")
 		viewX = text2num(viewrangelist[1])
 		viewY = text2num(viewrangelist[2])
+	else if(islist(view) && length(view) == 2 && isnum(view[1]) && isnum(view[2]))
+		// better be a list of nums!
+		viewX = view[1]
+		viewY = view[2]
+	else
+		CRASH("Invalid view type parameter passed to getviewsize: [view]")
+
 	return list(viewX, viewY)
+
+/proc/in_view_range(mob/user, atom/A)
+	var/list/view_range = getviewsize(user.client.view)
+	var/turf/source = get_turf(user)
+	var/turf/target = get_turf(A)
+	return ISINRANGE(target.x, source.x - view_range[1], source.x + view_range[1]) && ISINRANGE(target.y, source.y - view_range[2], source.y + view_range[2])
 
 //Used in chemical_mob_spawn. Generates a random mob based on a given gold_core_spawnable value.
 /proc/create_random_mob(spawn_location, mob_class = HOSTILE_SPAWN)
 	var/static/list/mob_spawn_meancritters = list() // list of possible hostile mobs
 	var/static/list/mob_spawn_nicecritters = list() // and possible friendly mobs
 
-	if(mob_spawn_meancritters.len <= 0 || mob_spawn_nicecritters.len <= 0)
+	if(length(mob_spawn_meancritters) <= 0 || length(mob_spawn_nicecritters) <= 0)
 		for(var/T in typesof(/mob/living/simple_animal))
 			var/mob/living/simple_animal/SA = T
 			switch(initial(SA.gold_core_spawnable))
+				if(HOSTILE_SPAWN)
+					mob_spawn_meancritters += T
+				if(FRIENDLY_SPAWN)
+					mob_spawn_nicecritters += T
+
+		for(var/T in typesof(/mob/living/basic))
+			var/mob/living/basic/BA = T
+			switch(initial(BA.gold_core_spawnable))
 				if(HOSTILE_SPAWN)
 					mob_spawn_meancritters += T
 				if(FRIENDLY_SPAWN)
@@ -707,3 +747,78 @@ GLOBAL_LIST_INIT(do_after_once_tracker, list())
 		out_ckey = "(Disconnected)"
 
 	return out_ckey
+
+/// rounds value to limited symbols after the period for organ damage and other values
+/proc/round_health(health)
+	return round(health, 0.01)
+
+/// Takes in an associated list (key `/datum/action` typepaths, value is the AI
+/// blackboard key) and handles granting the action and adding it to the mob's
+/// AI controller blackboard. This is only useful in instances where you don't
+/// want to store the reference to the action on a variable on the mob. You can
+/// set the value to null if you don't want to add it to the blackboard (like in
+/// player controlled instances). Is also safe with null AI controllers. Assumes
+/// that the action will be initialized and held in the mob itself, which is
+/// typically standard.
+/mob/proc/grant_actions_by_list(list/input)
+	if(length(input) <= 0)
+		return
+
+	for(var/action in input)
+		var/datum/action/ability = new action(src)
+		ability.Grant(src)
+
+		var/blackboard_key = input[action]
+		if(isnull(blackboard_key))
+			continue
+
+		ai_controller?.set_blackboard_key(blackboard_key, ability)
+
+/**
+ * [/proc/ran_zone] but only returns bodyzones that the mob actually has.
+ *
+ * * `blacklisted_parts` allows you to specify zones that will not be chosen.
+ *   e.g.: list(`BODY_ZONE_CHEST`, `BODY_ZONE_R_LEG`). **Blacklisting
+ *   `BODY_ZONE_CHEST` is really risky since it's the only bodypart guaranteed
+ *   to always exist. Only do that if you're certain they have limbs, otherwise
+ *   we'll crash!**
+ *
+ * * [/proc/ran_zone] has a base `prob(80)` to return the `base_zone` (or if null,
+ *   `BODY_ZONE_CHEST`) vs something in our generated list of limbs. This
+ *   probability is overriden when either blacklisted_parts contains
+ *   BODY_ZONE_CHEST and we aren't passed a base_zone (since the default
+ *   fallback for ran_zone would be the chest in that scenario), or if
+ *   even_weights is enabled. You can also manually adjust this probability by
+ *   altering `base_probability`.
+ *
+ * * even_weights - ran_zone has a 40% chance (after the prob(80) mentioned
+ *   above) of picking a limb, vs the torso & head which have an additional 10%
+ *   chance. Setting even_weights to TRUE will make it just a straight up pick()
+ *   between all possible bodyparts.
+ */
+/mob/proc/get_random_valid_zone(base_zone, base_probability = 80, list/blacklisted_parts, even_weights, bypass_warning)
+	return BODY_ZONE_CHEST // Pass the default of check_zone to be safe.
+
+/mob/living/carbon/human/get_random_valid_zone(base_zone, base_probability = 80, list/blacklisted_parts, even_weights, bypass_warning)
+	var/list/limbs = list()
+	for(var/obj/item/organ/limb as anything in bodyparts)
+		var/limb_zone = limb.parent_organ // cache the parent organ since we're gonna check it a ton.
+		if(limb_zone in blacklisted_parts)
+			continue
+		if(even_weights)
+			limbs[limb_zone] = 1
+			continue
+		if(limb_zone == BODY_ZONE_CHEST || limb_zone == BODY_ZONE_HEAD)
+			limbs[limb_zone] = 1
+		else
+			limbs[limb_zone] = 4
+
+	if(base_zone && !(check_zone(base_zone) in limbs))
+		base_zone = null // check if the passed zone is infact valid
+
+	var/chest_blacklisted
+	if(BODY_ZONE_CHEST in blacklisted_parts)
+		chest_blacklisted = TRUE
+		if(bypass_warning && length(limbs))
+			CRASH("limbs is empty and the chest is blacklisted. this may not be intended!")
+	return (((chest_blacklisted && !base_zone) || even_weights) ? pickweight(limbs) : ran_zone(base_zone, base_probability, limbs))

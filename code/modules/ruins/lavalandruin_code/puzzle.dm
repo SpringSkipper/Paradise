@@ -3,11 +3,10 @@
 	icon = 'icons/obj/items.dmi' //mapping
 	icon_state = "syndballoon"
 	invisibility = INVISIBILITY_ABSTRACT
-	anchored = TRUE
 	var/list/elements
 	var/floor_type = /turf/simulated/floor/vault/lavaland_air
 	var/finished = FALSE
-	var/reward_type = /obj/item/reagent_containers/food/snacks/cookie
+	var/reward_type = /obj/item/food/cookie
 	var/element_type = /obj/structure/puzzle_element
 	var/auto_setup = TRUE
 	var/empty_tile_id
@@ -57,7 +56,7 @@
 	if(finished)
 		return
 
-	if(elements.len < 8) //Someone broke it
+	if(length(elements) < 8) //Someone broke it
 		qdel(src)
 
 	//Check if everything is in place
@@ -98,13 +97,13 @@
 		current_ordering += E.id
 
 	var/swap_tally = 0
-	for(var/i in 1 to current_ordering.len)
+	for(var/i in 1 to length(current_ordering))
 		var/checked_value = current_ordering[i]
-		for(var/j in i to current_ordering.len)
+		for(var/j in i to length(current_ordering))
 			if(current_ordering[j] < checked_value)
 				swap_tally++
 
-	return swap_tally % 2 == 0
+	return ISEVEN(swap_tally)
 
 //swap two tiles in same row
 /obj/effect/sliding_puzzle/proc/make_solvable()
@@ -197,7 +196,6 @@
 	desc = "Puzzling..."
 	icon = 'icons/obj/lavaland/artefacts.dmi'
 	icon_state = "puzzle_pillar"
-	anchored = FALSE
 	density = TRUE
 	var/id = 0
 	var/obj/effect/sliding_puzzle/source
@@ -303,7 +301,7 @@
 	icon = 'icons/obj/lavaland/artefacts.dmi'
 	icon_state = "prison_cube"
 
-/obj/item/prisoncube/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
+/obj/item/prisoncube/afterattack__legacy__attackchain(atom/target, mob/user, proximity_flag, click_parameters)
 	. = ..()
 	if(!proximity_flag || !isliving(target))
 		return
@@ -349,3 +347,5 @@
 	var/obj/structure/puzzle_element/E = pick(cube.elements)
 	prisoner.forceMove(E)
 	return TRUE
+
+#undef COLLAPSE_DURATION

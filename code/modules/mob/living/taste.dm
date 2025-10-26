@@ -1,12 +1,10 @@
-/mob/living
-	var/last_taste_time
-	var/last_taste_text
-
 /mob/living/proc/get_taste_sensitivity()
 	return TASTE_SENSITIVITY_NORMAL
 
 /mob/living/carbon/human/get_taste_sensitivity()
-	if(dna.species)
+	if(HAS_TRAIT(src, TRAIT_IPC_CAN_EAT))
+		return TASTE_SENSITIVITY_NORMAL
+	else if(dna.species)
 		return dna.species.taste_sensitivity
 	else
 		return TASTE_SENSITIVITY_NORMAL

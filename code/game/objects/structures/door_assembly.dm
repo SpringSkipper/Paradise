@@ -2,9 +2,9 @@
 	name = "airlock assembly"
 	icon = 'icons/obj/doors/airlocks/station/public.dmi'
 	icon_state = "construction"
-	anchored = FALSE
 	density = TRUE
 	max_integrity = 200
+	cares_about_temperature = TRUE
 	var/overlays_file = 'icons/obj/doors/airlocks/station/overlays.dmi'
 	var/state = AIRLOCK_ASSEMBLY_NEEDS_WIRES
 	/// String value. Used in user chat messages
@@ -55,7 +55,8 @@
 	else
 		. += "<span class='notice'>There is a small <i>paper</i> placard on the assembly[doorname].</span>"
 
-/obj/structure/door_assembly/attackby(obj/item/W, mob/user, params)
+/obj/structure/door_assembly/item_interaction(mob/living/user, obj/item/W, list/modifiers)
+	. = ITEM_INTERACT_COMPLETE
 	if(is_pen(W))
 		// The door assembly gets renamed to "Assembly - Foobar",
 		// but the `t` returned from the proc is just "Foobar" without the prefix.
@@ -82,14 +83,16 @@
 		user.visible_message("[user] installs the electronics into the airlock assembly.", "You start to install electronics into the airlock assembly...")
 
 		if(do_after(user, 40 * W.toolspeed, target = src))
-			if(state != AIRLOCK_ASSEMBLY_NEEDS_ELECTRONICS)
+			var/obj/item/airlock_electronics/new_electronics = W
+			if(state != AIRLOCK_ASSEMBLY_NEEDS_ELECTRONICS || new_electronics.is_installed)
 				return
 			user.drop_item()
-			W.forceMove(src)
+			new_electronics.forceMove(src)
 			to_chat(user, "<span class='notice'>You install the airlock electronics.</span>")
 			state = AIRLOCK_ASSEMBLY_NEEDS_SCREWDRIVER
 			name = "near finished airlock assembly"
-			electronics = W
+			electronics = new_electronics
+			electronics.is_installed = TRUE
 
 	else if(istype(W, /obj/item/stack/sheet) && (!glass || !mineral))
 		var/obj/item/stack/sheet/S = W
@@ -119,7 +122,7 @@
 	update_appearance(UPDATE_NAME | UPDATE_OVERLAYS)
 
 /obj/structure/door_assembly/crowbar_act(mob/user, obj/item/I)
-	if(state != AIRLOCK_ASSEMBLY_NEEDS_SCREWDRIVER )
+	if(state != AIRLOCK_ASSEMBLY_NEEDS_SCREWDRIVER)
 		return
 	. = TRUE
 	if(!I.tool_use_check(user, 0))
@@ -137,10 +140,11 @@
 		ae = electronics
 		electronics = null
 		ae.forceMove(loc)
+		ae.is_installed = FALSE
 	update_appearance(UPDATE_NAME | UPDATE_OVERLAYS)
 
 /obj/structure/door_assembly/screwdriver_act(mob/user, obj/item/I)
-	if(state != AIRLOCK_ASSEMBLY_NEEDS_SCREWDRIVER )
+	if(state != AIRLOCK_ASSEMBLY_NEEDS_SCREWDRIVER)
 		return
 	. = TRUE
 	if(!I.tool_use_check(user, 0))
@@ -282,8 +286,7 @@
 	if(electronics)
 		target.electronics = source.electronics
 		source.electronics.forceMove(target)
-	target.update_icon(UPDATE_OVERLAYS)
-	target.update_name()
+	target.update_appearance(UPDATE_NAME|UPDATE_OVERLAYS)
 	qdel(source)
 
 /obj/structure/door_assembly/deconstruct(disassembled = TRUE)
@@ -307,7 +310,7 @@
 				new /obj/item/shard(T)
 	qdel(src)
 
-/obj/structure/door_assembly/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
+/obj/structure/door_assembly/temperature_expose(exposed_temperature, exposed_volume)
 	..()
 	if(exposed_temperature > (T0C + heat_resistance))
 		take_damage(round(exposed_volume / 100), BURN, 0, 0)

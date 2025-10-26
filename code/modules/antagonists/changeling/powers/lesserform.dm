@@ -4,9 +4,10 @@
 	helptext = "The transformation greatly reduces our size, allowing us to slip out of cuffs and climb through vents."
 	button_icon_state = "lesser_form"
 	chemical_cost = 5
-	dna_cost = 1
+	dna_cost = 2
 	req_human = TRUE
 	power_type = CHANGELING_PURCHASABLE_POWER
+	category = /datum/changeling_power_category/utility
 
 //Transform into a monkey.
 /datum/action/changeling/lesserform/sting_action(mob/living/carbon/human/user)
@@ -24,6 +25,7 @@
 
 	H.visible_message("<span class='warning'>[H] transforms!</span>")
 	to_chat(H, "<span class='warning'>Our genes cry out!</span>")
+	H.flavor_text = ""
 	H.monkeyize()
 
 	H.adjustBruteLoss(brute_damage)

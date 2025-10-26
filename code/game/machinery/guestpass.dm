@@ -10,6 +10,9 @@
 	var/expiration_time = 0
 	var/reason = "NOT SPECIFIED"
 
+/obj/item/card/id/guest/attach_guest_pass(/obj/item/card/id/guest/G, mob/user)
+	return
+
 /obj/item/card/id/guest/GetAccess()
 	if(world.time > expiration_time)
 		return access
@@ -33,6 +36,7 @@
 
 /obj/machinery/computer/guestpass
 	name = "guest pass terminal"
+	desc = "This console allows staff to give out temporary access to their coworkers."
 	icon_state = "guest"
 	icon_screen = "pass"
 	icon_keyboard = null
@@ -56,16 +60,20 @@
 	. = ..()
 	my_terminal_id = ++global_terminal_id
 
-/obj/machinery/computer/guestpass/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/card/id))
+/obj/machinery/computer/guestpass/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(istype(used, /obj/item/card/id/nct_data_chip))
+		to_chat(user, "<span class='warning'>[used] does not seem compatible with this terminal!</span>")
+		return ITEM_INTERACT_COMPLETE
+	if(istype(used, /obj/item/card/id))
 		if(!scan)
 			if(user.drop_item())
-				I.forceMove(src)
-				scan = I
-				updateUsrDialog()
+				used.forceMove(src)
+				scan = used
+				SStgui.update_uis(src)
 		else
 			to_chat(user, "<span class='warning'>There is already ID card inside.</span>")
-		return
+		return ITEM_INTERACT_COMPLETE
+
 	return ..()
 
 /obj/machinery/computer/guestpass/proc/get_changeable_accesses()
@@ -80,12 +88,14 @@
 		return
 	ui_interact(user)
 
-/obj/machinery/computer/guestpass/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+/obj/machinery/computer/guestpass/ui_state(mob/user)
+	return GLOB.default_state
+
+/obj/machinery/computer/guestpass/ui_interact(mob/user, datum/tgui/ui = null)
+	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, ui_key, "GuestPass",  name, 500, 850, master_ui, state)
+		ui = new(user, src, "GuestPass",  name)
 		ui.open()
-		ui.set_autoupdate(FALSE)
 
 /obj/machinery/computer/guestpass/ui_data(mob/user)
 	var/list/data = list()
@@ -229,6 +239,7 @@
 
 /obj/machinery/computer/guestpass/hop
 	name = "\improper HoP guest pass terminal"
+	desc = "The Head of Personnel's guest pass terminal allows the HoP to temporarily allow anyone into places they probably shouldn't be."
 
 /obj/machinery/computer/guestpass/hop/get_changeable_accesses()
 	. = ..()

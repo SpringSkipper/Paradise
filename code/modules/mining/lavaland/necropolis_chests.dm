@@ -8,11 +8,14 @@
 	icon_closed = "necrocrate"
 	resistance_flags = LAVA_PROOF | FIRE_PROOF | ACID_PROOF
 
+/obj/structure/closet/crate/necropolis/ex_act(severity) // So vetus explosion won't destroy everything inside
+	return
+
 /obj/structure/closet/crate/necropolis/tendril
 	desc = "It's watching you suspiciously."
 
 /obj/structure/closet/crate/necropolis/tendril/populate_contents()
-	var/loot = rand(1, 23)
+	var/loot = rand(1, 24)
 	switch(loot)
 		if(1)
 			new /obj/item/shared_storage/red(src)
@@ -61,14 +64,26 @@
 		if(19)
 			new /obj/item/gun/magic/hook(src)
 		if(20)
-			new /obj/item/grenade/clusterbuster/inferno(src)
+			new /obj/item/reagent_containers/drinks/everfull(src)
 		if(21)
-			new /obj/item/reagent_containers/food/drinks/bottle/holywater/hell(src)
+			new /obj/item/reagent_containers/drinks/bottle/holywater/hell(src)
 		if(22)
 			new /obj/item/spellbook/oneuse/summonitem(src)
 		if(23)
 			new /obj/item/borg/upgrade/modkit/lifesteal(src)
 			new /obj/item/bedsheet/cult(src)
+		if(24)
+			switch(rand(1, 11))
+				if(1)
+					new /obj/item/blank_tarot_card(src)
+				if(2 to 5)
+					new /obj/item/tarot_card_pack(src)
+				if(6 to 8)
+					new /obj/item/tarot_card_pack/jumbo(src)
+				if(9, 10)
+					new /obj/item/tarot_card_pack/mega(src)
+				if(11)
+					new /obj/item/tarot_generator(src) // ~1/250? Seems reasonable
 
 //KA modkit design discs
 /obj/item/disk/design_disk/modkit_disk
@@ -104,7 +119,7 @@
 	id = "hyperaoemod"
 	materials = list(MAT_METAL = 7000, MAT_GLASS = 3000, MAT_SILVER= 3000, MAT_GOLD = 3000, MAT_DIAMOND = 4000)
 	build_path = /obj/item/borg/upgrade/modkit/aoe/turfs/andmobs
-	category = list("Mining", "Cyborg Upgrade Modules")
+	category = list("Mining", "Cyborg Upgrades")
 	build_type = PROTOLATHE | MECHFAB
 	requires_whitelist = TRUE
 
@@ -114,7 +129,7 @@
 	id = "repeatermod"
 	materials = list(MAT_METAL = 5000, MAT_GLASS = 5000, MAT_URANIUM = 8000, MAT_BLUESPACE = 2000)
 	build_path = /obj/item/borg/upgrade/modkit/cooldown/repeater
-	category = list("Mining", "Cyborg Upgrade Modules")
+	category = list("Mining", "Cyborg Upgrades")
 	build_type = PROTOLATHE | MECHFAB
 	requires_whitelist = TRUE
 
@@ -124,7 +139,7 @@
 	id = "resonatormod"
 	materials = list(MAT_METAL = 5000, MAT_GLASS = 5000, MAT_SILVER= 5000, MAT_URANIUM = 5000)
 	build_path = /obj/item/borg/upgrade/modkit/resonator_blasts
-	category = list("Mining", "Cyborg Upgrade Modules")
+	category = list("Mining", "Cyborg Upgrades")
 	build_type = PROTOLATHE | MECHFAB
 	requires_whitelist = TRUE
 
@@ -135,7 +150,7 @@
 	materials = list(MAT_METAL = 4000, MAT_SILVER = 4000, MAT_GOLD = 4000, MAT_BLUESPACE = 4000)
 	reagents_list = list("blood" = 40)
 	build_path = /obj/item/borg/upgrade/modkit/bounty
-	category = list("Mining", "Cyborg Upgrade Modules")
+	category = list("Mining", "Cyborg Upgrades")
 	build_type = PROTOLATHE | MECHFAB
 	requires_whitelist = TRUE
 
@@ -171,12 +186,16 @@
 		"Vulpkanin" = 'icons/mob/clothing/species/vulpkanin/suit.dmi'
 		)
 	hide_tail_by_species = list("Unathi", "Tajaran", "Vox", "Vulpkanin")
+	insert_max = 0
+
+/obj/item/clothing/suit/hooded/berserker/Initialize(mapload)
+	. = ..()
+	AddComponent(/datum/component/anti_magic, ALL, inventory_flags = ITEM_SLOT_OUTER_SUIT)
 
 /obj/item/clothing/head/hooded/berserker
 	name = "berserker helmet"
 	desc = "Peering into the eyes of the helmet is enough to seal damnation."
 	icon_state = "hardsuit0-berserker"
-	item_color = "berserker"
 	light_color = BERSERK_COLOUR
 	light_power = 4
 	actions_types = list(/datum/action/item_action/berserk_mode)
@@ -223,7 +242,7 @@
 /obj/item/clothing/head/hooded/berserker/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	if(berserk_active)
 		return
-	if(istype(hitby, /obj/item/projectile))
+	if(isprojectile(hitby))
 		var/obj/item/projectile/P = hitby
 		if(P.damage_type == STAMINA)
 			return //no disabler rage
@@ -244,8 +263,8 @@
 	user.next_move_modifier *= BERSERK_ATTACK_SPEED_MODIFIER
 	user.add_atom_colour(BERSERK_COLOUR, TEMPORARY_COLOUR_PRIORITY)
 	ADD_TRAIT(user, TRAIT_CHUNKYFINGERS, BERSERK_TRAIT)
-	flags |= NODROP
-	suit.flags |= NODROP
+	set_nodrop(TRUE)
+	suit.set_nodrop(TRUE, loc)
 	berserk_active = TRUE
 	START_PROCESSING(SSobj, src)
 
@@ -264,8 +283,8 @@
 	user.next_move_modifier /= BERSERK_ATTACK_SPEED_MODIFIER
 	user.remove_atom_colour(TEMPORARY_COLOUR_PRIORITY, BERSERK_COLOUR)
 	REMOVE_TRAIT(user, TRAIT_CHUNKYFINGERS, BERSERK_TRAIT)
-	flags &= ~NODROP
-	suit.flags &= ~NODROP
+	set_nodrop(FALSE)
+	suit.set_nodrop(FALSE)
 	STOP_PROCESSING(SSobj, src)
 
 /datum/action/item_action/berserk_mode
@@ -309,7 +328,7 @@
 	var/usedHand
 	var/mob/living/carbon/owner
 
-/obj/item/rod_of_asclepius/attack_self(mob/user)
+/obj/item/rod_of_asclepius/attack_self__legacy__attackchain(mob/user)
 	if(activated)
 		return
 	if(!iscarbon(user))
@@ -355,38 +374,47 @@
 
 /obj/item/rod_of_asclepius/dropped(mob/user, silent)
 	..()
-	if(!activated)
+	if(!activated || QDELETED(src))
 		return
-	addtimer(CALLBACK(src, PROC_REF(try_attach_to_owner)), 0) // Do this once the drop call stack is done. The holding limb might be getting removed
+	END_OF_TICK(CALLBACK(src, PROC_REF(try_attach_to_owner))) // Do this once the drop call stack is done. The holding limb might be getting removed
 
 /obj/item/rod_of_asclepius/proc/try_attach_to_owner()
-	if(ishuman(owner) && !QDELETED(owner))
-		if(ishuman(loc))
-			var/mob/living/carbon/human/thief = loc
-			thief.unEquip(src, TRUE, TRUE) // You're not my owner!
-		if(owner.stat == DEAD)
-			qdel(src) // Oh no! Oh well a new rod will be made from the STATUS_EFFECT_HIPPOCRATIC_OATH
-			return
-		flags |= NODROP // Readd the nodrop
-		var/mob/living/carbon/human/H = owner
-		var/limb_regrown = FALSE
-		if(usedHand == LEFT_HAND)
-			limb_regrown = H.regrow_external_limb_if_missing("l_arm")
-			limb_regrown = H.regrow_external_limb_if_missing("l_hand") || limb_regrown
-			H.drop_l_hand(TRUE)
-			H.put_in_l_hand(src, TRUE)
-		else
-			limb_regrown = H.regrow_external_limb_if_missing("r_arm")
-			limb_regrown = H.regrow_external_limb_if_missing("r_hand") || limb_regrown
-			H.drop_r_hand(TRUE)
-			H.put_in_r_hand(src, TRUE)
-		if(!limb_regrown)
-			to_chat(H, "<span class='notice'>The Rod of Asclepius suddenly grows back out of your arm!</span>")
-		else
-			H.update_body() // Update the limb sprites
-			to_chat(H, "<span class='notice'>Your arm suddenly grows back with the Rod of Asclepius still attached!</span>")
-	else
+	if(!ishuman(owner) || QDELETED(owner))
 		deactivate()
+		return
+
+	var/mob/living/carbon/human/thief = loc
+
+	if(thief == owner) // stealing from yourself, huh?
+		return
+
+	if(ishuman(thief))
+		thief.drop_item_to_ground(src, force = TRUE, silent = TRUE) // You're not my owner!
+
+	if(owner.stat == DEAD)
+		qdel(src) // Oh no! Oh well a new rod will be made from the STATUS_EFFECT_HIPPOCRATIC_OATH
+		return
+
+	set_nodrop(TRUE, loc)
+	var/mob/living/carbon/human/H = owner
+	var/limb_regrown = FALSE
+
+	if(usedHand == LEFT_HAND)
+		limb_regrown = H.regrow_external_limb_if_missing("l_arm")
+		limb_regrown = H.regrow_external_limb_if_missing("l_hand") || limb_regrown
+		H.drop_l_hand(TRUE)
+		H.put_in_l_hand(src, TRUE)
+	else
+		limb_regrown = H.regrow_external_limb_if_missing("r_arm")
+		limb_regrown = H.regrow_external_limb_if_missing("r_hand") || limb_regrown
+		H.drop_r_hand(TRUE)
+		H.put_in_r_hand(src, TRUE)
+
+	if(!limb_regrown)
+		to_chat(H, "<span class='notice'>The Rod of Asclepius suddenly grows back out of your arm!</span>")
+	else
+		H.update_body() // Update the limb sprites
+		to_chat(H, "<span class='notice'>Your arm suddenly grows back with the Rod of Asclepius still attached!</span>")
 
 /obj/item/rod_of_asclepius/proc/activated(mob/living/carbon/new_owner)
 	owner = new_owner
@@ -423,7 +451,7 @@
 	return // It's a shard
 
 
-/obj/item/organ/internal/cyberimp/arm/katana/attack_self(mob/living/carbon/user, modifiers)
+/obj/item/organ/internal/cyberimp/arm/katana/attack_self__legacy__attackchain(mob/living/carbon/user, modifiers)
 	. = ..()
 	to_chat(user,"<span class='userdanger'>The mass goes up your arm and inside it!</span>")
 	playsound(user, 'sound/misc/demon_consume.ogg', 50, TRUE)
@@ -451,7 +479,7 @@
 /obj/item/organ/internal/cyberimp/arm/katana/Extend()
 	for(var/obj/item/cursed_katana/katana in contents)
 		if(katana.shattered)
-			to_chat(owner, "<span class='warning'> Your cursed katana has not reformed yet!</span>")
+			to_chat(owner, "<span class='warning'>Your cursed katana has not reformed yet!</span>")
 			return FALSE
 	return ..()
 
@@ -494,8 +522,8 @@
 	lefthand_file = 'icons/mob/inhands/weapons_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/weapons_righthand.dmi'
 	force = 15
-	armour_penetration_percentage = 40
-	armour_penetration_flat = 10
+	armor_penetration_percentage = 40
+	armor_penetration_flat = 10
 	sharp = TRUE
 	w_class = WEIGHT_CLASS_HUGE
 	attack_verb = list("attack", "slash", "stab", "slice", "tear", "lacerate", "rip", "dice", "cut")
@@ -534,11 +562,11 @@
 	. = ..()
 	reset_inputs(null, TRUE)
 
-/obj/item/cursed_katana/attack_self(mob/user)
+/obj/item/cursed_katana/attack_self__legacy__attackchain(mob/user)
 	. = ..()
 	reset_inputs(user, TRUE)
 
-/obj/item/cursed_katana/attack(mob/living/target, mob/user, click_parameters)
+/obj/item/cursed_katana/attack__legacy__attackchain(mob/living/target, mob/user, click_parameters)
 	if(target.stat == DEAD || target == user) //No, you can not stab yourself to cloak / not take the penalty for not drawing blood
 		return ..()
 	if(HAS_TRAIT(user, TRAIT_PACIFISM))
@@ -654,7 +682,7 @@
 	for(var/distance in 0 to 8)
 		var/turf/current_dash_target = dash_target
 		current_dash_target = get_step(current_dash_target, user.dir)
-		if(!is_blocked_turf(current_dash_target, TRUE))
+		if(!current_dash_target.is_blocked_turf(exclude_mobs = TRUE))
 			dash_target = current_dash_target
 		else
 			break
@@ -670,7 +698,7 @@
 	to_chat(target, "<span class='userdanger'>[user] shatters [src] over you!</span>")
 	target.apply_damage((ishostile(target) ? 75 : 35), BRUTE, BODY_ZONE_CHEST, TRUE)
 	target.KnockDown(5 SECONDS)
-	target.adjustStaminaLoss(60) //Takes 4 hits to do, breaks your weapon. Perfectly fine.
+	target.apply_damage(60, STAMINA) //Takes 4 hits to do, breaks your weapon. Perfectly fine.
 	user.do_attack_animation(target, ATTACK_EFFECT_SMASH)
 	playsound(src, 'sound/effects/glassbr3.ogg', 100, TRUE)
 	if(ishuman(user))

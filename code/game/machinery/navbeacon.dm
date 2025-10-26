@@ -12,7 +12,7 @@
 	plane = FLOOR_PLANE
 	anchored = TRUE
 	max_integrity = 500
-	armor = list(melee = 70, bullet = 70, laser = 70, energy = 70, bomb = 0, rad = 0, fire = 80, acid = 80)
+	armor = list(MELEE = 70, BULLET = 70, LASER = 70, ENERGY = 70, BOMB = 0, RAD = 0, FIRE = 80, ACID = 80)
 	var/open = FALSE		// true if cover is open
 	var/locked = TRUE		// true if controls are locked
 	var/location = ""	// location response text
@@ -82,12 +82,12 @@
 	icon_state = "navbeacon[open][invisibility ? "-f" : ""]"	// if invisible, set icon to faded version
 																// in case revealed by T-scanner
 
-/obj/machinery/navbeacon/attackby(obj/item/I, mob/user, params)
+/obj/machinery/navbeacon/item_interaction(mob/living/user, obj/item/used, list/modifiers)
 	var/turf/T = loc
 	if(T.intact)
-		return		// prevent intraction when T-scanner revealed
+		return ITEM_INTERACT_COMPLETE // prevent intraction when T-scanner revealed
 
-	else if(istype(I, /obj/item/card/id) || istype(I, /obj/item/pda))
+	else if(istype(used, /obj/item/card/id) || istype(used, /obj/item/pda))
 		if(open)
 			if(allowed(user))
 				locked = !locked
@@ -97,8 +97,10 @@
 			updateDialog()
 		else
 			to_chat(user, "<span class='warning'>You must open the cover first!</span>")
-	else
-		return ..()
+
+		return ITEM_INTERACT_COMPLETE
+
+	return ..()
 
 /obj/machinery/navbeacon/screwdriver_act(mob/living/user, obj/item/I)
 	open = !open
@@ -162,20 +164,21 @@ Transponder Codes:<UL>"}
 		usr.set_machine(src)
 
 		if(href_list["locedit"])
-			var/newloc = copytext(sanitize(input("Enter New Location", "Navigation Beacon", location) as text|null),1,MAX_MESSAGE_LEN)
-			if(newloc)
-				location = newloc
-				updateDialog()
+			var/newloc = tgui_input_text(usr, "Enter New Location", "Navigation Beacon", location)
+			if(!newloc)
+				return
+			location = newloc
+			updateDialog()
 
 		else if(href_list["edit"])
 			var/codekey = href_list["code"]
 
-			var/newkey = stripped_input(usr, "Enter Transponder Code Key", "Navigation Beacon", codekey)
+			var/newkey = tgui_input_text(usr, "Enter Transponder Code Key", "Navigation Beacon", codekey)
 			if(!newkey)
 				return
 
 			var/codeval = codes[codekey]
-			var/newval = stripped_input(usr, "Enter Transponder Code Value", "Navigation Beacon", codeval)
+			var/newval = tgui_input_text(usr, "Enter Transponder Code Value", "Navigation Beacon", codeval)
 			if(!newval)
 				newval = codekey
 				return
@@ -192,11 +195,11 @@ Transponder Codes:<UL>"}
 
 		else if(href_list["add"])
 
-			var/newkey = stripped_input(usr, "Enter New Transponder Code Key", "Navigation Beacon")
+			var/newkey = tgui_input_text(usr, "Enter New Transponder Code Key", "Navigation Beacon")
 			if(!newkey)
 				return
 
-			var/newval = stripped_input(usr, "Enter New Transponder Code Value", "Navigation Beacon")
+			var/newval = tgui_input_text(usr, "Enter New Transponder Code Value", "Navigation Beacon")
 			if(!newval)
 				newval = "1"
 				return

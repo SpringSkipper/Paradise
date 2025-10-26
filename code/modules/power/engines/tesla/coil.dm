@@ -43,15 +43,12 @@
 	if(in_range(user, src) || isobserver(user))
 		. += "<span class='notice'>The status display reads: Power generation at <b>[input_power_multiplier*100]%</b>.<br>Shock interval at <b>[zap_cooldown*0.1]</b> seconds.</span>"
 
-/obj/machinery/power/tesla_coil/attackby(obj/item/W, mob/user, params)
-	if(exchange_parts(user, W))
-		return
-
-	else if(istype(W, /obj/item/assembly/signaler) && panel_open)
+/obj/machinery/power/tesla_coil/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(istype(used, /obj/item/assembly/signaler) && panel_open)
 		wires.Interact(user)
+		return ITEM_INTERACT_COMPLETE
 
-	else
-		return ..()
+	return ..()
 
 /obj/machinery/power/tesla_coil/crowbar_act(mob/user, obj/item/I)
 	. = TRUE
@@ -99,7 +96,6 @@
 		var/power_produced = powernet ? power * input_power_multiplier : power
 		produce_direct_power(power_produced)
 		flick("coilhit", src)
-		playsound(loc, 'sound/magic/lightningshock.ogg', 100, TRUE, extrarange = 5)
 		return power - power_produced //You get back the amount we didn't use
 	else
 		. = ..()
@@ -134,9 +130,11 @@
 	component_parts += new /obj/item/stock_parts/capacitor(null)
 	RefreshParts()
 
-/obj/machinery/power/grounding_rod/attackby(obj/item/W, mob/user, params)
-	if(exchange_parts(user, W))
-		return
+/obj/machinery/power/grounding_rod/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(exchange_parts(user, used))
+		return ITEM_INTERACT_COMPLETE
+
+	return ..()
 
 /obj/machinery/power/grounding_rod/screwdriver_act(mob/user, obj/item/I)
 	. = TRUE

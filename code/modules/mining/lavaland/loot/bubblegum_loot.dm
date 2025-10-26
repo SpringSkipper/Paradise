@@ -1,33 +1,12 @@
-/obj/structure/closet/crate/necropolis/bubblegum
-	name = "bubblegum chest"
-
-/obj/structure/closet/crate/necropolis/bubblegum/populate_contents()
-	new /obj/item/clothing/suit/space/hostile_environment(src)
-	new /obj/item/clothing/head/helmet/space/hostile_environment(src)
-	new /obj/item/melee/spellblade/random(src)
-
-/obj/structure/closet/crate/necropolis/bubblegum/crusher
-	name = "bloody bubblegum chest"
-
-/obj/structure/closet/crate/necropolis/bubblegum/crusher/populate_contents()
-	. = ..()
-	new /obj/item/crusher_trophy/demon_claws(src)
-
 /obj/structure/closet/crate/necropolis/bubblegum/bait/populate_contents()
 	return
-
-/obj/structure/closet/crate/necropolis/bubblegum/bait/open(by_hand)
-	. = ..()
-	for(var/obj/effect/bubblegum_trigger/B in contents)
-		B.targets_to_fuck_up += usr
-		B.activate()
 
 /obj/effect/bubblegum_trigger
 	var/list/targets_to_fuck_up = list()
 
 /obj/effect/bubblegum_trigger/Initialize(mapload, target_list)
 	. = ..()
-	addtimer(CALLBACK(src, PROC_REF(activate)), 15 SECONDS) //We try to auto engage the fun 15 seconds after death, or when manually opened, whichever comes first. If for some strange reason the target list is empty, we'll trigger when opened
+	addtimer(CALLBACK(src, PROC_REF(activate)), 15 SECONDS) //We try to auto engage the fun 15 seconds after death.
 	targets_to_fuck_up = target_list
 
 /obj/effect/bubblegum_trigger/proc/activate()
@@ -91,7 +70,7 @@
 	icon = 'icons/obj/wizard.dmi'
 	icon_state = "vial"
 
-/obj/item/mayhem/attack_self(mob/user)
+/obj/item/mayhem/attack_self__legacy__attackchain(mob/user)
 	for(var/mob/living/carbon/human/H in range(7,user))
 		spawn()
 			var/obj/effect/mine/pickup/bloodbath/B = new(H)
@@ -110,12 +89,12 @@
 	desc = "Mark your target for death."
 	var/used = FALSE
 
-/obj/item/blood_contract/attack_self(mob/user)
+/obj/item/blood_contract/attack_self__legacy__attackchain(mob/user)
 	if(used)
 		return
 
 	used = TRUE
-	var/choice = input(user,"Who do you want dead?","Choose Your Victim") as null|anything in GLOB.player_list
+	var/choice = tgui_input_list(user, "Who do you want dead?", "Choose Your Victim", GLOB.player_list)
 
 	if(!choice)
 		used = FALSE

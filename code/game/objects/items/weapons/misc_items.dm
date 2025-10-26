@@ -14,6 +14,7 @@
 	Newton Cradle
 	PAI cable
 	Red Phone
+	Popsicle Sticks
 */
 
 /obj/item/balltoy
@@ -26,11 +27,10 @@
 	name = "cane"
 	desc = "A cane used by a true gentlemen. Or a clown."
 	icon_state = "cane"
-	item_state = "stick"
+	inhand_icon_state = "stick"
 	flags = CONDUCT
 	force = 5.0
 	throwforce = 7.0
-	w_class = WEIGHT_CLASS_NORMAL
 	materials = list(MAT_METAL=50)
 	attack_verb = list("bludgeoned", "whacked", "disciplined", "thrashed", "Vaudevilled")
 
@@ -70,7 +70,7 @@
 	icon_state = "crutches0"
 	return ..()
 
-/obj/item/crutches/attackby(obj/item/I, mob/user, params)
+/obj/item/crutches/attackby__legacy__attackchain(obj/item/I, mob/user, params)
 	. = ..()
 	if(!is_open)
 		return
@@ -80,7 +80,7 @@
 			return
 		if(I.flags & ABSTRACT)
 			return
-		if(!user.unEquip(I))
+		if(!user.unequip(I))
 			to_chat(user, "<span class='notice'>[I] doesn't seem to want to go into [src]!</span>")
 			return
 		I.forceMove(src)
@@ -112,10 +112,17 @@
 	desc = "A tube... of cardboard."
 	icon = 'icons/obj/stacks/miscellaneous.dmi'
 	icon_state = "c_tube"
+	hitsound = 'sound/items/cardboard_tube.ogg'
 	throwforce = 1
+	force = 1
+	attack_verb = list("bonked", "thunked")
 	w_class = WEIGHT_CLASS_TINY
 	throw_speed = 4
 	throw_range = 5
+
+/obj/item/c_tube/decompile_act(obj/item/matter_decompiler/C, mob/user)
+	qdel(src)
+	return TRUE
 
 
 
@@ -125,28 +132,15 @@
 	icon_state = "fan"
 	desc = "A small desktop fan. The button seems to be stuck in the 'on' position."
 
-/*
-/obj/item/game_kit
-	name = "Gaming Kit"
-	icon = 'icons/obj/items.dmi'
-	icon_state = "game_kit"
-	var/selected = null
-	var/board_stat = null
-	var/data = ""
-	var/base_url = "http://svn.slurm.us/public/spacestation13/misc/game_kit"
-	item_state = "sheet-metal"
-	w_class = WEIGHT_CLASS_HUGE
-*/
 
 /obj/item/gift
 	name = "gift"
 	desc = "A wrapped item."
-	icon = 'icons/obj/items.dmi'
 	icon_state = "gift3"
+	inhand_icon_state = "gift"
+	w_class = WEIGHT_CLASS_BULKY
 	var/size = 3.0
 	var/obj/item/gift = null
-	item_state = "gift"
-	w_class = WEIGHT_CLASS_BULKY
 
 /obj/item/gift/emp_act(severity)
 	..()
@@ -162,13 +156,13 @@
 	name = "lightning"
 	icon = 'icons/obj/lightning.dmi'
 	icon_state = "lightning"
-	desc = "test lightning"
+	desc = "test lightning."
 
 /obj/item/lightning/New()
 	..()
 	icon_state = "1"
 
-/obj/item/lightning/afterattack(atom/A as mob|obj|turf|area, mob/living/user as mob|obj, flag, params)
+/obj/item/lightning/afterattack__legacy__attackchain(atom/A as mob|obj|turf|area, mob/living/user as mob|obj, flag, params)
 	var/angle = get_angle(A, user)
 	//to_chat(world, angle)
 	angle = round(angle) + 45
@@ -200,7 +194,6 @@
 /obj/item/phone
 	name = "red phone"
 	desc = "Should anything ever go wrong..."
-	icon = 'icons/obj/items.dmi'
 	icon_state = "red_phone"
 	flags = CONDUCT
 	force = 3
@@ -212,7 +205,13 @@
 	hitsound = 'sound/weapons/ring.ogg'
 	var/cooldown = 0
 
-/obj/item/phone/attack_self(mob/user)
+/obj/item/phone/attack_self__legacy__attackchain(mob/user)
 	if(cooldown < world.time - 20)
 		playsound(user.loc, 'sound/weapons/ring.ogg', 50, 1)
 		cooldown = world.time
+
+/obj/item/popsicle_stick
+	name = "popsicle stick"
+	desc = "A small wooden stick, usually topped by popsicles or other frozen treats."
+	icon = 'icons/obj/food/frozen_treats.dmi'
+	icon_state = "popsicle_stick"

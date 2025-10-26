@@ -1,12 +1,12 @@
 //OTHER DEBUFFS
 
-/datum/status_effect/his_wrath //does minor damage over time unless holding His Grace
+/// does minor damage over time unless holding His Grace
+/datum/status_effect/his_wrath
 	id = "his_wrath"
-	duration = -1
 	tick_interval = 4
-	alert_type = /obj/screen/alert/status_effect/his_wrath
+	alert_type = /atom/movable/screen/alert/status_effect/his_wrath
 
-/obj/screen/alert/status_effect/his_wrath
+/atom/movable/screen/alert/status_effect/his_wrath
 	name = "His Wrath"
 	desc = "You fled from His Grace instead of feeding Him, and now you suffer."
 	icon_state = "his_grace"
@@ -23,9 +23,9 @@
 	owner.adjustFireLoss(0.1)
 	owner.adjustToxLoss(0.2)
 
-/datum/status_effect/cultghost //is a cult ghost and can't use manifest runes, can see ghosts and dies if too far from summoner
+/// is a cult ghost and can't use manifest runes, can see ghosts and dies if too far from summoner
+/datum/status_effect/cultghost
 	id = "cult_ghost"
-	duration = -1
 	alert_type = null
 	var/damage = 7.5
 	var/source_UID
@@ -78,7 +78,6 @@
 
 /datum/status_effect/saw_bleed
 	id = "saw_bleed"
-	duration = -1 //removed under specific conditions
 	tick_interval = 6
 	alert_type = null
 	var/mutable_appearance/bleed_overlay
@@ -144,7 +143,7 @@
 		new /obj/effect/temp_visual/bleed/explode(T)
 		for(var/d in GLOB.alldirs)
 			new /obj/effect/temp_visual/dir_setting/bloodsplatter(T, d)
-		playsound(T, "desceration", 200, 1, -1)
+		playsound(T, "desceration", 200, TRUE, -1)
 		owner.adjustBruteLoss(bleed_damage)
 	else
 		new /obj/effect/temp_visual/bleed(get_turf(owner))
@@ -161,7 +160,7 @@
 	stack_threshold = 3
 	max_stacks = 3
 	reset_ticks_on_stack = TRUE
-	var/mob/living/simple_animal/hostile/asteroid/big_legion/latest_attacker
+	var/mob/living/basic/mining/big_legion/latest_attacker
 
 /datum/status_effect/stacking/ground_pound/on_creation(mob/living/new_owner, stacks_to_apply, mob/living/attacker)
 	. = ..()
@@ -177,7 +176,7 @@
 
 /datum/status_effect/stacking/ground_pound/stacks_consumed_effect()
 	flick("legion-smash", latest_attacker)
-	addtimer(CALLBACK(latest_attacker, TYPE_PROC_REF(/mob/living/simple_animal/hostile/asteroid/big_legion, throw_mobs)), 1 SECONDS)
+	addtimer(CALLBACK(latest_attacker, TYPE_PROC_REF(/mob/living/basic/mining/big_legion, throw_mobs)), 1 SECONDS)
 
 /datum/status_effect/stacking/ground_pound/on_remove()
 	latest_attacker = null
@@ -186,10 +185,10 @@
 	id = "teleportation sickness"
 	duration = 30 SECONDS
 	status_type = STATUS_EFFECT_REFRESH
-	alert_type = /obj/screen/alert/status_effect/teleport_sickness
+	alert_type = /atom/movable/screen/alert/status_effect/teleport_sickness
 	var/teleports = 1
 
-/obj/screen/alert/status_effect/teleport_sickness
+/atom/movable/screen/alert/status_effect/teleport_sickness
 	name = "Teleportation sickness"
 	desc = "You feel like you are going to throw up with all this teleporting."
 	icon_state = "bluespace"
@@ -237,17 +236,16 @@
 
 /datum/status_effect/cult_stun_mark/on_apply()
 	. = ..()
-	if(!ishuman(owner))
+	if(!isliving(owner))
 		return
 	overlay = mutable_appearance('icons/effects/cult_effects.dmi', "cult-mark", ABOVE_MOB_LAYER)
-	var/mob/living/carbon/human/H = owner
-	H.add_overlay(overlay)
+	owner.add_overlay(overlay)
 
 /datum/status_effect/cult_stun_mark/on_remove()
 	owner.cut_overlay(overlay)
 
 /datum/status_effect/cult_stun_mark/proc/trigger()
-	owner.adjustStaminaLoss(60)
+	owner.apply_damage(60, STAMINA)
 	owner.Silence(6 SECONDS) // refresh the silence
 	qdel(src)
 
@@ -262,6 +260,9 @@
 
 /datum/status_effect/bluespace_slowdown/on_remove()
 	owner.next_move_modifier /= 2
+
+/datum/status_effect/bluespace_slowdown/long
+	duration = 1 MINUTES
 
 /datum/status_effect/shadow_boxing
 	id = "shadow barrage"
@@ -382,6 +383,26 @@
 /datum/status_effect/transient/drowsiness/calc_decay()
 	return (-0.2 + (IS_HORIZONTAL(owner) ? -0.8 : 0)) SECONDS
 
+/datum/status_effect/pepper_spray
+	id = "pepperspray"
+	duration = 10 SECONDS
+	status_type = STATUS_EFFECT_REFRESH
+	tick_interval = -1
+	alert_type = null
+
+/datum/status_effect/pepper_spray/on_apply()
+	. = ..()
+	to_chat(owner, "<span class='danger'>Your throat burns!</span>")
+	owner.AdjustConfused(12 SECONDS, bound_upper = 20 SECONDS)
+	owner.Slowed(4 SECONDS)
+	owner.apply_damage(40, STAMINA)
+
+/datum/status_effect/pepper_spray/refresh()
+	. = ..()
+	owner.AdjustConfused(12 SECONDS, bound_upper = 20 SECONDS)
+	owner.Slowed(4 SECONDS)
+	owner.apply_damage(20, STAMINA)
+
 /**
  * # Drukenness
  *
@@ -422,7 +443,7 @@
 	var/alcohol_resistance = 1
 	var/actual_strength = strength
 	var/datum/mind/M = owner.mind
-	var/is_ipc = ismachineperson(owner)
+	var/is_robot = ismachineperson(owner) || issilicon(owner)
 
 	if(HAS_TRAIT(owner, TRAIT_ALCOHOL_TOLERANCE))
 		alcohol_resistance = 2
@@ -430,7 +451,7 @@
 	actual_strength /= alcohol_resistance
 
 	var/obj/item/organ/internal/liver/L
-	if(!is_ipc)
+	if(!is_robot)
 		L = owner.get_int_organ(/obj/item/organ/internal/liver)
 		var/liver_multiplier = 5 // no liver? get shitfaced
 		if(L)
@@ -442,7 +463,7 @@
 		owner.Slur(actual_strength)
 		if(!alert_thrown)
 			alert_thrown = TRUE
-			owner.throw_alert("drunk", /obj/screen/alert/drunk)
+			owner.throw_alert("drunk", /atom/movable/screen/alert/drunk)
 			owner.sound_environment_override = SOUND_ENVIRONMENT_PSYCHOTIC
 	// THRESHOLD_BRAWLING (60 SECONDS)
 	if(M)
@@ -456,10 +477,10 @@
 	if(actual_strength >= THRESHOLD_CONFUSION && prob(0.33))
 		owner.AdjustConfused(6 SECONDS / alcohol_resistance, bound_lower = 2 SECONDS, bound_upper = 1 MINUTES)
 	// THRESHOLD_SPARK (100 SECONDS)
-	if(is_ipc && actual_strength >= THRESHOLD_SPARK && prob(0.25))
+	if(is_robot && actual_strength >= THRESHOLD_SPARK && prob(0.25))
 		do_sparks(3, 1, owner)
 	// THRESHOLD_VOMIT (120 SECONDS)
-	if(!is_ipc && actual_strength >= THRESHOLD_VOMIT && prob(0.08))
+	if(!is_robot && actual_strength >= THRESHOLD_VOMIT && prob(0.08))
 		owner.fakevomit()
 	// THRESHOLD_BLUR (150 SECONDS)
 	if(actual_strength >= THRESHOLD_BLUR)
@@ -474,7 +495,7 @@
 		owner.Drowsy(60 SECONDS / alcohol_resistance)
 		if(L)
 			L.receive_damage(1, TRUE)
-		if(!is_ipc)
+		if(!is_robot)
 			owner.adjustToxLoss(1)
 	// THRESHOLD_BRAIN_DAMAGE (240 SECONDS)
 	if(actual_strength >= THRESHOLD_BRAIN_DAMAGE && prob(0.1))
@@ -502,6 +523,7 @@
 	id = "cult_slurring"
 
 /datum/status_effect/incapacitating
+	id = "incapacitating"
 	tick_interval = 0
 	status_type = STATUS_EFFECT_REPLACE
 	alert_type = null
@@ -633,10 +655,16 @@
 	var/mob/living/carbon/dreamer = owner
 
 	if(dreamer.mind?.has_antag_datum(/datum/antagonist/vampire))
-		if(istype(dreamer.loc, /obj/structure/closet/coffin))
-			dreamer.adjustBruteLoss(-1, FALSE)
-			dreamer.adjustFireLoss(-1, FALSE)
-			dreamer.adjustToxLoss(-1)
+		var/mob/living/carbon/human/V = owner
+		if(istype(V.loc, /obj/structure/closet/coffin))
+			V.adjustBruteLoss(-1)
+			V.adjustFireLoss(-1)
+			V.adjustToxLoss(-1)
+			V.adjustOxyLoss(-1)
+			V.adjustCloneLoss(-0.5)
+			if(V.HasDisease(/datum/disease/critical/heart_failure) && prob(25))
+				for(var/datum/disease/critical/heart_failure/HF in V.viruses)
+					HF.cure()
 	dreamer.handle_dreams()
 	dreamer.adjustStaminaLoss(-10)
 	var/comfort = 1
@@ -656,6 +684,7 @@
 		dreamer.adjustFireLoss(-1 * comfort)
 	if(prob(10) && dreamer.health && dreamer.health_hud_override != HEALTH_HUD_OVERRIDE_CRIT)
 		dreamer.emote("snore")
+	SEND_SIGNAL(owner, COMSIG_MOB_SLEEP_TICK, comfort)
 
 
 //SLOWED - slows down the victim for a duration and a given slowdown value.
@@ -665,6 +694,18 @@
 
 /datum/status_effect/incapacitating/slowed/on_creation(mob/living/new_owner, set_duration, _slowdown_value)
 	. = ..()
+	if(isnum(_slowdown_value))
+		slowdown_value = _slowdown_value
+
+// Directional slow - Like slowed, but only if you're moving in a certain direction.
+/datum/status_effect/incapacitating/directional_slow
+	id = "directional_slow"
+	var/direction
+	var/slowdown_value = 10 // defaults to this value if none is specified
+
+/datum/status_effect/incapacitating/directional_slow/on_creation(mob/living/new_owner, set_duration, _direction, _slowdown_value)
+	. = ..()
+	direction = _direction
 	if(isnum(_slowdown_value))
 		slowdown_value = _slowdown_value
 
@@ -679,7 +720,8 @@
 	. = ..()
 	REMOVE_TRAIT(owner, TRAIT_MUTE, id)
 
-/datum/status_effect/transient/silence/absolute // this one will mute all emote sounds including gasps
+/// this one will mute all emote sounds including gasps
+/datum/status_effect/transient/silence/absolute
 	id = "abssilenced"
 
 /datum/status_effect/transient/deaf
@@ -723,7 +765,7 @@
 
 #define HALLUCINATE_COOLDOWN_MIN 20 SECONDS
 #define HALLUCINATE_COOLDOWN_MAX 50 SECONDS
-/// This is multiplied with [/mob/var/hallucination] to determine the final cooldown. A higher hallucination value means shorter cooldown.
+/// This is multiplied with [/datum/status_effect/transient/var/strength] to determine the final cooldown. A higher hallucination value means shorter cooldown.
 #define HALLUCINATE_COOLDOWN_FACTOR 0.003
 /// Percentage defining the chance at which an hallucination may spawn past the cooldown.
 #define HALLUCINATE_CHANCE 80
@@ -963,7 +1005,6 @@
 /datum/status_effect/cryo_beam
 	id = "cryo beam"
 	alert_type = null
-	duration = -1 //Kill it, get out of sight, or be killed. Jump boots are *required*
 	tick_interval = 0.5 SECONDS
 	var/damage = 0.75
 	var/source_UID
@@ -988,9 +1029,7 @@
 
 /datum/status_effect/bubblegum_curse
 	id = "bubblegum curse"
-	alert_type = /obj/screen/alert/status_effect/bubblegum_curse
-	duration = -1 //Kill it. There is no other option.
-	tick_interval = 1 SECONDS
+	alert_type = /atom/movable/screen/alert/status_effect/bubblegum_curse
 	/// The damage the status effect does per tick.
 	var/damage = 0.75
 	var/source_UID
@@ -1000,15 +1039,16 @@
 /datum/status_effect/bubblegum_curse/on_creation(mob/living/new_owner, mob/living/source)
 	. = ..()
 	source_UID = source.UID()
-	owner.overlay_fullscreen("Bubblegum", /obj/screen/fullscreen/fog, 1)
+	owner.overlay_fullscreen("Bubblegum", /atom/movable/screen/fullscreen/stretch/fog, 1)
 
 /datum/status_effect/bubblegum_curse/tick()
 	var/mob/living/simple_animal/hostile/megafauna/bubblegum/attacker = locateUID(source_UID)
-	if(!attacker)
+	if(!attacker || attacker.loc == null || attacker.stat == DEAD)
 		qdel(src)
+		return
 	if(attacker.health <= attacker.maxHealth / 2)
 		owner.clear_fullscreen("Bubblegum")
-		owner.overlay_fullscreen("Bubblegum", /obj/screen/fullscreen/fog, 2)
+		owner.overlay_fullscreen("Bubblegum", /atom/movable/screen/fullscreen/stretch/fog, 2)
 	if(!coward_checking)
 		if(owner.z != attacker.z)
 			addtimer(CALLBACK(src, PROC_REF(onstation_coward_callback)), 12 SECONDS)
@@ -1065,6 +1105,8 @@
 	var/mob/living/simple_animal/hostile/megafauna/bubblegum/attacker = locateUID(source_UID)
 	if(!attacker)
 		return //Let's not nullspace
+	if(attacker.loc == null)
+		return //Extra emergency safety.
 	var/turf/TA = get_turf(owner)
 	owner.Immobilize(3 SECONDS)
 	new /obj/effect/decal/cleanable/blood/bubblegum(TA)
@@ -1098,22 +1140,372 @@
 	playsound(targetturf, 'sound/misc/exit_blood.ogg', 100, TRUE, -1)
 	addtimer(CALLBACK(attacker, TYPE_PROC_REF(/mob/living/simple_animal/hostile/megafauna/bubblegum, FindTarget), list(owner), 1), 2)
 
-/obj/screen/alert/status_effect/bubblegum_curse
+/atom/movable/screen/alert/status_effect/bubblegum_curse
 	name = "I SEE YOU"
-	desc = "YOUR SOUL WILL BE MINE FOR YOUR INSOLENCE"
+	desc = "YOUR SOUL WILL BE MINE FOR YOUR INSOLENCE."
 	icon_state = "bubblegumjumpscare"
 
-/obj/screen/alert/status_effect/bubblegum_curse/Initialize(mapload)
+/atom/movable/screen/alert/status_effect/bubblegum_curse/Initialize(mapload)
 	. = ..()
 	START_PROCESSING(SSobj, src)
 
-/obj/screen/alert/status_effect/bubblegum_curse/Destroy()
+/atom/movable/screen/alert/status_effect/bubblegum_curse/Destroy()
 	STOP_PROCESSING(SSobj, src)
 	return ..()
 
-/obj/screen/alert/status_effect/bubblegum_curse/process()
+/atom/movable/screen/alert/status_effect/bubblegum_curse/process()
 	var/new_filter = isnull(get_filter("ray"))
 	ray_filter_helper(1, 40,"#ce3030", 6, 20)
 	if(new_filter)
 		animate(get_filter("ray"), offset = 10, time = 10 SECONDS, loop = -1)
 		animate(offset = 0, time = 10 SECONDS)
+
+
+/datum/status_effect/abductor_cooldown
+	id = "abductor_cooldown"
+	alert_type = /atom/movable/screen/alert/status_effect/abductor_cooldown
+	duration = 10 SECONDS
+
+/atom/movable/screen/alert/status_effect/abductor_cooldown
+	name = "Teleportation cooldown"
+	desc = "Per article A-113, all experimentors must wait 10000 milliseconds between teleports in order to ensure no long term genetic or mental damage happens to experimentor or test subjects."
+	icon_state = "bluespace"
+
+#define DEFAULT_MAX_CURSE_COUNT 5
+
+/// Status effect that gives the target miscellanous debuffs while throwing a status alert and causing them to smoke from the damage they're incurring.
+/// Purposebuilt for cursed slot machines.
+/datum/status_effect/cursed
+	id = "cursed"
+	alert_type = /atom/movable/screen/alert/status_effect/cursed
+	/// The max number of curses a target can incur with this status effect.
+	var/max_curse_count = DEFAULT_MAX_CURSE_COUNT
+	/// The amount of times we have been "applied" to the target.
+	var/curse_count = 0
+	/// Raw probability we have to deal damage this tick.
+	var/damage_chance = 10
+	/// Are we currently in the process of sending a monologue?
+	var/monologuing = FALSE
+	/// The hand we are branded to.
+	var/obj/item/organ/external/branded_hand = null
+
+/datum/status_effect/cursed/on_apply()
+	RegisterSignal(owner, COMSIG_MOB_STATCHANGE, PROC_REF(on_stat_changed))
+	RegisterSignal(owner, COMSIG_MOB_DEATH, PROC_REF(on_death))
+	RegisterSignal(owner, COMSIG_CURSED_SLOT_MACHINE_USE, PROC_REF(check_curses))
+	RegisterSignal(owner, COMSIG_CURSED_SLOT_MACHINE_LOST, PROC_REF(update_curse_count))
+	RegisterSignal(SSdcs, COMSIG_GLOB_CURSED_SLOT_MACHINE_WON, PROC_REF(clear_curses))
+	return ..()
+
+/datum/status_effect/cursed/Destroy()
+	UnregisterSignal(SSdcs, COMSIG_GLOB_CURSED_SLOT_MACHINE_WON)
+	branded_hand = null
+	return ..()
+
+/// Checks the number of curses we have and returns information back to the slot machine. `max_curse_amount` is set by the slot machine itself.
+/datum/status_effect/cursed/proc/check_curses(mob/user, max_curse_amount)
+	SIGNAL_HANDLER
+	if(curse_count >= max_curse_amount)
+		return SLOT_MACHINE_USE_CANCEL
+
+	if(monologuing)
+		to_chat(owner, "<span class='warning'>Your arm is resisting your attempts to pull the lever!</span>") // listening to kitschy monologues to postpone your powergaming is the true curse here.
+		return SLOT_MACHINE_USE_POSTPONE
+
+/// Handles the debuffs of this status effect and incrementing the number of curses we have.
+/datum/status_effect/cursed/proc/update_curse_count()
+	SIGNAL_HANDLER
+	curse_count++
+
+	linked_alert?.update_appearance() // we may have not initialized it yet
+
+	addtimer(CALLBACK(src, PROC_REF(handle_after_effects), 1 SECONDS)) // give it a second to let the failure sink in before we exact our toll
+
+/// Makes a nice lorey message about the curse level we're at. I think it's nice
+/datum/status_effect/cursed/proc/handle_after_effects()
+	if(QDELETED(src))
+		return
+
+	monologuing = TRUE
+	var/list/messages = list()
+	switch(curse_count)
+		if(1) // basically your first is a "freebie" that will still require urgent medical attention and will leave you smoking forever but could be worse tbh
+			if(ishuman(owner))
+				var/mob/living/carbon/human/human_owner = owner
+				playsound(human_owner, 'sound/weapons/sear.ogg', 50, TRUE)
+				var/obj/item/organ/external/affecting = human_owner.get_active_hand()
+				branded_hand = affecting
+
+			messages += "<span class='boldwarning'>Your hand burns, and you quickly let go of the lever! You feel a little sick as the nerves deaden in your hand...</span>"
+			messages += "<span class='boldwarning'>Some smoke appears to be coming out of your hand now, but it's not too bad...</span>"
+			messages += "<span class='boldwarning'>Fucking stupid machine.</span>"
+
+		if(2)
+			messages += "<span class='boldwarning'>The machine didn't burn you this time, it must be some arcane work of the brand recognizing a source...</span>"
+			messages += "<span class='boldwarning'>Blisters and boils start to appear over your skin. Each one hissing searing hot steam out of its own pocket...</span>"
+			messages += "<span class='boldwarning'>You understand that the machine tortures you with its simplistic allure. It can kill you at any moment, but it derives a sick satisfaction at forcing you to keep going.</span>"
+			messages += "<span class='boldwarning'>If you could get away from here, you might be able to live with some medical supplies. Is it too late to stop now?</span>"
+			messages += "<span class='boldwarning'>As you shut your eyes to dwell on this conundrum, the brand surges in pain. You shudder to think what might happen if you go unconscious.</span>"
+
+		if(3)
+			owner.emote("cough")
+			messages += "<span class='boldwarning'>Your throat becomes to feel like it's slowly caking up with sand and dust. You eject the contents of the back of your throat onto your sleeve.</span>"
+			messages += "<span class='boldwarning'>It is sand. Crimson red. You've never felt so thirsty in your life, yet you don't trust your own hand to carry the glass to your lips.</span>"
+			messages += "<span class='boldwarning'>You get the sneaking feeling that if someone else were to win, that it might clear your curse too. Saving your life is a noble cause.</span>"
+			messages += "<span class='boldwarning'>Of course, you might have to not speak on the nature of this machine, in case they scamper off to leave you to die.</span>"
+			messages += "<span class='boldwarning'>Is it truly worth it to condemn someone to this fate to cure the manifestation of your own hedonistic urges? You'll have to decide quickly.</span>"
+
+		if(4)
+			messages += "<span class='boldwarning'>A migraine swells over your head as your thoughts become hazy. Your hand desperately inches closer towards the slot machine for one final pull...</span>"
+			messages += "<span class='boldwarning'>The ultimate test of mind over matter. You can jerk your own muscle back in order to prevent a terrible fate, but your life already is worth so little now.</span>"
+			messages += "<span class='boldwarning'>This is what they want, is it not? To witness your failure against itself? The compulsion carries you forward as a sinking feeling of dread fills your stomach.</span>"
+			messages += "<span class='boldwarning'>Paradoxically, where there is hopelessness, there is elation. Elation at the fact that there's still enough power in you for one more pull.</span>"
+			messages += "<span class='boldwarning'>Your legs desperately wish to jolt away on the thought of running away from this wretched machination, but your own arm remains complacent in the thought of seeing spinning wheels.</span>"
+			messages += "<span class='userdanger'>The toll has already been exacted. There is no longer death on 'your' terms. Is your dignity worth more than your life?</span>"
+
+		if(5 to INFINITY)
+			if(max_curse_count != DEFAULT_MAX_CURSE_COUNT) // this probably will only happen through admin schenanigans letting people stack up infinite curses or something
+				to_chat(owner, "<span class='userdanger'>Do you <i>still</i> think you're in control?</span>")
+				return
+
+			to_chat(owner, "Why couldn't I get one more try?!")
+			owner.gib()
+			qdel(src)
+			return
+	for(var/message in messages)
+		to_chat(owner, message)
+		sleep(3 SECONDS) // yes yes a bit fast but it can be a lot of text and i want the whole thing to send before the cooldown on the slot machine might expire
+	monologuing = FALSE
+
+/// Cleans ourselves up and removes our curses. Meant to be done in a "positive" way, when the curse is broken. Directly use qdel otherwise.
+/datum/status_effect/cursed/proc/clear_curses()
+	SIGNAL_HANDLER
+
+	owner.visible_message(
+		"<span class='warning'>The smoke slowly clears from [owner.name]...</span>",
+		"<span class='notice'>Your skin finally settles down and your throat no longer feels as dry... The brand disappearing confirms that the curse has been lifted.</span>",)
+	qdel(src)
+
+/// If our owner's stat changes, rapidly surge the damage chance.
+/datum/status_effect/cursed/proc/on_stat_changed()
+	SIGNAL_HANDLER
+	if(owner.stat == CONSCIOUS || owner.stat == DEAD) // reset on these two states
+		damage_chance = initial(damage_chance)
+		return
+
+	to_chat(owner, "<span class='userdanger'>As your body crumbles, you feel the curse of the slot machine surge through your body!</span>")
+	damage_chance += 75 //ruh roh raggy
+
+/// If our owner dies without getting gibbed, we gib them, because fuck you baltamore
+/datum/status_effect/cursed/proc/on_death(mob/living/source, gibbed)
+	SIGNAL_HANDLER
+	if(!ishuman(owner))
+		return
+	if(gibbed)
+		return
+	var/mob/living/carbon/human/H = owner
+	INVOKE_ASYNC(H, TYPE_PROC_REF(/mob, gib))
+
+/datum/status_effect/cursed/tick()
+	if(curse_count <= 1)
+		return // you get one "freebie" (single damage) to nudge you into thinking this is a bad idea before the house begins to win.
+
+	// the house won.
+	var/ticked_coefficient = rand(15, 40) * 2 / 100
+	var/effective_percentile_chance = ((curse_count == 2 ? 1 : curse_count) * damage_chance * ticked_coefficient)
+
+	if(prob(effective_percentile_chance))
+		owner.apply_damages(
+			brute = (curse_count * ticked_coefficient),
+			burn = (curse_count * ticked_coefficient),
+			oxy = (curse_count * ticked_coefficient),
+		)
+
+/atom/movable/screen/alert/status_effect/cursed
+	name = "Cursed!"
+	desc = "The brand on your hand reminds you of your greed, yet you seem to be okay otherwise."
+	icon_state = "cursed_by_slots"
+
+/atom/movable/screen/alert/status_effect/cursed/update_desc()
+	. = ..()
+	var/datum/status_effect/cursed/linked_effect = attached_effect
+	var/curses = linked_effect.curse_count
+	switch(curses)
+		if(2)
+			desc = "Your greed is catching up to you..."
+		if(3)
+			desc = "You really don't feel good right now... But why stop now?"
+		if(4 to INFINITY)
+			desc = "Real winners quit before they reach the ultimate prize."
+
+#undef DEFAULT_MAX_CURSE_COUNT
+
+/datum/status_effect/reversed_high_priestess
+	id = "reversed_high_priestess"
+	duration = 1 MINUTES
+	status_type = STATUS_EFFECT_REFRESH
+	tick_interval = 6 SECONDS
+	alert_type = /atom/movable/screen/alert/status_effect/bubblegum_curse
+
+/datum/status_effect/reversed_high_priestess/tick()
+	. = ..()
+	new /obj/effect/bubblegum_warning(get_turf(owner))
+
+/obj/effect/bubblegum_warning
+	name = "bloody rift"
+	desc = "You feel like even being *near* this is a bad idea."
+	icon = 'icons/obj/biomass.dmi'
+	icon_state = "rift"
+	color = "red"
+
+/obj/effect/bubblegum_warning/Initialize(mapload)
+	. = ..()
+	addtimer(CALLBACK(src, PROC_REF(slap_someone)), 2.5 SECONDS) //A chance to run away
+
+/obj/effect/bubblegum_warning/proc/slap_someone()
+	new /obj/effect/abstract/bubblegum_rend_helper(get_turf(src), null, 10)
+	qdel(src)
+
+/// The mob has been pushed by airflow recently, and won't automatically grab nearby objects to stop drifting.
+/datum/status_effect/unbalanced
+	id = "unbalanced"
+	duration = 1 SECONDS
+	status_type = STATUS_EFFECT_REFRESH
+	alert_type = /atom/movable/screen/alert/status_effect/unbalanced
+
+/atom/movable/screen/alert/status_effect/unbalanced
+	name = "Unbalanced"
+	desc = "You're being shoved around by airflow! You can resist this by moving, but moving against the wind will be slow."
+	icon_state = "unbalanced"
+
+/datum/status_effect/c_foamed
+	id = "c_foamed up"
+	duration = 1 MINUTES
+	status_type = STATUS_EFFECT_REFRESH
+	tick_interval = 10 SECONDS
+	var/foam_level = 1
+	var/mutable_appearance/foam_overlay
+
+/datum/status_effect/c_foamed/on_apply()
+	. = ..()
+	foam_overlay = mutable_appearance('icons/obj/foam_blobs.dmi', "foamed_1")
+	owner.add_overlay(foam_overlay)
+	owner.next_move_modifier *= 1.5
+	owner.Slowed(10 SECONDS, 1.5)
+
+/datum/status_effect/c_foamed/Destroy()
+	if(owner)
+		owner.cut_overlay(foam_overlay)
+		owner.next_move_modifier /= 1.5
+
+	QDEL_NULL(foam_overlay)
+	return ..()
+
+/datum/status_effect/c_foamed/tick()
+	. = ..()
+	if(--foam_level <= 0)
+		qdel(src)
+	refresh_overlay()
+
+/datum/status_effect/c_foamed/refresh()
+	. = ..()
+	// Our max slow is 50 seconds
+	foam_level = min(foam_level + 1, 5)
+
+	refresh_overlay()
+
+	if(foam_level == 5)
+		owner.Immobilize(5 SECONDS)
+
+/datum/status_effect/c_foamed/proc/refresh_overlay()
+	// Refresh overlay
+	owner.cut_overlay(foam_overlay)
+	QDEL_NULL(foam_overlay)
+	foam_overlay = mutable_appearance('icons/obj/foam_blobs.dmi', "foamed_[foam_level]")
+	owner.add_overlay(foam_overlay)
+
+/datum/status_effect/judo_armbar
+	id = "armbar"
+	duration = 5 SECONDS
+	alert_type = null
+	status_type = STATUS_EFFECT_REPLACE
+
+/datum/status_effect/rust_corruption
+	alert_type = null
+	id = "rust_turf_effects"
+	tick_interval = 2 SECONDS
+
+/datum/status_effect/rust_corruption/tick()
+	. = ..()
+	SEND_SOUND(owner, sound('sound/weapons/sear.ogg'))
+	if(issilicon(owner))
+		to_chat(owner, "<span class='userdanger'>The unnatural rust magically corrodes your body!</span>")
+		owner.adjustBruteLoss(10)
+		return
+	//We don't have disgust, so...
+	to_chat(owner, "<span class='userdanger'>The unnatural rust makes you feel sick!</span>")
+	if(ishuman(owner))
+		owner.adjustBrainLoss(2.5)
+		owner.reagents?.remove_all(0.75)
+	else
+		owner.adjustBruteLoss(3) //Weaker than borgs but still constant.
+
+/// This is the threshold where the attack will stun on the last hit. Why? Because it is cool, that's why.
+#define FINISHER_THRESHOLD 7
+
+/datum/status_effect/temporal_slash
+	id = "temporal_slash"
+	duration = 3 SECONDS
+	status_type = STATUS_EFFECT_REFRESH
+	alert_type = null
+	/// How many times the user has been cut. Each cut adds a damage value below
+	var/cuts = 1
+	/// How much damage the blade will do each slice
+	var/damage_per_cut = 20
+
+/datum/status_effect/temporal_slash/on_creation(mob/living/new_owner, cut_damage = 20)
+	. = ..()
+	damage_per_cut = cut_damage
+
+/datum/status_effect/temporal_slash/refresh()
+	cuts++
+	return ..()
+
+/datum/status_effect/temporal_slash/on_remove()
+	owner.apply_status_effect(STATUS_EFFECT_TEMPORAL_SLASH_FINISHER, cuts, damage_per_cut) //We apply this to a new status effect, to avoid refreshing while on_remove happens.
+
+/datum/status_effect/temporal_slash_finisher
+	id = "temporal_slash_finisher"
+	alert_type = null
+	tick_interval = 0.25 SECONDS
+	/// How many times the user has been cut. Each cut adds a damage value below
+	var/cuts = 1
+	/// How much damage the blade will do each slice
+	var/damage_per_cut = 20
+	/// Have we done enough damage to trigger the finisher?
+	var/finishing_cuts = FALSE
+
+/datum/status_effect/temporal_slash_finisher/on_creation(mob/living/new_owner, final_cuts = 1, cut_damage = 20)
+	. = ..()
+	cuts = final_cuts
+	damage_per_cut = cut_damage
+	if(ismegafauna(owner))
+		damage_per_cut *= 4 //This will deal 40 damage bonus per cut on megafauna as a miner, and 80 as a wizard. To kill a megafauna, you need to hit it 48 times. You don't get the buffs of a crusher though. Also you already killed bubblegum, so, you know.
+	if(cuts >= FINISHER_THRESHOLD)
+		finishing_cuts = TRUE
+	new /obj/effect/temp_visual/temporal_slash(get_turf(owner), owner)
+
+/datum/status_effect/temporal_slash_finisher/tick()
+	. = ..()
+	owner.visible_message("<span class='danger'>[owner] gets slashed by a cut through spacetime!</span>", "<span class='userdanger'>You get slashed by a cut through spacetime!</span>")
+	playsound(owner, 'sound/weapons/rapierhit.ogg', 50, TRUE)
+	owner.apply_damage(damage_per_cut, BRUTE, pick(BODY_ZONE_CHEST, BODY_ZONE_HEAD, BODY_ZONE_L_ARM, BODY_ZONE_L_LEG, BODY_ZONE_R_ARM, BODY_ZONE_R_LEG), 0, TRUE, null, FALSE)
+	cuts--
+	if(cuts <= 0)
+		if(finishing_cuts)
+			owner.Weaken(7 SECONDS)
+		qdel(src)
+	else
+		new /obj/effect/temp_visual/temporal_slash(get_turf(owner), owner)
+
+#undef FINISHER_THRESHOLD

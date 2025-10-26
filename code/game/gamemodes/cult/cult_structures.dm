@@ -11,29 +11,22 @@
 //Noncult As we may have this on maps
 /obj/structure/cult/altar
 	name = "Altar"
-	desc = "A bloodstained altar."
+	desc = "A sacrifical altar, stained with long-dried blood. Any power it had is long gone."
 	icon_state = "altar"
 
 /obj/structure/cult/forge
 	name = "Daemon forge"
-	desc = "A forge used in crafting unholy armors and weapons."
+	desc = "A forge composed of dark stone and darker metal, covered in incomprehensible inscriptions. The fire within the forge burns low, it is incapable of producing anything."
 	icon_state = "forge"
 	light_range = 2
 	light_color = LIGHT_COLOR_LAVA
 
 /obj/structure/cult/pylon
 	name = "Pylon"
-	desc = "A floating crystal that hums with an unearthly energy."
+	desc = "An otherworldly crystal that hangs in mid-air. Its light is feeble and sputtering, acting as little more than dim illumination."
 	icon_state = "pylon"
 	light_range = 1.5
 	light_color = LIGHT_COLOR_RED
-
-/obj/structure/cult/archives
-	name = "Desk"
-	desc = "A desk covered in arcane manuscripts and tomes in unknown languages. Looking at the text makes your skin crawl."
-	icon_state = "archives"
-	light_range = 1.5
-	light_color = LIGHT_COLOR_FIRE
 
 //Cult versions cuase fuck map conflicts
 /obj/structure/cult/functional
@@ -55,29 +48,30 @@
 
 /obj/structure/cult/functional/examine(mob/user)
 	. = ..()
-	if(iscultist(user) && cooldowntime > world.time)
+	if(IS_CULTIST(user) && cooldowntime > world.time)
 		. += "<span class='cultitalic'>The magic in [src] is weak, it will be ready to use again in [get_ETA()].</span>"
 	. += "<span class='notice'>[src] is [anchored ? "":"not "]secured to the floor.</span>"
 
-/obj/structure/cult/functional/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/melee/cultblade/dagger) && iscultist(user))
+/obj/structure/cult/functional/item_interaction(mob/living/user, obj/item/I, list/modifiers)
+	if(istype(I, /obj/item/melee/cultblade/dagger) && IS_CULTIST(user))
 		if(user.holy_check())
-			return
+			return ITEM_INTERACT_COMPLETE
 		anchored = !anchored
 		to_chat(user, "<span class='notice'>You [anchored ? "":"un"]secure [src] [anchored ? "to":"from"] the floor.</span>")
 		if(!anchored)
-			icon_state = SSticker.cultdat?.get_icon("[initial(icon_state)]_off")
+			icon_state = GET_CULT_DATA(get_icon("[initial(icon_state)]_off"), "[initial(icon_state)]_off")
 		else
-			icon_state = SSticker.cultdat?.get_icon("[initial(icon_state)]")
-		return
+			icon_state = GET_CULT_DATA(get_icon(initial(icon_state)), initial(icon_state))
+		return ITEM_INTERACT_COMPLETE
+
 	return ..()
 
 /obj/structure/cult/functional/attack_hand(mob/living/user)
-	if(!iscultist(user))
+	if(!IS_CULTIST(user))
 		to_chat(user, "[heathen_message]")
 		return
 	if(invisibility)
-		to_chat(user, "<span class='cultitalic'>The magic in [src] is being channeled into Redspace, reveal the structure first!</span>")
+		to_chat(user, "<span class='cultitalic'>The magic in [src] is being suppressed, reveal the structure first!</span>")
 		return
 	if(HAS_TRAIT(user, TRAIT_HULK))
 		to_chat(user, "<span class='danger'>You cannot seem to manipulate this structure with your bulky hands!</span>")
@@ -143,7 +137,7 @@
 
 /obj/structure/cult/functional/altar
 	name = "altar"
-	desc = "A bloodstained altar dedicated to a cult."
+	desc = "A sacrifical altar, covered in fresh blood. The runes covering its sides glow with barely-restrained power."
 	icon_state = "altar"
 	max_integrity = 150 //Sturdy
 	death_message = "<span class='danger'>The altar breaks into splinters, releasing a cascade of spirits into the air!</span>"
@@ -152,17 +146,17 @@
 	selection_prompt = "You study the rituals on the altar..."
 	selection_title = "Altar"
 	creation_message = "<span class='cultitalic'>You kneel before the altar and your faith is rewarded with a %ITEM%!</span>"
-	choosable_items = list("Eldritch Whetstone" = /obj/item/whetstone/cult, "Flask of Unholy Water" = /obj/item/reagent_containers/food/drinks/bottle/unholywater,
+	choosable_items = list("Eldritch Whetstone" = /obj/item/whetstone/cult, "Flask of Unholy Water" = /obj/item/reagent_containers/drinks/bottle/unholywater,
 							"Construct Shell" = /obj/structure/constructshell)
 
 /obj/structure/cult/functional/altar/Initialize(mapload)
 	. = ..()
-	icon_state = SSticker.cultdat?.altar_icon_state
+	icon_state = GET_CULT_DATA(altar_icon_state, "altar")
 	cooldowntime = world.time + CULT_STRUCTURE_COOLDOWN
 
 /obj/structure/cult/functional/forge
 	name = "daemon forge"
-	desc = "A forge used in crafting the unholy weapons used by the armies of a cult."
+	desc = "A compact forge made of dark stone and darker metal. Molten metal flows through inscribed channels in the construction, ready to be turned into the unholy armaments of a cult."
 	icon_state = "forge"
 	light_range = 2
 	light_color = LIGHT_COLOR_LAVA
@@ -177,7 +171,7 @@
 
 /obj/structure/cult/functional/forge/get_choosable_items()
 	. = ..()
-	if(SSticker.cultdat.mirror_shields_active)
+	if(SSticker.mode.cult_team.mirror_shields_active)
 		// Both lines here are needed. If you do it without, youll get issues.
 		. += "Mirror Shield"
 		.["Mirror Shield"] = /obj/item/shield/mirror
@@ -185,24 +179,24 @@
 
 /obj/structure/cult/functional/forge/Initialize(mapload)
 	. = ..()
-	icon_state = SSticker.cultdat?.forge_icon_state
+	icon_state = GET_CULT_DATA(forge_icon_state, "forge")
 
-/obj/structure/cult/functional/forge/attackby(obj/item/I, mob/user, params)
+/obj/structure/cult/functional/forge/item_interaction(mob/living/user, obj/item/I, list/modifiers)
 	if(istype(I, /obj/item/grab))
 		var/obj/item/grab/G = I
 		if(!iscarbon(G.affecting))
-			return FALSE
+			return ITEM_INTERACT_COMPLETE
 		if(G.affecting == LAVA_PROOF)
 			to_chat(user, "<span class='warning'>[G.affecting] is immune to lava!</span>")
-			return FALSE
+			return ITEM_INTERACT_COMPLETE
 		if(G.affecting.stat == DEAD)
 			to_chat(user, "<span class='warning'>[G.affecting] is dead!</span>")
-			return FALSE
+			return ITEM_INTERACT_COMPLETE
 		var/mob/living/carbon/human/C = G.affecting
 		var/obj/item/organ/external/head/head = C.get_organ("head")
 		if(!head)
 			to_chat(user, "<span class='warning'>[C] has no head!</span>")
-			return FALSE
+			return ITEM_INTERACT_COMPLETE
 
 		C.visible_message("<span class='danger'>[user] dunks [C]'s face into [src]'s lava!</span>",
 						"<span class='userdanger'>[user] dunks your face into [src]'s lava!</span>")
@@ -212,14 +206,15 @@
 		C.UpdateDamageIcon()
 		add_attack_logs(user, C, "Lava-dunked into [src]")
 		user.changeNext_move(CLICK_CD_MELEE)
-		return TRUE
+		return ITEM_INTERACT_COMPLETE
+
 	return ..()
 
 GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 	/turf/simulated/floor/engine/cult,
 	/turf/space,
 	/turf/simulated/wall/indestructible,
-	/turf/simulated/floor/plating/lava,
+	/turf/simulated/floor/lava,
 	/turf/simulated/floor/chasm,
 	/turf/simulated/wall/cult,
 	/turf/simulated/wall/cult/artificer
@@ -227,7 +222,7 @@ GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 
 /obj/structure/cult/functional/pylon
 	name = "pylon"
-	desc = "A floating crystal that slowly heals those faithful to a cult."
+	desc = "A floating, otherworldly crystal that radiates a baleful red light. Wherever the light touches, matter warps, and the faithful are invigorated."
 	icon_state = "pylon"
 	light_range = 1.5
 	light_color = LIGHT_COLOR_RED
@@ -243,7 +238,7 @@ GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 /obj/structure/cult/functional/pylon/Initialize(mapload)
 	. = ..()
 	START_PROCESSING(SSobj, src)
-	icon_state = SSticker.cultdat?.pylon_icon_state
+	icon_state = GET_CULT_DATA(pylon_icon_state, "pylon")
 
 /obj/structure/cult/functional/pylon/attack_hand(mob/living/user)//override as it should not create anything
 	return
@@ -267,7 +262,7 @@ GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 	if(last_heal <= world.time)
 		last_heal = world.time + heal_delay
 		for(var/mob/living/L in range(5, src))
-			if(iscultist(L) || iswizard(L) || isshade(L) || isconstruct(L))
+			if(IS_CULTIST(L) || iswizard(L) || isshade(L) || isconstruct(L))
 				if(L.health != L.maxHealth)
 					new /obj/effect/temp_visual/heal(get_turf(src), COLOR_HEALING_GREEN)
 
@@ -285,7 +280,11 @@ GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 	if(!is_station_level(z) && last_corrupt <= world.time) //Pylons only convert tiles on offstation bases to help hide onstation cults from meson users
 		var/list/validturfs = list()
 		var/list/cultturfs = list()
+		var/list/tableturfs = list()
 		for(var/T in circleviewturfs(src, 5))
+			for(var/obj/structure/table/table in T)
+				if(!istype(table, /obj/structure/table/reinforced/cult))
+					tableturfs |= T
 			if(istype(T, /turf/simulated/floor/engine/cult))
 				cultturfs |= T
 				continue
@@ -296,6 +295,11 @@ GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 
 		last_corrupt = world.time + corrupt_delay
 
+		var/turf/tableturf = safepick(tableturfs)
+		if(tableturf)
+			for(var/obj/structure/table/table in tableturf)
+				qdel(table)
+				new /obj/structure/table/reinforced/cult/no_metal(tableturf)
 		var/turf/T = safepick(validturfs)
 		if(T)
 			if(isfloorturf(T))
@@ -325,19 +329,18 @@ GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 	selection_title = "Archives"
 	creation_message = "<span class='cultitalic'>You invoke the dark magic of the tomes creating a %ITEM%!</span>"
 	choosable_items = list("Shuttle Curse" = /obj/item/shuttle_curse, "Zealot's Blindfold" = /obj/item/clothing/glasses/hud/health/night/cultblind,
-							"Veil Shifter" = /obj/item/cult_shift, "Reality sunderer" = /obj/item/portal_amulet) //Add void torch to veil shifter spawn
+							"Veil Shifter" = /obj/item/cult_shift, "Reality sunderer" = /obj/item/portal_amulet, "Blank Tarot Card" = /obj/item/blank_tarot_card)
 
 /obj/structure/cult/functional/archives/Initialize(mapload)
 	. = ..()
-	icon_state = SSticker.cultdat?.archives_icon_state
+	icon_state = GET_CULT_DATA(archives_icon_state, "archives")
 
 /obj/effect/gateway
 	name = "gateway"
-	desc = "You're pretty sure that the abyss is staring back"
+	desc = "There's something inside. It's staring back."
 	icon = 'icons/obj/cult.dmi'
 	icon_state = "hole"
 	density = TRUE
-	anchored = TRUE
 
 /obj/effect/gateway/singularity_act()
 	return
@@ -346,9 +349,6 @@ GLOBAL_LIST_INIT(blacklisted_pylon_turfs, typecacheof(list(
 	return
 
 /obj/effect/gateway/Bumped(atom/movable/AM)
-	return
-
-/obj/effect/gateway/Crossed(atom/movable/AM, oldloc)
 	return
 
 #undef CULT_STRUCTURE_COOLDOWN

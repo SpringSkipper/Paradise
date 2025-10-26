@@ -8,14 +8,17 @@
 	if(modifiers["middle"]) // Let ghosts point without teleporting
 		return
 
-	if(can_reenter_corpse && mind && mind.current)
+	if(modifiers["shift"]) // Let ghosts examine without teleporting
+		return
+
+	if(ghost_flags & GHOST_CAN_REENTER && mind && mind.current)
 		if(A == mind.current || (mind.current in A)) // double click your corpse or whatever holds it
 			reenter_corpse()						// (cloning scanner, body bag, closet, mech, etc)
 			return									// seems legit.
 
 	// Follow !!ALL OF THE THINGS!!
 	if(istype(A, /atom/movable) && A != src)
-		ManualFollow(A)
+		manual_follow(A)
 
 	// Otherwise jump
 	else
@@ -62,15 +65,35 @@
 /mob/dead/observer/ShiftClickOn(atom/A)
 	examinate(A)
 
-/atom/proc/attack_ghost(mob/user)
+/mob/dead/observer/AltClickOn(atom/A)
+	AltClickNoInteract(src, A)
+
+/mob/dead/observer/AltShiftClickOn(atom/A)
+	return
+
+/mob/dead/observer/CtrlShiftClickOn(atom/A)
+	return
+
+/mob/dead/observer/MiddleShiftClickOn(atom/A)
+	return
+
+/mob/dead/observer/MiddleShiftControlClickOn(atom/A)
+	return
+
+/atom/proc/attack_ghost(mob/dead/observer/user)
 	if(SEND_SIGNAL(src, COMSIG_ATOM_ATTACK_GHOST, user) & COMPONENT_CANCEL_ATTACK_CHAIN)
 		return TRUE
+	if(!istype(user)) // Make sure user is actually an observer. Revenents also use attack_ghost, but do not have the health_scan var.
+		return FALSE
+	if(user.client)
+		if(user.ghost_flags & GHOST_GAS_SCAN && src.return_analyzable_air() && atmos_scan(user=user, target=src, silent=TRUE))
+			return TRUE
 
-// health + cyborg analyzer for ghosts
+// health + machine analyzer for ghosts
 /mob/living/attack_ghost(mob/dead/observer/user)
 	if(!istype(user)) // Make sure user is actually an observer. Revenents also use attack_ghost, but do not have the health_scan var.
 		return
-	if(user.client && user.health_scan)
+	if(user.client && user.ghost_flags & GHOST_HEALTH_SCAN)
 		if(issilicon(src) || ismachineperson(src))
 			robot_healthscan(user, src)
 		else if(ishuman(src))
@@ -87,7 +110,3 @@
 		var/obj/machinery/computer/teleporter/com = S.teleporter_console
 		if(com && com.target)
 			user.forceMove(get_turf(com.target))
-
-/obj/effect/portal/attack_ghost(mob/user as mob)
-	if(target)
-		user.forceMove(get_turf(target))

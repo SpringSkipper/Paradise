@@ -30,7 +30,7 @@
 	/// Overlay we add to each grabbed atom.
 	var/image/kinesis_icon
 	/// Our mouse movement catcher.
-	var/obj/screen/fullscreen/cursor_catcher/kinesis/kinesis_catcher
+	var/atom/movable/screen/fullscreen/stretch/cursor_catcher/kinesis/kinesis_catcher
 	/// The sounds playing while we grabbed an object.
 	var/datum/looping_sound/kinesis/soundloop
 	///The pixel_X of whatever we were grabbing before hand.
@@ -82,8 +82,8 @@
 	grabbed_atom.add_overlay(kinesis_icon)
 	pre_pixel_x = grabbed_atom.pixel_x
 	pre_pixel_y = grabbed_atom.pixel_y
-	beam.chain = beam.Beam(grabbed_atom, icon_state = "kinesis", icon='icons/effects/beam.dmi', time = 100 SECONDS, maxdistance = 15, beam_type = /obj/effect/ebeam, beam_sleep_time = 3)
-	kinesis_catcher = mod.wearer.overlay_fullscreen("kinesis", /obj/screen/fullscreen/cursor_catcher/kinesis, 0)
+	beam.chain = beam.Beam(grabbed_atom, icon_state = "kinesis", icon='icons/effects/beam.dmi', time = 100 SECONDS, maxdistance = 15, beam_type = /obj/effect/ebeam)
+	kinesis_catcher = mod.wearer.overlay_fullscreen("kinesis", /atom/movable/screen/fullscreen/stretch/cursor_catcher/kinesis, 0)
 	kinesis_catcher.assign_to_mob(mod.wearer)
 	soundloop.start()
 	START_PROCESSING(SSfastprocess, src)
@@ -113,8 +113,7 @@
 		if(grabbed_atom.pixel_x == kinesis_catcher.given_x - world.icon_size/2 && grabbed_atom.pixel_y == kinesis_catcher.given_y - world.icon_size/2)
 			return //spare us redrawing if we are standing still
 		animate(grabbed_atom, 0.2 SECONDS, pixel_x = pre_pixel_x + kinesis_catcher.given_x - world.icon_size/2, pixel_y = pre_pixel_y + kinesis_catcher.given_y - world.icon_size/2)
-		beam.chain.Reset()
-		beam.chain.Draw()
+		beam.chain.redrawing()
 		return
 	animate(grabbed_atom, 0.2 SECONDS, pixel_x = pre_pixel_x + kinesis_catcher.given_x - world.icon_size/2, pixel_y = pre_pixel_y + kinesis_catcher.given_y - world.icon_size/2)
 	var/turf/next_turf = get_step_towards(grabbed_atom, kinesis_catcher.given_turf)
@@ -137,8 +136,7 @@
 	else if(direction & WEST)
 		pixel_x_change = -world.icon_size / 2
 	animate(grabbed_atom, 0.2 SECONDS, pixel_x = pre_pixel_x + pixel_x_change, pixel_y = pre_pixel_y + pixel_y_change) //Not as smooth as I would like, will look into this in the future
-	beam.chain.Reset()
-	beam.chain.Draw()
+	beam.chain.redrawing()
 	if(!isitem(grabbed_atom) || !COOLDOWN_FINISHED(src, hit_cooldown))
 		return
 	var/atom/hitting_atom
@@ -161,12 +159,16 @@
 		return FALSE
 	if(iseffect(target))
 		return FALSE
+	if(locate(mod.wearer) in target)
+		return FALSE
 	var/atom/movable/movable_target = target
 	if(movable_target.anchored)
 		return FALSE
 	if(movable_target.throwing)
 		return FALSE
 	if(movable_target.move_resist >= MOVE_FORCE_OVERPOWERING)
+		return FALSE
+	if(locate(mod.wearer) in movable_target.buckled_mobs)
 		return FALSE
 	if(ismob(movable_target))
 		if(!isliving(movable_target))
@@ -249,7 +251,8 @@
 	complexity = 0
 	use_power_cost = DEFAULT_CHARGE_DRAIN * 5
 
-/obj/screen/fullscreen/cursor_catcher/kinesis
+/atom/movable/screen/fullscreen/stretch/cursor_catcher/kinesis
+	icon = 'icons/mob/screen_kinesis.dmi'
 	icon_state = "kinesis"
 
 /obj/item/mod/module/anomaly_locked/kinesis/plus
@@ -261,6 +264,5 @@
 		beings. They can, however, still struggle after an initial burst of inertia."
 	complexity = 0
 	prebuilt = TRUE
-	stat_required = CONSCIOUS //Still conscious here so we don't forget about it if the above is changed
 	incapacitated_required = FALSE
 	mob_stun_time = 10 SECONDS

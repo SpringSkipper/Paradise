@@ -89,6 +89,7 @@ SUBSYSTEM_DEF(garbage)
 		if(I.hard_deletes)
 			dellog += "\tTotal Hard Deletes [I.hard_deletes]"
 			dellog += "\tTime Spent Hard Deleting: [I.hard_delete_time]ms"
+			dellog += "\tAverage References During Hardel: [I.reference_average] references."
 		if(I.slept_destroy)
 			dellog += "\tSleeps: [I.slept_destroy]"
 		if(I.no_respect_force)
@@ -258,6 +259,7 @@ SUBSYSTEM_DEF(garbage)
 
 	I.hard_deletes++
 	I.hard_delete_time += TICK_DELTA_TO_MS(tick)
+	I.reference_average = (refcount(I) + I.reference_average) / I.hard_deletes
 
 
 	if(tick > highest_del_tickusage)
@@ -270,12 +272,13 @@ SUBSYSTEM_DEF(garbage)
 	if(time > 10)
 		log_game("Error: [type]([refID]) took longer than 1 second to delete (took [time / 10] seconds to delete)")
 		message_admins("Error: [type]([refID]) took longer than 1 second to delete (took [time / 10] seconds to delete).")
+		log_debug("Error: [type]([refID]) took longer than 1 second to delete (took [time / 10] seconds to delete).")
 		postpone(time)
 
 /datum/controller/subsystem/garbage/Recover()
 	InitQueues() //We first need to create the queues before recovering data
 	if(istype(SSgarbage.queues))
-		for(var/i in 1 to SSgarbage.queues.len)
+		for(var/i in 1 to length(SSgarbage.queues))
 			queues[i] |= SSgarbage.queues[i]
 
 
@@ -289,6 +292,8 @@ SUBSYSTEM_DEF(garbage)
 	var/no_respect_force = 0//Number of times it's not respected force=TRUE
 	var/no_hint = 0			//Number of times it's not even bother to give a qdel hint
 	var/slept_destroy = 0	//Number of times it's slept in its destroy
+	/// Average amount of references that the hard deleted item holds when hard deleted
+	var/reference_average = 0
 
 /datum/qdel_item/New(mytype)
 	name = "[mytype]"
@@ -298,7 +303,7 @@ SUBSYSTEM_DEF(garbage)
 	thing_to_del.qdel_and_find_ref_if_fail(force)
 
 /datum/proc/qdel_and_find_ref_if_fail(force = FALSE)
-	SSgarbage.reference_find_on_fail[text_ref(D)] = TRUE
+	SSgarbage.reference_find_on_fail[text_ref(src)] = TRUE
 	qdel(src, force)
 
 #endif
@@ -431,7 +436,7 @@ SUBSYSTEM_DEF(garbage)
 
 	log_gc("Completed search for references to a [type].")
 	#ifdef FIND_REF_NOTIFY_ON_COMPLETE
-	rustg_create_toast("ParadiseSS13", "GC search complete for [type]")
+	rustlibs_create_toast("ParadiseSS13", "GC search complete for [type]")
 	#endif
 	if(usr && usr.client)
 		usr.client.running_find_references = null

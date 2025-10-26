@@ -20,6 +20,8 @@
 	var/map_name
 	/// Is the lightswitch in this area on? Controls whether or not lights are on and off
 	var/lightswitch = TRUE
+	/// Is the window tint control in this area on? Controls whether electrochromic windows and doors are tinted or not
+	var/window_tint = FALSE
 	/// If TRUE, the local powernet in this area will have all its power channels switched off
 	var/apc_starts_off = FALSE
 	/// If TRUE, this area's local powernet will require power to properly operate machines
@@ -32,8 +34,6 @@
 	var/list/apc = list()
 
 	var/has_gravity = TRUE
-
-	var/no_air = null
 
 	var/air_doors_activated = FALSE
 
@@ -50,6 +50,7 @@
 	// separate APCs, and so on)
 	var/there_can_be_many = FALSE
 
+	/// Static var that is incremented when the UID of a area is being assigned.
 	var/global/global_uid = 0
 	var/uid
 
@@ -60,32 +61,70 @@
 	var/list/firealarms
 	var/firedoors_last_closed_on = 0
 
-	var/fast_despawn = FALSE
-	var/can_get_auto_cryod = TRUE
-	var/hide_attacklogs = FALSE // For areas such as thunderdome, lavaland syndiebase, etc which generate a lot of spammy attacklogs. Reduces log priority.
+	/// Timer to stop ongoing fire alarm sounds
+	var/firealarm_sound_stop_timer = null
+	/// The air alarms present in this area.
+	var/list/air_alarms = list()
+	/// The list of vents in our area.
+	var/list/obj/machinery/atmospherics/unary/vent_pump/vents = list()
+	/// The list of scrubbers in our area.
+	var/list/obj/machinery/atmospherics/unary/vent_scrubber/scrubbers = list()
 
-	var/parallax_movedir = 0
+	/// Do we quickly despawn the person in this area? Pretty much just used in permabrig
+	var/fast_despawn = FALSE
+	/// Do we despawn the person in this area? Pretty much just used in security areas that aren't permabrig
+	var/can_get_auto_cryod = TRUE
+	/// For areas such as thunderdome which generate a lot of spammy attacklogs. Reduces log priority.
+	var/hide_attacklogs = FALSE
+	/// Handles the direction parallax will be moved in. References
+	var/parallax_move_direction = 0
+	/// Is a shuttle moving to our area?
 	var/moving = FALSE
 	/// "Haunted" areas such as the morgue and chapel are easier to boo. Because flavor.
 	var/is_haunted = FALSE
 	///Used to decide what kind of reverb the area makes sound have
 	var/sound_environment = SOUND_ENVIRONMENT_NONE
 
-	///Used to decide what the minimum time between ambience is
+	/// Used to decide what the minimum time between ambience is
 	var/min_ambience_cooldown = 30 SECONDS
-	///Used to decide what the maximum time between ambience is
+	/// Used to decide what the maximum time between ambience is
 	var/max_ambience_cooldown = 90 SECONDS
 
-	var/area/area_limited_icon_smoothing
+	/// Turrets use this list to see if individual power/lethal settings are allowed. Contains the /obj/machinery/turretid for this area
+	var/list/turret_controls = list()
+
+	/// Wire assignment for airlocks in this area
+	var/airlock_wires = /datum/wires/airlock
+
+	/// The flags applied to request consoles spawned in this area.
+	/// See [RC_ASSIST], [RC_SUPPLY], [RC_INFO].
+	var/request_console_flags = 0
+	/// The name for any spawned request consoles. Defaults to the area name.
+	var/request_console_name
+	/// Whether request consoles in this area can send announcements.
+	var/request_console_announces = FALSE
+	/// Fire alarm camera network
+	var/fire_cam_network = "Fire Alarms Debug"
+	/// Power alarm camera network
+	var/power_cam_network = "Power Alarms Debug"
+	/// Atmosphere alarm camera network
+	var/atmos_cam_network = "Atmosphere Alarms Debug"
+	/*
+	Lighting Vars
+	*/
+	luminosity = TRUE
+	var/dynamic_lighting = DYNAMIC_LIGHTING_ENABLED
 
 /area/New(loc, ...)
 	if(!there_can_be_many) // Has to be done in New else the maploader will fuck up and find subtypes for the parent
 		GLOB.all_unique_areas[type] = src
-	..()
-
+	GLOB.all_areas += src
+	return ..()
 
 /area/Initialize(mapload)
-	GLOB.all_areas += src
+	if(is_station_level(z))
+		RegisterSignal(SSsecurity_level, COMSIG_SECURITY_LEVEL_CHANGED, PROC_REF(on_security_level_update))
+
 	icon_state = ""
 	layer = AREA_LAYER
 	uid = ++global_uid
@@ -115,6 +154,11 @@
 	reg_in_areas_in_z()
 
 	return INITIALIZE_HINT_LATELOAD
+
+/area/proc/on_security_level_update(datum/source, previous_level_number, new_level_number)
+	SIGNAL_HANDLER
+
+	area_emergency_mode = (new_level_number >= SEC_LEVEL_EPSILON)
 
 /area/proc/create_powernet()
 	powernet = new()
@@ -201,11 +245,11 @@
 		return
 	for(var/thing in cameras)
 		var/obj/machinery/camera/C = locateUID(thing)
-		if(!QDELETED(C) && is_station_level(C.z))
+		if(!QDELETED(C))
 			if(state)
-				C.network -= "Power Alarms"
+				C.network -= power_cam_network
 			else
-				C.network |= "Power Alarms"
+				C.network |= power_cam_network
 
 	if(state)
 		GLOB.alarm_manager.cancel_alarm("Power", src, source)
@@ -223,8 +267,8 @@
 
 			for(var/thing in cameras)
 				var/obj/machinery/camera/C = locateUID(thing)
-				if(!QDELETED(C) && is_station_level(C.z))
-					C.network |= "Atmosphere Alarms"
+				if(!QDELETED(C))
+					C.network |= atmos_cam_network
 
 
 			GLOB.alarm_manager.trigger_alarm("Atmosphere", src, cameras, source)
@@ -232,8 +276,8 @@
 		else if(atmosalm == ATMOS_ALARM_DANGER)
 			for(var/thing in cameras)
 				var/obj/machinery/camera/C = locateUID(thing)
-				if(!QDELETED(C) && is_station_level(C.z))
-					C.network -= "Atmosphere Alarms"
+				if(!QDELETED(C))
+					C.network -= atmos_cam_network
 
 			GLOB.alarm_manager.cancel_alarm("Atmosphere", src, source)
 
@@ -262,10 +306,17 @@
 			continue
 
 		// At this point, the area is safe and the door is technically functional.
+		// Firedoors do not close automatically by default, and setting it to false when the alarm is off prevents unnecessary timers from being created. Emagged doors are permanently disabled from automatically closing, or being operated by alarms altogether apart from the lights.
+		if(!D.emagged)
+			if(opening)
+				D.autoclose = FALSE
+			else
+				D.autoclose = TRUE
 
 		INVOKE_ASYNC(D, (opening ? TYPE_PROC_REF(/obj/machinery/door/firedoor, deactivate_alarm) : TYPE_PROC_REF(/obj/machinery/door/firedoor, activate_alarm)))
-		if(D.welded)
+		if(D.welded || D.emagged)
 			continue // Alarm is toggled, but door stuck
+
 		if(D.operating)
 			if((D.operating == DOOR_OPENING && opening) || (D.operating == DOOR_CLOSING && !opening))
 				continue
@@ -292,16 +343,22 @@
 			var/obj/machinery/firealarm/F = item
 			F.update_icon()
 			GLOB.firealarm_soundloop.start(F)
+		if(!firealarm_sound_stop_timer)
+			firealarm_sound_stop_timer = addtimer(CALLBACK(src, PROC_REF(stop_alarm_sounds)), 4 MINUTES, TIMER_STOPPABLE | TIMER_UNIQUE)
 
 	for(var/thing in cameras)
 		var/obj/machinery/camera/C = locateUID(thing)
-		if(!QDELETED(C) && is_station_level(C.z))
-			C.network |= "Fire Alarms"
+		if(!QDELETED(C))
+			C.network |= fire_cam_network
 
 	GLOB.alarm_manager.trigger_alarm("Fire", src, cameras, source)
 
 	START_PROCESSING(SSobj, src)
 
+/area/proc/stop_alarm_sounds()
+	for(var/obj/machinery/firealarm/F in firealarms)
+		F.update_icon()
+		GLOB.firealarm_soundloop.stop(F)
 /**
   * Reset the firealarm alert for this area
   *
@@ -314,6 +371,9 @@
 	if(fire)
 		unset_fire_alarm_effects()
 		ModifyFiredoors(TRUE)
+		if(firealarm_sound_stop_timer)
+			deltimer(firealarm_sound_stop_timer)
+			firealarm_sound_stop_timer = null
 		for(var/item in firealarms)
 			var/obj/machinery/firealarm/F = item
 			F.update_icon()
@@ -321,8 +381,8 @@
 
 	for(var/thing in cameras)
 		var/obj/machinery/camera/C = locateUID(thing)
-		if(!QDELETED(C) && is_station_level(C.z))
-			C.network -= "Fire Alarms"
+		if(!QDELETED(C))
+			C.network -= fire_cam_network
 
 	GLOB.alarm_manager.cancel_alarm("Fire", src, source)
 
@@ -401,7 +461,7 @@
 	var/weather_icon
 	for(var/V in SSweather.processing)
 		var/datum/weather/W = V
-		if(W.stage != END_STAGE && (src in W.impacted_areas))
+		if(W.stage != WEATHER_END_STAGE && (src in W.impacted_areas))
 			W.update_areas()
 			weather_icon = TRUE
 	if(!weather_icon)
@@ -459,7 +519,7 @@
 	if(!istype(M)) // Rather not have non-humans get hit with a THUNK
 		return
 
-	if(istype(M.shoes, /obj/item/clothing/shoes/magboots) && (M.shoes.flags & NOSLIP)) // Only humans can wear magboots, so we give them a chance to.
+	if(HAS_TRAIT(M, TRAIT_MAGPULSE)) // Only humans can wear magboots, so we give them a chance to.
 		return
 
 	if(M.dna.species.spec_thunk(M)) //Species level thunk overrides
@@ -482,7 +542,9 @@
 
 /proc/has_gravity(atom/AT, turf/T)
 	if(!T)
-		T = get_turf(AT)
+		T = get_turf(AT) // If we still don't have a turf, don't process the other stuff
+		if(!T)
+			return
 	var/area/A = get_area(T)
 	if(isspaceturf(T)) // Turf never has gravity
 		return 0
@@ -502,9 +564,26 @@
 		INVOKE_ASYNC(temp_airlock, TYPE_PROC_REF(/obj/machinery/door/airlock, prison_open))
 	for(var/obj/machinery/door/window/temp_windoor in src)
 		INVOKE_ASYNC(temp_windoor, TYPE_PROC_REF(/obj/machinery/door, open))
+	for(var/obj/machinery/door/poddoor/temp_poddoor in src)
+		INVOKE_ASYNC(temp_poddoor, TYPE_PROC_REF(/obj/machinery/door, open))
 
 /area/AllowDrop()
 	CRASH("Bad op: area/AllowDrop() called")
 
 /area/drop_location()
 	CRASH("Bad op: area/drop_location() called")
+
+/// Returns highest area type in the hirarchy of a given ruin or /area/station if it is given a station area.
+/// For an example the top parent of area/ruin/space/bar/backroom is area/ruin/space/bar
+/area/proc/get_top_parent_type()
+	var/top_parent_type = type
+
+	if(parent_type in subtypesof(/area/ruin))
+		// figure out which ruin we are on
+		while(!(type2parent(top_parent_type) in GLOB.ruin_prototypes))
+			top_parent_type = type2parent(top_parent_type)
+	else if(parent_type in subtypesof(/area/station))
+		top_parent_type = /area/station
+	else
+		top_parent_type = null
+	return top_parent_type

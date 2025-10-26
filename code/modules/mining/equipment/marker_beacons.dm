@@ -27,10 +27,12 @@ GLOBAL_LIST_INIT(marker_beacon_colors, list(
 	max_amount = 100
 	var/picked_color = "random"
 
-/obj/item/stack/marker_beacon/ten //miners start with 10 of these
+/// miners start with 10 of these
+/obj/item/stack/marker_beacon/ten
 	amount = 10
 
-/obj/item/stack/marker_beacon/thirty //and they're bought in stacks of 1, 10, or 30
+/// and they're bought in stacks of 1, 10, or 30
+/obj/item/stack/marker_beacon/thirty
 	amount = 30
 
 /obj/item/stack/marker_beacon/Initialize(mapload)
@@ -45,7 +47,7 @@ GLOBAL_LIST_INIT(marker_beacon_colors, list(
 /obj/item/stack/marker_beacon/update_icon_state()
 	icon_state = "[base_icon_state][lowertext(picked_color)]"
 
-/obj/item/stack/marker_beacon/attack_self(mob/user)
+/obj/item/stack/marker_beacon/attack_self__legacy__attackchain(mob/user)
 	if(!isturf(user.loc))
 		to_chat(user, "<span class='warning'>You need more space to place a [singular_name] here.</span>")
 		return
@@ -59,10 +61,10 @@ GLOBAL_LIST_INIT(marker_beacon_colors, list(
 		transfer_fingerprints_to(M)
 
 /obj/item/stack/marker_beacon/AltClick(mob/living/user)
-	if(!istype(user) || ui_status(user, GLOB.physical_state) != STATUS_INTERACTIVE)
+	if(!istype(user) || ui_status(user, GLOB.physical_state) != UI_INTERACTIVE)
 		return
-	var/input_color = input(user, "Choose a color.", "Beacon Color") as null|anything in GLOB.marker_beacon_colors
-	if(!istype(user) || ui_status(user, GLOB.physical_state) != STATUS_INTERACTIVE)
+	var/input_color = tgui_input_list(user, "Choose a color.", "Beacon Color", GLOB.marker_beacon_colors)
+	if(!istype(user) || ui_status(user, GLOB.physical_state) != UI_INTERACTIVE)
 		return
 	if(input_color)
 		picked_color = input_color
@@ -72,7 +74,8 @@ GLOBAL_LIST_INIT(marker_beacon_colors, list(
 	name = "marker beacon"
 	desc = "A Prism-brand path illumination device. It is anchored in place and glowing steadily."
 	icon = 'icons/obj/lighting.dmi'
-	icon_state = "marker"
+	icon_state = "markerrandom"
+	base_icon_state = "marker"
 	layer = BELOW_OPEN_DOOR_LAYER
 	armor = list(MELEE = 50, BULLET = 75, LASER = 75, ENERGY = 75, BOMB = 25, RAD = 100, FIRE = 25, ACID = 0)
 	max_integrity = 50
@@ -102,7 +105,7 @@ GLOBAL_LIST_INIT(marker_beacon_colors, list(
 /obj/structure/marker_beacon/update_icon_state()
 	while(!picked_color || !GLOB.marker_beacon_colors[picked_color])
 		picked_color = pick(GLOB.marker_beacon_colors)
-	icon_state = "[initial(icon_state)][lowertext(picked_color)]-on"
+	icon_state = "[base_icon_state][lowertext(picked_color)]-on"
 	set_light(light_range, light_power, GLOB.marker_beacon_colors[picked_color])
 
 /obj/structure/marker_beacon/attack_hand(mob/living/user)
@@ -122,7 +125,7 @@ GLOBAL_LIST_INIT(marker_beacon_colors, list(
 		playsound(src, 'sound/items/deconstruct.ogg', 50, TRUE)
 		qdel(src)
 
-/obj/structure/marker_beacon/attackby(obj/item/I, mob/user, params)
+/obj/structure/marker_beacon/item_interaction(mob/living/user, obj/item/I, list/modifiers)
 	if(istype(I, /obj/item/stack/marker_beacon))
 		var/obj/item/stack/marker_beacon/M = I
 		to_chat(user, "<span class='notice'>You start picking [src] up...</span>")
@@ -130,15 +133,16 @@ GLOBAL_LIST_INIT(marker_beacon_colors, list(
 			M.add(1)
 			playsound(src, 'sound/items/deconstruct.ogg', 50, 1)
 			qdel(src)
-			return
+
+		return ITEM_INTERACT_COMPLETE
 	return ..()
 
 /obj/structure/marker_beacon/AltClick(mob/living/user)
 	..()
-	if(!istype(user) || ui_status(user, GLOB.physical_state) != STATUS_INTERACTIVE)
+	if(!istype(user) || ui_status(user, GLOB.physical_state) != UI_INTERACTIVE)
 		return
-	var/input_color = input(user, "Choose a color.", "Beacon Color") as null|anything in GLOB.marker_beacon_colors
-	if(!istype(user) || ui_status(user, GLOB.physical_state) != STATUS_INTERACTIVE)
+	var/input_color = tgui_input_list(user, "Choose a color.", "Beacon Color", GLOB.marker_beacon_colors)
+	if(!istype(user) || ui_status(user, GLOB.physical_state) != UI_INTERACTIVE)
 		return
 	if(input_color)
 		picked_color = input_color
@@ -148,13 +152,12 @@ GLOBAL_LIST_INIT(marker_beacon_colors, list(
 	name = "docking beacon"
 	desc = "An illumination device used to designate docking ports. It is anchored in place and pulsing steadily."
 	icon_state = "dockingmarker"
+	base_icon_state = "dockingmarker"
 	flags = NODECONSTRUCT
 
-/obj/structure/marker_beacon/dock_marker/update_icon_state()
-	set_light(light_range, light_power, LIGHT_COLOR_BLUE)
-
-/obj/structure/marker_beacon/dock_marker/attackby()
-	return
+/obj/structure/marker_beacon/dock_marker/Initialize(mapload, set_color)
+	. = ..()
+	RegisterSignal(src, COMSIG_ATTACK_BY, TYPE_PROC_REF(/datum, signal_cancel_attack_by))
 
 /obj/structure/marker_beacon/dock_marker/attack_hand()
 	return

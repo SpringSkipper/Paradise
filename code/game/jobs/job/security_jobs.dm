@@ -10,20 +10,41 @@
 	selection_color = "#ffdddd"
 	req_admin_notify = 1
 	department_account_access = TRUE
-	access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_ARMORY, ACCESS_COURT,
-						ACCESS_FORENSICS_LOCKERS, ACCESS_MORGUE, ACCESS_MAINT_TUNNELS, ACCESS_ALL_PERSONAL_LOCKERS,
-						ACCESS_RESEARCH, ACCESS_ENGINE, ACCESS_MINING, ACCESS_MEDICAL, ACCESS_CONSTRUCTION, ACCESS_MAILSORTING,
-						ACCESS_HEADS, ACCESS_HOS, ACCESS_RC_ANNOUNCE, ACCESS_KEYCARD_AUTH, ACCESS_EXPEDITION, ACCESS_WEAPONS)
-	minimal_access = list(ACCESS_EVA, ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_ARMORY, ACCESS_COURT,
-						ACCESS_FORENSICS_LOCKERS, ACCESS_MORGUE, ACCESS_MAINT_TUNNELS, ACCESS_ALL_PERSONAL_LOCKERS,
-						ACCESS_RESEARCH, ACCESS_ENGINE, ACCESS_MINING, ACCESS_MEDICAL, ACCESS_CONSTRUCTION, ACCESS_MAILSORTING,
-						ACCESS_HEADS, ACCESS_HOS, ACCESS_RC_ANNOUNCE, ACCESS_KEYCARD_AUTH, ACCESS_EXPEDITION, ACCESS_WEAPONS)
+	access = list(
+		ACCESS_ALL_PERSONAL_LOCKERS,
+		ACCESS_ARMORY,
+		ACCESS_BRIG,
+		ACCESS_CARGO_BAY,
+		ACCESS_CARGO,
+		ACCESS_CONSTRUCTION,
+		ACCESS_COURT,
+		ACCESS_ENGINE,
+		ACCESS_EVA,
+		ACCESS_EVIDENCE,
+		ACCESS_EXPEDITION,
+		ACCESS_FORENSICS_LOCKERS,
+		ACCESS_HEADS,
+		ACCESS_HOS,
+		ACCESS_KEYCARD_AUTH,
+		ACCESS_MAILSORTING,
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_MEDICAL,
+		ACCESS_MINING,
+		ACCESS_MORGUE,
+		ACCESS_RC_ANNOUNCE,
+		ACCESS_RESEARCH,
+		ACCESS_SEC_DOORS,
+		ACCESS_SECURITY,
+		ACCESS_SUPPLY_SHUTTLE,
+		ACCESS_WEAPONS
+	)
 	minimal_player_age = 21
 	exp_map = list(EXP_TYPE_SECURITY = 1200)
-	blacklisted_disabilities = list(DISABILITY_FLAG_BLIND, DISABILITY_FLAG_DEAF, DISABILITY_FLAG_MUTE, DISABILITY_FLAG_DIZZY, DISABILITY_FLAG_NERVOUS, DISABILITY_FLAG_LISP)
+	blacklisted_disabilities = list(DISABILITY_FLAG_BLIND, DISABILITY_FLAG_DEAF, DISABILITY_FLAG_MUTE, DISABILITY_FLAG_DIZZY, DISABILITY_FLAG_NERVOUS, DISABILITY_FLAG_LISP, DISABILITY_FLAG_PARAPLEGIC)
 	missing_limbs_allowed = FALSE
 	outfit = /datum/outfit/job/hos
 	important_information = "This role requires you to coordinate a department. You are required to be familiar with Standard Operating Procedure (Security), Space Law, basic job duties, and act professionally (roleplay)."
+	standard_paycheck = CREW_PAY_HIGH
 
 /datum/outfit/job/hos
 	name = "Head of Security"
@@ -31,9 +52,9 @@
 
 	uniform = /obj/item/clothing/under/rank/security/head_of_security
 	suit = /obj/item/clothing/suit/armor/hos
-	gloves = /obj/item/clothing/gloves/color/black/hos
+	gloves = /obj/item/clothing/gloves/color/black
 	shoes = /obj/item/clothing/shoes/jackboots
-	head = /obj/item/clothing/head/HoS
+	head = /obj/item/clothing/head/hos
 	l_ear = /obj/item/radio/headset/heads/hos/alt
 	glasses = /obj/item/clothing/glasses/hud/security/sunglasses
 	id = /obj/item/card/id/hos
@@ -44,13 +65,16 @@
 		/obj/item/melee/classic_baton/telescopic = 1
 	)
 
-	implants = list(/obj/item/implant/mindshield)
+	bio_chips = list(/obj/item/bio_chip/mindshield)
 
 	backpack = /obj/item/storage/backpack/security
 	satchel = /obj/item/storage/backpack/satchel_sec
 	dufflebag = /obj/item/storage/backpack/duffel/security
 
-
+/datum/outfit/job/hos/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	add_verb(H, /mob/living/carbon/human/proc/sop_legal)
+	add_verb(H, /mob/living/carbon/human/proc/space_law)
 
 /datum/job/warden
 	title = "Warden"
@@ -62,13 +86,22 @@
 	supervisors = "the head of security"
 	department_head = list("Head of Security")
 	selection_color = "#ffeeee"
-	access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_ARMORY, ACCESS_COURT, ACCESS_MAINT_TUNNELS, ACCESS_MORGUE, ACCESS_WEAPONS)
-	minimal_access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_ARMORY, ACCESS_COURT, ACCESS_MAINT_TUNNELS, ACCESS_WEAPONS)
+	access = list(
+		ACCESS_ARMORY,
+		ACCESS_BRIG,
+		ACCESS_COURT,
+		ACCESS_EVIDENCE,
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_SEC_DOORS,
+		ACCESS_SECURITY,
+		ACCESS_WEAPONS
+	)
 	minimal_player_age = 21
 	exp_map = list(EXP_TYPE_SECURITY = 600)
-	blacklisted_disabilities = list(DISABILITY_FLAG_BLIND, DISABILITY_FLAG_DEAF, DISABILITY_FLAG_MUTE, DISABILITY_FLAG_DIZZY, DISABILITY_FLAG_NERVOUS, DISABILITY_FLAG_LISP)
+	blacklisted_disabilities = list(DISABILITY_FLAG_BLIND, DISABILITY_FLAG_DEAF, DISABILITY_FLAG_MUTE, DISABILITY_FLAG_DIZZY, DISABILITY_FLAG_NERVOUS, DISABILITY_FLAG_LISP, DISABILITY_FLAG_PARAPLEGIC)
 	missing_limbs_allowed = FALSE
 	outfit = /datum/outfit/job/warden
+	standard_paycheck = CREW_PAY_MEDIUM
 
 /datum/outfit/job/warden
 	name = "Warden"
@@ -89,13 +122,16 @@
 		/obj/item/restraints/handcuffs = 1
 	)
 
-	implants = list(/obj/item/implant/mindshield)
+	bio_chips = list(/obj/item/bio_chip/mindshield)
 
 	backpack = /obj/item/storage/backpack/security
 	satchel = /obj/item/storage/backpack/satchel_sec
 	dufflebag = /obj/item/storage/backpack/duffel/security
 
-
+/datum/outfit/job/warden/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	add_verb(H, /mob/living/carbon/human/proc/sop_legal)
+	add_verb(H, /mob/living/carbon/human/proc/space_law)
 
 /datum/job/detective
 	title = "Detective"
@@ -108,15 +144,24 @@
 	department_head = list("Head of Security")
 	selection_color = "#ffeeee"
 	alt_titles = list("Forensic Technician")
-	access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_FORENSICS_LOCKERS, ACCESS_MORGUE, ACCESS_MAINT_TUNNELS, ACCESS_COURT, ACCESS_WEAPONS)
-	minimal_access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_FORENSICS_LOCKERS, ACCESS_MORGUE, ACCESS_MAINT_TUNNELS, ACCESS_COURT, ACCESS_WEAPONS)
-	alt_titles = list("Forensic Technician")
+	access = list(
+		ACCESS_BRIG,
+		ACCESS_COURT,
+		ACCESS_EVIDENCE,
+		ACCESS_FORENSICS_LOCKERS,
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_MORGUE,
+		ACCESS_SEC_DOORS,
+		ACCESS_SECURITY,
+		ACCESS_WEAPONS
+	)
 	minimal_player_age = 14
 	exp_map = list(EXP_TYPE_CREW = 600)
-	blacklisted_disabilities = list(DISABILITY_FLAG_BLIND, DISABILITY_FLAG_DEAF, DISABILITY_FLAG_MUTE, DISABILITY_FLAG_DIZZY)
+	blacklisted_disabilities = list(DISABILITY_FLAG_BLIND, DISABILITY_FLAG_DEAF, DISABILITY_FLAG_MUTE, DISABILITY_FLAG_DIZZY, DISABILITY_FLAG_PARAPLEGIC)
 	missing_limbs_allowed = FALSE
 	outfit = /datum/outfit/job/detective
 	important_information = "Track, investigate, and look cool while doing it."
+	standard_paycheck = CREW_PAY_MEDIUM
 
 /datum/outfit/job/detective
 	name = "Detective"
@@ -130,16 +175,21 @@
 	l_ear = /obj/item/radio/headset/headset_sec/alt
 	glasses = /obj/item/clothing/glasses/hud/security/sunglasses
 	id = /obj/item/card/id/detective
-	l_pocket = /obj/item/toy/crayon/white
+	l_pocket = /obj/item/toy/crayon/white/chalk
 	r_pocket = /obj/item/lighter/zippo
 	pda = /obj/item/pda/detective
 	backpack_contents = list(
 		/obj/item/storage/box/evidence = 1,
-		/obj/item/detective_scanner = 1,
 		/obj/item/melee/classic_baton/telescopic = 1
 	)
 
-	implants = list(/obj/item/implant/mindshield)
+	bio_chips = list(/obj/item/bio_chip/mindshield)
+
+/datum/outfit/job/detective/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	ADD_TRAIT(H.mind, TRAIT_CORPSE_RESIST, JOB_TRAIT) // too cool to vomit
+	add_verb(H, /mob/living/carbon/human/proc/sop_legal)
+	add_verb(H, /mob/living/carbon/human/proc/space_law)
 
 /datum/outfit/job/detective/pre_equip(mob/living/carbon/human/H, visualsOnly = FALSE)
 	. = ..()
@@ -167,14 +217,22 @@
 	supervisors = "the head of security"
 	department_head = list("Head of Security")
 	selection_color = "#ffeeee"
-	access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_COURT, ACCESS_MAINT_TUNNELS, ACCESS_MORGUE, ACCESS_WEAPONS)
-	minimal_access = list(ACCESS_SECURITY, ACCESS_SEC_DOORS, ACCESS_BRIG, ACCESS_COURT, ACCESS_MAINT_TUNNELS, ACCESS_WEAPONS)
+	access = list(
+		ACCESS_BRIG,
+		ACCESS_COURT,
+		ACCESS_EVIDENCE,
+		ACCESS_MAINT_TUNNELS,
+		ACCESS_SEC_DOORS,
+		ACCESS_SECURITY,
+		ACCESS_WEAPONS
+	)
 	minimal_player_age = 14
 	exp_map = list(EXP_TYPE_CREW = 600)
-	blacklisted_disabilities = list(DISABILITY_FLAG_BLIND, DISABILITY_FLAG_DEAF, DISABILITY_FLAG_MUTE, DISABILITY_FLAG_DIZZY)
+	blacklisted_disabilities = list(DISABILITY_FLAG_BLIND, DISABILITY_FLAG_DEAF, DISABILITY_FLAG_MUTE, DISABILITY_FLAG_DIZZY, DISABILITY_FLAG_PARAPLEGIC)
 	missing_limbs_allowed = FALSE
 	outfit = /datum/outfit/job/officer
 	important_information = "Space Law is the law, not a suggestion."
+	standard_paycheck = CREW_PAY_MEDIUM
 
 /datum/outfit/job/officer
 	name = "Security Officer"
@@ -192,8 +250,12 @@
 	backpack_contents = list(
 		/obj/item/restraints/handcuffs = 1
 	)
-	implants = list(/obj/item/implant/mindshield)
+	bio_chips = list(/obj/item/bio_chip/mindshield)
 	backpack = /obj/item/storage/backpack/security
 	satchel = /obj/item/storage/backpack/satchel_sec
 	dufflebag = /obj/item/storage/backpack/duffel/security
 
+/datum/outfit/job/officer/on_mind_initialize(mob/living/carbon/human/H)
+	. = ..()
+	add_verb(H, /mob/living/carbon/human/proc/sop_legal)
+	add_verb(H, /mob/living/carbon/human/proc/space_law)

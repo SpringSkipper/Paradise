@@ -47,8 +47,8 @@
 	name = "Charcoal"
 	id = "charcoal"
 	result = "charcoal"
-	required_reagents = list("ash" = 1, "sodiumchloride" = 1)
-	result_amount = 2
+	required_reagents = list("ash" = 1, "sodiumchloride" = 5)
+	result_amount = 6
 	mix_message = "The mixture yields a fine black powder."
 	min_temp = T0C + 100
 	mix_sound = 'sound/goonstation/misc/fuse.ogg'
@@ -285,7 +285,7 @@
 	name = "Degreaser"
 	id = "degreaser"
 	result = "degreaser"
-	required_reagents = list("oil" = 1, "sterilizine" = 1)
+	required_reagents = list("oil" = 1, "spaceacillin" = 1)
 	result_amount = 2
 
 /datum/chemical_reaction/liquid_solder

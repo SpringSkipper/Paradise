@@ -44,7 +44,7 @@
 			var/datum/reagent/R = X
 			if(R.id in required_reagents)
 				continue
-			if(R in GLOB.blocked_chems)
+			if(R.id in GLOB.blocked_chems)
 				continue
 			beeagents += R
 		var/bee_amount = round(created_volume * 0.2)
@@ -172,9 +172,9 @@
 	var/ex_light = round(created_volume / 20)
 	var/ex_flash = round(created_volume / 8)
 	if(istype(holder.my_atom)) //ensures the explosion happens at the container, not where its primed at
-		explosion(holder.my_atom.loc, ex_severe, ex_heavy,ex_light, ex_flash, 1)
+		explosion(holder.my_atom.loc, ex_severe, ex_heavy,ex_light, ex_flash, 1, cause = "Blackpowder Explosion")
 	else
-		explosion(prime_location, ex_severe, ex_heavy,ex_light, ex_flash, 1)
+		explosion(prime_location, ex_severe, ex_heavy,ex_light, ex_flash, 1, cause = "Blackpowder Explosion")
 	// If this black powder is in a decal, remove the decal, because it just exploded
 	if(istype(holder.my_atom, /obj/effect/decal/cleanable/dirt/blackpowder))
 		qdel(holder.my_atom)
@@ -225,7 +225,8 @@
 	result_amount = 2
 	mix_message = "The substance becomes a pile of burning dust."
 
-/datum/chemical_reaction/phlogiston_fire //This MUST be above the smoke recipe.
+/// This MUST be above the smoke recipe.
+/datum/chemical_reaction/phlogiston_fire
 	name = "Phlogiston Fire"
 	id = "phlogiston_fire"
 	result = "phlogiston"
@@ -259,14 +260,14 @@
 	required_reagents = list("potassium" = 1, "sugar" = 1, "phosphorus" = 1)
 	result_amount = 1
 	mix_message = "The mixture quickly turns into a pall of smoke!"
-	var/forbidden_reagents = list("sugar", "phosphorus", "potassium", "stimulants", "smoke_powder") //Do not transfer this stuff through smoke.
+	var/forbidden_reagents = list("sugar", "phosphorus", "potassium", "stimulants", "smoke_powder", "fishwater", "toiletwater") //Do not transfer this stuff through smoke.
 
 /datum/chemical_reaction/smoke/on_reaction(datum/reagents/holder, created_volume)
 	for(var/f_reagent in forbidden_reagents)
 		holder.del_reagent(f_reagent)
 	var/location = get_turf(holder.my_atom)
 	var/datum/effect_system/smoke_spread/chem/S = new
-	playsound(location, 'sound/effects/smoke.ogg', 50, 1, -3)
+	playsound(location, 'sound/effects/smoke.ogg', 50, TRUE, -3)
 	if(S)
 		S.set_up(holder, location)
 		if(created_volume < 5)
@@ -283,7 +284,6 @@
 	id = "smoke_powder_smoke"
 	required_reagents = list("smoke_powder" = 1)
 	min_temp = T0C + 100
-	result_amount = 1
 	mix_sound = null
 
 /datum/chemical_reaction/sonic_powder
@@ -341,7 +341,7 @@
 
 /datum/chemical_reaction/azide/on_reaction(datum/reagents/holder, created_volume)
 	var/location = get_turf(holder.my_atom)
-	explosion(location, 0, 1, 4)
+	explosion(location, 0, 1, 4, cause = "Azide reaction")
 
 /datum/chemical_reaction/firefighting_foam
 	name = "firefighting_foam"
@@ -363,7 +363,7 @@
 
 /datum/chemical_reaction/clf3_firefighting/on_reaction(datum/reagents/holder, created_volume)
 	var/location = get_turf(holder.my_atom)
-	explosion(location, -1, 0, 2)
+	explosion(location, -1, 0, 2, cause = "CLF3 reaction")
 
 /datum/chemical_reaction/shock_explosion
 	name = "shock_explosion"

@@ -2,10 +2,10 @@
 #define TESLA_MINI_POWER 869130
 //Zap constants, speeds up targeting
 #define COIL (ROD + 1)
-#define ROD (APC + 1)
-#define APC (RIDE + 1)
+#define ROD (RIDE + 1)
 #define RIDE (LIVING + 1)
-#define LIVING (MACHINERY + 1)
+#define LIVING (APC + 1)
+#define APC (MACHINERY + 1)
 #define MACHINERY (BLOB + 1)
 #define BLOB (STRUCTURE + 1)
 #define STRUCTURE (1)
@@ -19,13 +19,10 @@
 	pixel_x = -32
 	pixel_y = -32
 	current_size = STAGE_TWO
-	move_self = TRUE
 	grav_pull = 0
-	density = TRUE
 	energy = 0
 	dissipate = FALSE
 	dissipate_delay = 5
-	dissipate_strength = 1
 	warps_projectiles = FALSE
 	var/list/orbiting_balls = list()
 	var/miniball = FALSE
@@ -34,19 +31,23 @@
 	var/energy_to_lower = -20
 	var/obj/singularity/energy_ball/parent_energy_ball
 	/// Turf where the tesla will move to if it's loose
-	var/turf/target_turf
-	/// Direction we have to go to go towards the target turf
-	var/movement_dir
+	var/turf/movement_goal
+	/// The next spot the tesla will zoom to and stop at on its way to movement_goal
+	var/turf/move_target
 	/// Variable that defines whether it has a field generator close enough
 	var/has_close_field = FALSE
-	/// Init list that has all the areas that we can possibly move to, to reduce processing impact
-	var/list/all_possible_areas = list()
+	/// How many tiles do we move per movement step?
+	var/steps_per_move = 8
 
 /obj/singularity/energy_ball/Initialize(mapload, starting_energy = 50, is_miniball = FALSE)
 	miniball = is_miniball
 	RegisterSignal(src, COMSIG_ATOM_ORBIT_BEGIN, PROC_REF(on_start_orbit))
 	RegisterSignal(src, COMSIG_ATOM_ORBIT_STOP, PROC_REF(on_stop_orbit))
 	RegisterSignal(parent_energy_ball, COMSIG_PARENT_QDELETING, PROC_REF(on_parent_delete))
+	var/static/list/loc_connections = list(
+		COMSIG_ATOM_ENTERED = PROC_REF(on_atom_entered)
+	)
+	AddElement(/datum/element/connect_loc, loc_connections)
 	. = ..()
 	if(!is_miniball)
 		set_light(10, 7, "#5e5edd")
@@ -74,6 +75,9 @@
 		GLOB.poi_list -= src
 
 	QDEL_LIST_CONTENTS(orbiting_balls)
+	movement_goal = null
+	move_target = null
+	GLOB.move_manager.stop_looping(src)
 	return ..()
 
 /obj/singularity/energy_ball/admin_investigate_setup()
@@ -84,7 +88,6 @@
 /obj/singularity/energy_ball/process()
 	if(!parent_energy_ball)
 		handle_energy()
-		move_the_basket_ball()
 
 		playsound(loc, 'sound/magic/lightningbolt.ogg', 100, TRUE, extrarange = 30, channel = CHANNEL_ENGINE)
 
@@ -99,6 +102,8 @@
 			var/range = rand(1, clamp(length(orbiting_balls), 2, 3))
 			//We zap off the main ball instead of ourselves to make things looks proper
 			tesla_zap(src, range, TESLA_MINI_POWER / 7 * range)
+
+		move_the_basket_ball()
 	else
 		energy = 0 // ensure we dont have miniballs of miniballs //But it'll be cool broooooooooooooooo
 
@@ -108,38 +113,134 @@
 		. += "There are [length(orbiting_balls)] mini-balls orbiting it."
 
 /obj/singularity/energy_ball/proc/move_the_basket_ball()
-	for(var/i in 1 to length(GLOB.field_generator_fields))
-		var/temp_distance = get_dist(src, GLOB.field_generator_fields[i])
+	if(!loc)
+		// Don't move while nowhere.
+		movement_goal = null
+		move_target = null
+		GLOB.move_manager.stop_looping(src)
+		return
+
+	has_close_field = FALSE
+	for(var/i in 1 to length(GLOB.tesla_containment))
+		var/temp_distance = get_dist(src, GLOB.tesla_containment[i])
 		if(temp_distance <= 15)
 			has_close_field = TRUE
 			break
+
 	if(has_close_field)
+		// We're in range of a containment field. Stop long-distance movement.
+		movement_goal = null
+		move_target = null
+		GLOB.move_manager.stop_looping(src)
 		var/turf/T = get_step(src, pick(GLOB.alldirs))
 		if(can_move(T))
 			forceMove(T)
-			has_close_field = FALSE
-			for(var/mob/living/carbon/C in loc)
-				dust_mobs(C)
 		return
-	if(!target_turf)
-		find_the_basket()
-		return
-	for(var/i in 0 to 8)
-		movement_dir = get_dir(get_turf(src), target_turf)
-		forceMove(get_step(src, movement_dir))
-		if(get_turf(src) == target_turf)
-			target_turf = null
-		for(var/mob/living/carbon/C in loc)
-			dust_mobs(C)
-		has_close_field = FALSE
 
+	if(loc == movement_goal)
+		// When reaching our target, clear it out, but wait for a moment before picking a new one.
+		movement_goal = null
+		return
+
+	if(!movement_goal)
+		// If we don't have a target, pick one.
+		find_the_basket()
+		move_target = null
+
+	if(loc != move_target && !isnull(move_target))
+		return
+
+	// Pick a short-term goal.
+	move_target = next_move_target()
+
+	if(move_target)
+		// Fire an energy beam at it, then start moving.
+		INVOKE_ASYNC(src, PROC_REF(arc_and_move))
+
+/obj/singularity/energy_ball/proc/next_move_target()
+	if(!isturf(loc) || !isturf(movement_goal))
+		return null
+
+	var/x_diff = movement_goal.x - x
+	var/y_diff = movement_goal.y - y
+	if(abs(x_diff) <= steps_per_move && abs(y_diff) <= steps_per_move)
+		// We're close, go there directly.
+		return movement_goal
+
+	var/target_x
+	var/target_y
+	if(abs(x_diff) >= abs(y_diff))
+		// 8 tiles along X.
+		target_x = x + 8 * sign(x_diff)
+		// Scale back Y movement to match the difference in distance along the axes.
+		target_y = y + 8 * y_diff / abs(x_diff)
+	else
+		// 8 tiles along Y.
+		target_y = y + 8 * sign(y_diff)
+		// Scale back X movement to match the difference in distance along the axes.
+		target_x = x + 8 * x_diff / abs(y_diff)
+
+	return locate(target_x, target_y, z)
+
+/obj/singularity/energy_ball/proc/arc_and_move()
+	if(!loc || !move_target)
+		// We went to nowhere before the INVOKE_ASYNC resolved. Abort, abort!
+		return
+
+	// Initial beam.
+	movement_beam(move_target, 1.5 SECONDS)
+	sleep(0.5 SECONDS)
+
+	// MORE POWER!
+	movement_beam(move_target, 1 SECONDS)
+	sleep(0.5 SECONDS)
+
+	// Follow that arc!
+	GLOB.move_manager.stop_looping(src)
+	GLOB.move_manager.move_towards(src, move_target, 0.5, 10)
+
+/obj/singularity/energy_ball/proc/on_atom_entered(datum/source, atom/movable/entered)
+	var/mob/living/living_entered = entered
+	if(istype(living_entered))
+		living_entered.dust()
+
+/obj/singularity/energy_ball/proc/movement_beam(turf/move_target, duration)
+	loc.Beam(move_target, "lightning[rand(1, 12)]", 'icons/effects/effects.dmi', duration, INFINITY)
 
 /obj/singularity/energy_ball/proc/find_the_basket()
 	var/area/where_to_move = pick(all_possible_areas) // Grabs a random area that isn't restricted
 	var/turf/target_area_turfs = get_area_turfs(where_to_move) // Grabs the turfs from said area
-	target_turf = pick(target_area_turfs) // Grabs a single turf from the entire list
-	return
+	movement_goal = pick(target_area_turfs) // Grabs a single turf from the entire list
 
+/obj/singularity/energy_ball/Move(target, direction)
+	if(miniball)
+		return ..()
+
+	if(!loc || !target)
+		// Don't move while nowhere.
+		return FALSE
+
+	if((locate(/obj/machinery/shield) in target) || (locate(/obj/machinery/field/containment) in target))
+		// We can't go that way, and we're now in range of a containment field. Stop long-distance movement.
+		movement_goal = null
+		move_target = null
+		GLOB.move_manager.stop_looping(src)
+		return FALSE
+	// Energy balls move through everything, make it a forceMove.
+	forceMove(target, direction)
+	return TRUE
+
+/obj/singularity/energy_ball/forceMove(target)
+	. = ..()
+	if(miniball || !isturf(target))
+		return
+
+	for(var/mob/M in target)
+		dust_mobs(M)
+
+// Energy balls do not drift in space.
+/obj/singularity/energy_ball/Process_Spacemove(movement_dir = 0, continuous_move = FALSE)
+	return TRUE
 
 /obj/singularity/energy_ball/proc/handle_energy()
 	if(energy >= energy_to_raise)
@@ -173,9 +274,6 @@
 	EB.parent_energy_ball = src
 	EB.orbit(src, orbitsize, pick(FALSE, TRUE), rand(10, 25), pick(3, 4, 5, 6, 36), orbit_layer = EB.layer)
 
-/obj/singularity/energy_ball/Bump(atom/A)
-	dust_mobs(A)
-
 /obj/singularity/energy_ball/Bumped(atom/movable/AM)
 	dust_mobs(AM)
 
@@ -183,11 +281,11 @@
 	if(!iscarbon(user))
 		return
 	var/mob/living/carbon/C = user
-	investigate_log("has consumed the brain of [key_name(C)] after being touched with telekinesis", "singulo")
+	investigate_log("has consumed the brain of [key_name(C)] after being touched with telekinesis", INVESTIGATE_SINGULO)
 	C.visible_message("<span class='danger'>[C] suddenly slumps over.</span>", \
 		"<span class='userdanger'>As you mentally focus on the energy ball you feel the contents of your skull become overcharged. That was shockingly stupid.</span>")
 	var/obj/item/organ/internal/brain/B = C.get_int_organ(/obj/item/organ/internal/brain)
-	C.ghostize(0)
+	C.ghostize()
 	if(B)
 		B.remove(C)
 		qdel(B)
@@ -219,17 +317,15 @@
 	parent_energy_ball = null
 
 /obj/singularity/energy_ball/proc/dust_mobs(atom/A)
-	if(isliving(A))
-		var/mob/living/L = A
-		if(L.incorporeal_move || L.status_flags & GODMODE)
-			return
-	if(!iscarbon(A))
+	if(!isliving(A))
+		return
+	var/mob/living/L = A
+	if(L.incorporeal_move || L.status_flags & GODMODE)
 		return
 	for(var/obj/machinery/power/grounding_rod/GR in orange(src, 2))
 		if(GR.anchored)
 			return
-	var/mob/living/carbon/C = A
-	C.dust()
+	L.dust()
 
 /proc/tesla_zap(atom/source, zap_range = 3, power, zap_flags = ZAP_DEFAULT_FLAGS, list/shocked_targets = list())
 	if(QDELETED(source))
@@ -261,14 +357,14 @@
 										/obj/machinery/field/containment,
 										/obj/structure/disposalpipe,
 										/obj/structure/disposaloutlet,
-										/obj/machinery/disposal/deliveryChute,
+										/obj/machinery/disposal/delivery_chute,
 										/obj/machinery/camera,
 										/obj/structure/sign,
 										/obj/structure/lattice,
 										/obj/structure/grille,
 										/obj/structure/cable,
 										/obj/machinery/the_singularitygen/tesla,
-										/obj/machinery/constructable_frame/machine_frame))
+										/obj/structure/machine_frame))
 
 	//Ok so we are making an assumption here. We assume that view() still calculates from the center out.
 	//This means that if we find an object we can assume it is the closest one of its type. This is somewhat of a speed increase.
@@ -296,10 +392,6 @@
 			closest_type = ROD
 			closest_atom = A
 
-		else if(istype(A, /obj/machinery/power/apc))
-			closest_type = APC
-			closest_atom = A
-
 		else if(closest_type >= RIDE)
 			continue
 
@@ -317,6 +409,13 @@
 			if(L.stat != DEAD && !(HAS_TRAIT(L, TRAIT_TESLA_SHOCKIMMUNE)) && !(L.flags_2 & SHOCKED_2))
 				closest_type = LIVING
 				closest_atom = A
+
+		else if(closest_type >= APC)
+			continue
+
+		else if(istype(A, /obj/machinery/power/apc))
+			closest_type = APC
+			closest_atom = A
 
 		else if(closest_type >= MACHINERY)
 			continue
@@ -385,9 +484,12 @@
 
 #undef COIL
 #undef ROD
-#undef APC
 #undef RIDE
 #undef LIVING
+#undef APC
 #undef MACHINERY
 #undef BLOB
 #undef STRUCTURE
+
+#undef TESLA_DEFAULT_POWER
+#undef TESLA_MINI_POWER

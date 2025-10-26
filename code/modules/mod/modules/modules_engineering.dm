@@ -57,17 +57,17 @@
 	. = ..()
 	if(!.)
 		return
-	mod.boots.flags |= NOSLIP
+	ADD_TRAIT(mod.wearer, TRAIT_NOSLIP, UID())
 	mod.slowdown += slowdown_active
-	mod.boots.magbooted = TRUE
+	ADD_TRAIT(mod.wearer, TRAIT_MAGPULSE, "magbooted")
 
 /obj/item/mod/module/magboot/on_deactivation(display_message = TRUE, deleting = FALSE)
 	. = ..()
 	if(!.)
 		return
-	mod.boots.flags ^= NOSLIP
+	REMOVE_TRAIT(mod.wearer, TRAIT_NOSLIP, UID())
 	mod.slowdown -= slowdown_active
-	mod.boots.magbooted = FALSE
+	REMOVE_TRAIT(mod.wearer, TRAIT_MAGPULSE, "magbooted")
 
 /obj/item/mod/module/magboot/advanced
 	name = "MOD advanced magnetic stability module"
@@ -81,7 +81,6 @@
 	desc = "A protoype module that improves the sensors on the modsuit to detect radiation on the user. \
 	Currently due to time restraints and a lack of lead on lavaland, it does not have a built in geiger counter or radiation protection."
 	icon_state = "radshield"
-	complexity = 0 //I'm setting this to zero for now due to it not currently increasing radiaiton armor. If we add giger counter / additional rad protecion to this, it should be 2. We denied radiation potions before, so this should NOT give full rad immunity on a engi modsuit
 	idle_power_cost = DEFAULT_CHARGE_DRAIN * 0.1 //Lowered from 0.3 due to no protection.
 	incompatible_modules = list(/obj/item/mod/module/rad_protection)
 	tgui_id = "rad_counter"
@@ -114,13 +113,16 @@
 	return ..()
 
 /obj/item/mod/module/tether/on_select_use(atom/target)
+	if(get_turf(target) == get_turf(src)) // Put this check before the parent call so the cooldown won't start if it fails
+		return FALSE
+
 	. = ..()
 	if(!.)
 		return
 	var/obj/item/projectile/tether = new /obj/item/projectile/tether(get_turf(mod.wearer))
 	tether.original = target
 	tether.firer = mod.wearer
-	tether.preparePixelProjectile(target, get_turf(target), mod.wearer)
+	tether.preparePixelProjectile(target, mod.wearer)
 	tether.fire()
 	playsound(src, 'sound/weapons/batonextend.ogg', 25, TRUE)
 	INVOKE_ASYNC(tether, TYPE_PROC_REF(/obj/item/projectile/tether, make_chain))
@@ -130,24 +132,65 @@
 	name = "tether"
 	icon_state = "tether_projectile"
 	icon = 'icons/obj/clothing/modsuit/mod_modules.dmi'
+	var/chain_icon_state = "line"
 	speed = 2
 	damage = 5
 	range = 15
 	hitsound = 'sound/weapons/batonextend.ogg'
 	hitsound_wall = 'sound/weapons/batonextend.ogg'
+	///How fast the tether will throw the user at the target
+	var/yank_speed = 1
 
 /obj/item/projectile/tether/proc/make_chain()
 	if(firer)
-		chain = Beam(firer, icon_state = "line", icon = 'icons/obj/clothing/modsuit/mod_modules.dmi', time = 10 SECONDS, maxdistance = 15)
+		chain = Beam(firer, chain_icon_state, icon, time = 10 SECONDS, maxdistance = range)
 
 /obj/item/projectile/tether/on_hit(atom/target)
 	. = ..()
 	if(firer && isliving(firer))
 		var/mob/living/L = firer
 		L.apply_status_effect(STATUS_EFFECT_IMPACT_IMMUNE)
-		L.throw_at(target, 15, 1, L, FALSE, FALSE, callback = CALLBACK(L, TYPE_PROC_REF(/mob/living, remove_status_effect), STATUS_EFFECT_IMPACT_IMMUNE))
+		L.throw_at(target, 15, yank_speed, L, FALSE, FALSE, callback = CALLBACK(L, TYPE_PROC_REF(/mob/living, remove_status_effect), STATUS_EFFECT_IMPACT_IMMUNE), block_movement = FALSE)
 
 /obj/item/projectile/tether/Destroy()
 	QDEL_NULL(chain)
 	return ..()
 
+/// Atmos water tank module
+
+#define EXTINGUISHER 0
+#define NANOFROST 1
+#define METAL_FOAM 2
+
+/obj/item/mod/module/firefighting_tank
+	name = "MOD firefighting tank"
+	desc = "A refrigerated and pressurized module tank with an extinguisher nozzle, intended to fight fires. \
+	Swaps between extinguisher, nanofrost launcher, and metal foam dispenser for breaches. Nanofrost converts plasma in the air to nitrogen, but only if it is combusting at the time.\
+	The smaller volume compared to a dedicated firefighting backpack means that non-water modes suffer from longer cooldowns."
+	icon_state = "firefighting_tank"
+	module_type = MODULE_ACTIVE
+	complexity = 2
+	active_power_cost = DEFAULT_CHARGE_DRAIN * 3
+	incompatible_modules = list(/obj/item/mod/module/firefighting_tank)
+	device = /obj/item/extinguisher/mini/nozzle/mod
+	// Used by nozzle code.
+	var/volume = 500
+
+/obj/item/extinguisher/mini/nozzle/mod
+	name = "modsuit extinguisher nozzle"
+	desc = "A heavy duty nozzle attached to a modsuit's internal tank."
+	metal_regen_time = 5 SECONDS
+	nanofrost_cooldown_time = 10 SECONDS
+
+/obj/item/extinguisher/mini/nozzle/mod/update_icon_state()
+	switch(nozzle_mode)
+		if(EXTINGUISHER)
+			icon_state = "atmos_nozzle_1"
+		if(NANOFROST)
+			icon_state = "atmos_nozzle_2"
+		if(METAL_FOAM)
+			icon_state = "atmos_nozzle_3"
+
+#undef EXTINGUISHER
+#undef NANOFROST
+#undef METAL_FOAM

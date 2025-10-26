@@ -27,11 +27,16 @@
 		0, 0, 0, 1           \
 	)                        \
 
+// Defines that handle the current status of a light
+#define LIGHT_OK 0
+#define LIGHT_EMPTY 1
+#define LIGHT_BROKEN 2
+#define LIGHT_BURNED 3
 
 //Some defines to generalise colours used in lighting.
 //Important note on colors. Colors can end up significantly different from the basic html picture, especially when saturated
 #define LIGHT_COLOR_WHITE		"#FFFFFF"
-#define LIGHT_COLOR_RED        "#FA8282" //Warm but extremely diluted red. rgb(250, 130, 130)
+#define LIGHT_COLOR_RED        "#FF4B4B" //Warm, bright red. rgb(255, 75, 75)
 #define LIGHT_COLOR_GREEN      "#64C864" //Bright but quickly dissipating neon green. rgb(100, 200, 100)
 #define LIGHT_COLOR_BLUE       "#6496FA" //Cold, diluted blue. rgb(100, 150, 250)
 
@@ -120,7 +125,7 @@ GLOBAL_LIST_INIT(em_mask_matrix, EM_MASK_MATRIX)
 /// Parse the hexadecimal color into lumcounts of each perspective.
 #define PARSE_LIGHT_COLOR(source) \
 do { \
-	if (source.light_color) { \
+	if(source.light_color) { \
 		var/__light_color = source.light_color; \
 		source.lum_r = GETREDPART(__light_color) / 255; \
 		source.lum_g = GETGREENPART(__light_color) / 255; \
@@ -130,4 +135,4 @@ do { \
 		source.lum_g = 1; \
 		source.lum_b = 1; \
 	}; \
-} while (FALSE)
+} while(FALSE)

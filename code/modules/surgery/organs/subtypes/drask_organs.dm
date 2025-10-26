@@ -18,12 +18,10 @@
 
 /obj/item/organ/internal/brain/drask
 	icon = 'icons/obj/species_organs/drask.dmi'
-	icon_state = "brain2"
 	mmi_icon = 'icons/obj/species_organs/drask.dmi'
-	mmi_icon_state = "mmi_full"
 
 /obj/item/organ/internal/eyes/drask
 	name = "drask eyeballs"
 	icon = 'icons/obj/species_organs/drask.dmi'
-	desc = "Drask eyes. They look even stranger disembodied"
+	desc = "Drask eyes. They look even stranger disembodied."
 	see_in_dark = 5

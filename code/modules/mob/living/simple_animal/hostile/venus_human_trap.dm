@@ -1,6 +1,7 @@
 
 
-/obj/structure/alien/resin/flower_bud_enemy //inheriting basic attack/damage stuff from alien structures
+/// inheriting basic attack/damage stuff from alien structures
+/obj/structure/alien/resin/flower_bud_enemy
 	name = "flower bud"
 	desc = "A large pulsating plant..."
 	icon = 'icons/effects/spacevines.dmi'
@@ -21,8 +22,7 @@
 	anchors += locate(x + 2, y - 2, z)
 
 	for(var/turf/T in anchors)
-		var/datum/beam/B = Beam(T, "vine", time=INFINITY, maxdistance=5, beam_type=/obj/effect/ebeam/vine)
-		B.sleep_time = 10 //these shouldn't move, so let's slow down updates to 1 second (any slower and the deletion of the vines would be too slow)
+		Beam(T, "vine", time = INFINITY, maxdistance = 5, beam_type = /obj/effect/ebeam/vine)
 	addtimer(CALLBACK(src, PROC_REF(bear_fruit)), growth_time)
 
 /obj/structure/alien/resin/flower_bud_enemy/proc/bear_fruit()
@@ -36,11 +36,10 @@
 	mouse_opacity = MOUSE_OPACITY_ICON
 	desc = "A thick vine, painful to the touch."
 
-
-/obj/effect/ebeam/vine/Crossed(atom/movable/AM, oldloc)
-	if(!isliving(AM))
+/obj/effect/ebeam/vine/on_atom_entered(datum/source, atom/movable/entered)
+	if(!isliving(entered))
 		return
-	var/mob/living/L = AM
+	var/mob/living/L = entered
 	if(!("vines" in L.faction))
 		L.adjustBruteLoss(5)
 		to_chat(L, "<span class='alert'>You cut yourself on the thorny vines.</span>")
@@ -76,8 +75,7 @@
 		for(var/mob/living/L in grasping)
 			if(L.stat == DEAD)
 				var/datum/beam/B = grasping[L]
-				if(B)
-					B.End()
+				qdel(B)
 				grasping -= L
 
 			//Can attack+pull multiple times per cycle
@@ -89,12 +87,12 @@
 					step(L,get_dir(L,src)) //reel them in
 					L.Weaken(6 SECONDS) //you can't get away now~
 
-		if(grasping.len < max_grasps)
+		if(length(grasping) < max_grasps)
 			grasping:
 				for(var/mob/living/L in view(grasp_range, src))
 					if(L == src || faction_check_mob(L) || (L in grasping) || L == target)
 						continue
-					for(var/t in getline(src,L))
+					for(var/t in get_line(src,L))
 						for(var/a in t)
 							var/atom/A = a
 							if(A.density && A != L)
@@ -107,8 +105,8 @@
 
 
 /mob/living/simple_animal/hostile/venus_human_trap/OpenFire(atom/the_target)
-	for(var/turf/T in getline(src,target))
-		if (T.density)
+	for(var/turf/T in get_line(src, target))
+		if(T.density)
 			return
 		for(var/obj/O in T)
 			if(O.density)

@@ -49,18 +49,16 @@
 	. = ..()
 	. += "<span class='notice'>The power light is [(stat & NOPOWER) ? "<b>off</b>" : "<b>on</b>"]."
 	. += "The operation light is [emergency_mode ? "<b>off</b>. [src] has detected a forbidden object with its sensors, and has shut down temporarily." : "<b>on</b>. [src] is active."]"
-	. += "The safety sensor light is [emagged ? "<b>off</b>!" : "<b>on</b>."]</span>"
+	if(HAS_TRAIT(src, TRAIT_CMAGGED))
+		. += "The safety sensor light is <font color=red>R</font><font color=green>G</font><font color=blue>B</font>.</span>"
+	else
+		. += "The safety sensor light is [emagged ? "<b>off</b>!" : "<b>on</b>."]</span>"
+	. += "The recycler current accepts items from [dir2text(eat_dir)]."
 
 /obj/machinery/recycler/power_change()
 	if(!..())
 		return
 	update_icon(UPDATE_ICON_STATE)
-
-/obj/machinery/recycler/attackby(obj/item/I, mob/user, params)
-	add_fingerprint(user)
-	if(exchange_parts(user, I))
-		return
-	return ..()
 
 /obj/machinery/recycler/crowbar_act(mob/user, obj/item/I)
 	if(default_deconstruction_crowbar(user, I))
@@ -82,9 +80,23 @@
 	if(default_unfasten_wrench(user, I, time = 6 SECONDS))
 		return TRUE
 
-
+/obj/machinery/recycler/cmag_act(mob/user)
+	if(emagged)
+		to_chat(user, "<span class='warning'>The board is completely fried.</span>")
+		return FALSE
+	if(!HAS_TRAIT(src, TRAIT_CMAGGED))
+		ADD_TRAIT(src, TRAIT_CMAGGED, CLOWN_EMAG)
+		if(emergency_mode)
+			emergency_mode = FALSE
+			update_icon(UPDATE_ICON_STATE)
+		playsound(src, "sparks", 75, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
+		to_chat(user, "<span class='notice'>You use the jestographic sequencer on [src].</span>")
+		return TRUE
 
 /obj/machinery/recycler/emag_act(mob/user)
+	if(HAS_TRAIT(src, TRAIT_CMAGGED))
+		to_chat(user, "<span class='warning'>The access panel is coated in yellow ooze...</span>")
+		return FALSE
 	if(!emagged)
 		emagged = TRUE
 		if(emergency_mode)
@@ -92,6 +104,7 @@
 			update_icon(UPDATE_ICON_STATE)
 		playsound(src, "sparks", 75, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
 		to_chat(user, "<span class='notice'>You use the cryptographic sequencer on [src].</span>")
+		return TRUE
 
 /obj/machinery/recycler/update_icon_state()
 	var/is_powered = !(stat & (BROKEN|NOPOWER))
@@ -131,6 +144,8 @@
 		else if(isliving(AM))
 			if(emagged)
 				crush_living(AM)
+			else if(HAS_TRAIT(src, TRAIT_CMAGGED))
+				bananafication(AM)
 			else
 				emergency_stop(AM)
 		else if(isitem(AM))
@@ -169,6 +184,15 @@
 	emergency_mode = FALSE
 	update_icon(UPDATE_ICON_STATE)
 
+/obj/machinery/recycler/proc/bananafication(mob/living/L)
+	L.loc = loc
+	if(!iscarbon(L))
+		playsound(loc, 'sound/machines/buzz-sigh.ogg', 50, 0)
+		return
+	var/mob/living/carbon/human/victim = L
+	playsound(src, 'sound/items/AirHorn.ogg', 100, TRUE, -1)
+	victim.bananatouched_harmless()
+
 /obj/machinery/recycler/proc/crush_living(mob/living/L)
 
 	L.loc = loc
@@ -193,7 +217,7 @@
 	// Remove and recycle the equipped items
 	if(eat_victim_items)
 		for(var/obj/item/I in L.get_equipped_items(TRUE))
-			if(L.unEquip(I))
+			if(L.drop_item_to_ground(I))
 				eat(I, sound = 0)
 
 	// Instantly lie down, also go unconscious from the pain, before you die.
@@ -205,38 +229,12 @@
 		L.adjustBruteLoss(crush_damage)
 
 
-/obj/machinery/recycler/verb/rotate()
-	set name = "Rotate Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	var/mob/living/user = usr
-
-	if(usr.incapacitated())
+/obj/machinery/recycler/AltClick(mob/user)
+	if(user.stat || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED) || !Adjacent(user))
 		return
-	if(anchored)
-		to_chat(usr, "[src] is fastened to the floor!")
-		return 0
-	eat_dir = turn(eat_dir, 270)
-	to_chat(user, "<span class='notice'>[src] will now accept items from [dir2text(eat_dir)].</span>")
-	return 1
 
-/obj/machinery/recycler/verb/rotateccw()
-	set name = "Rotate Counter Clockwise"
-	set category = "Object"
-	set src in oview(1)
-
-	var/mob/living/user = usr
-
-	if(usr.incapacitated())
-		return
-	if(anchored)
-		to_chat(usr, "[src] is fastened to the floor!")
-		return 0
 	eat_dir = turn(eat_dir, 90)
 	to_chat(user, "<span class='notice'>[src] will now accept items from [dir2text(eat_dir)].</span>")
-	return 1
-
 
 /obj/machinery/recycler/deathtrap
 	name = "dangerous old crusher"
@@ -249,3 +247,5 @@
 	info = "<h2>New Assignment</h2> You have been assigned to collect garbage from trash bins, located around the station. The crewmembers will put their trash into it and you will collect the said trash.<br><br>There is a recycling machine near your closet, inside maintenance; use it to recycle the trash for a small chance to get useful minerals. Then deliver these minerals to cargo or engineering. You are our last hope for a clean station, do not screw this up!"
 
 #undef SOUND_COOLDOWN
+
+#undef SAFETY_COOLDOWN

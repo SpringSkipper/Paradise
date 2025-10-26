@@ -11,7 +11,7 @@
 /datum/keybinding/human/bag_equip/down(client/C)
 	. = ..()
 	var/mob/living/carbon/human/M = C.mob
-	M.quick_equip_item(SLOT_HUD_BACK)
+	M.quick_equip_item(ITEM_SLOT_BACK)
 
 /datum/keybinding/human/belt_equip
 	name = "Equip Held Object To Belt"
@@ -20,7 +20,7 @@
 /datum/keybinding/human/belt_equip/down(client/C)
 	. = ..()
 	var/mob/living/carbon/human/M = C.mob
-	M.quick_equip_item(SLOT_HUD_BELT)
+	M.quick_equip_item(ITEM_SLOT_BELT)
 
 /datum/keybinding/human/suit_equip
 	name = "Equip Held Object To Suit Storage"
@@ -29,7 +29,7 @@
 /datum/keybinding/human/suit_equip/down(client/C)
 	. = ..()
 	var/mob/living/carbon/human/M = C.mob
-	M.quick_equip_item(SLOT_HUD_SUIT_STORE)
+	M.quick_equip_item(ITEM_SLOT_SUIT_STORE)
 
 /datum/keybinding/human/toggle_holster
 	name = "Toggle Holster"
@@ -41,7 +41,7 @@
 	if(!M.w_uniform)
 		return
 	var/obj/item/clothing/accessory/holster/H = locate() in M.w_uniform
-	H?.holster_verb()
+	H?.handle_holster_usage(M)
 
 /datum/keybinding/human/parry
 	name = "Parry"

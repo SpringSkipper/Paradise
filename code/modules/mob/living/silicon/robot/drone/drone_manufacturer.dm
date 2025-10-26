@@ -87,6 +87,16 @@
 	var/mob/dead/observer/ghost = user
 	ghost.join_as_drone()
 
+/obj/machinery/drone_fabricator/attack_hand(mob/user)
+	. = ..()
+	if(isdrone(user) && Adjacent(user))
+		if(alert(user, "Would you like to shut down?", null, "Yes", "No") != "Yes")
+			return
+		var/mob/living/silicon/robot/drone/D = user
+		if(!istype(D) || QDELETED(D))
+			return
+		D.cryo_with_dronefab(src)
+
 /mob/dead/verb/join_as_drone()
 	set category = "Ghost"
 	set name = "Join As Drone"
@@ -102,7 +112,7 @@
 		to_chat(usr, "<span class='warning'>You are banned from playing drones, and cannot spawn as one.</span>")
 		return
 
-	if(!SSticker || SSticker.current_state < GAME_STATE_PLAYING)
+	if(SSticker.current_state < GAME_STATE_PLAYING)
 		to_chat(src, "<span class='warning'>You can't join as a drone before the game starts!</span>")
 		return
 
@@ -120,11 +130,11 @@
 	var/deathtime = world.time - timeofdeath
 	var/joinedasobserver = FALSE
 	if(isobserver(src))
-		var/mob/dead/observer/G = src
-		if(cannotPossess(G))
+		var/mob/dead/observer/ghost = src
+		if(!ghost.check_ahud_rejoin_eligibility())
 			to_chat(usr, "<span class='warning'>Upon using the antagHUD you forfeited the ability to join the round.</span>")
 			return
-		if(G.started_as_observer == TRUE)
+		if(ghost.ghost_flags & GHOST_START_AS_OBSERVER)
 			joinedasobserver = TRUE
 
 	var/deathtimeminutes = round(deathtime / 600)
@@ -142,10 +152,10 @@
 		to_chat(usr, "<span class='warning'>You must wait 10 minutes to respawn as a drone!</span>")
 		return
 
-	if(alert("Are you sure you want to respawn as a drone?", "Are you sure?", "Yes", "No") != "Yes")
+	if(tgui_alert(usr, "Are you sure you want to respawn as a drone?", "Are you sure?", list("Yes", "No")) != "Yes")
 		return
 
-	for(var/obj/machinery/drone_fabricator/DF in GLOB.machines)
+	for(var/obj/machinery/drone_fabricator/DF in SSmachines.get_by_type(/obj/machinery/drone_fabricator))
 		if(DF.stat & NOPOWER || !DF.produce_drones)
 			continue
 

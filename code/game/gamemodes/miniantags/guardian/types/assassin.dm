@@ -12,8 +12,8 @@
 	var/toggle = FALSE
 	var/stealthcooldown = 0
 	var/default_stealth_cooldown = 10 SECONDS
-	var/obj/screen/alert/canstealthalert
-	var/obj/screen/alert/instealthalert
+	var/atom/movable/screen/alert/canstealthalert
+	var/atom/movable/screen/alert/instealthalert
 
 /mob/living/simple_animal/hostile/guardian/assassin/Initialize(mapload, mob/living/host)
 	. = ..()
@@ -25,11 +25,11 @@
 	. = ..()
 	updatestealthalert()
 
-/mob/living/simple_animal/hostile/guardian/assassin/Stat()
-	..()
-	if(statpanel("Status"))
-		if(stealthcooldown >= world.time)
-			stat(null, "Stealth Cooldown Remaining: [max(round((stealthcooldown - world.time)*0.1, 0.1), 0)] seconds")
+/mob/living/simple_animal/hostile/guardian/assassin/get_status_tab_items()
+	var/list/status_tab_data = ..()
+	. = status_tab_data
+	if(stealthcooldown >= world.time)
+		status_tab_data[++status_tab_data.len] = list("Stealth Cooldown Remaining:", "[max(round((stealthcooldown - world.time) * 0.1, 0.1), 0)] seconds")
 
 /mob/living/simple_animal/hostile/guardian/assassin/AttackingTarget()
 	. = ..()
@@ -55,7 +55,7 @@
 	if(toggle)
 		melee_damage_lower = initial(melee_damage_lower)
 		melee_damage_upper = initial(melee_damage_upper)
-		armour_penetration_percentage = initial(armour_penetration_percentage)
+		armor_penetration_percentage = initial(armor_penetration_percentage)
 		obj_damage = initial(obj_damage)
 		environment_smash = initial(environment_smash)
 		alpha = initial(alpha)
@@ -73,7 +73,7 @@
 			return
 		melee_damage_lower = 50
 		melee_damage_upper = 50
-		armour_penetration_percentage = 100
+		armor_penetration_percentage = 100
 		obj_damage = 0
 		environment_smash = ENVIRONMENT_SMASH_NONE
 		alpha = 10
@@ -88,12 +88,12 @@
 	if(stealthcooldown <= world.time)
 		if(toggle)
 			if(!instealthalert)
-				instealthalert = throw_alert("instealth", /obj/screen/alert/instealth)
+				instealthalert = throw_alert("instealth", /atom/movable/screen/alert/instealth)
 				clear_alert("canstealth")
 				canstealthalert = null
 		else
 			if(!canstealthalert)
-				canstealthalert = throw_alert("canstealth", /obj/screen/alert/canstealth)
+				canstealthalert = throw_alert("canstealth", /atom/movable/screen/alert/canstealth)
 				clear_alert("instealth")
 				instealthalert = null
 	else

@@ -3,6 +3,12 @@
 	name_plural = "Kidan"
 	icobase = 'icons/mob/human_races/r_kidan.dmi'
 	language = "Chittin"
+	meat_type = /obj/item/food/meat/human
+
+	blurb = "The Kidan are ant-like beings possessing a hardened exoskeleton and strict adherence to social castes. \
+	They originate from the planet Aurum — a barren bombarded world that suffered after the war with the Solar-Central Compact, having lost decisively after the Battle of Argos.<br/><br/> \
+	They are relatively minor players in galactic affairs and presently suffer heavy sanctions from the SCC, \
+	though they are tentatively re-establishing relations with other galactic powers, even after the crumbling of their once powerful empire."
 	unarmed_type = /datum/unarmed_attack/claws
 
 	brute_mod = 0.8
@@ -22,6 +28,7 @@
 	default_headacc = "Normal Antennae"
 	butt_sprite = "kidan"
 
+	meat_type = /obj/item/food/meat/human
 	has_organ = list(
 		"heart" =    /obj/item/organ/internal/heart/kidan,
 		"lungs" =    /obj/item/organ/internal/lungs/kidan,
@@ -33,7 +40,7 @@
 		"lantern" =  /obj/item/organ/internal/lantern
 		)
 
-	allowed_consumed_mobs = list(/mob/living/simple_animal/diona)
+	allowed_consumed_mobs = list(/mob/living/basic/diona_nymph)
 
 	suicide_messages = list(
 		"is attempting to bite their antenna off!",
@@ -42,8 +49,13 @@
 		"is cracking their exoskeleton!",
 		"is stabbing themselves with their mandibles!",
 		"is holding their breath!")
+	autohiss_basic_map = list(
+			"z" = list("zz", "zzz", "zzzz"),
+			"v" = list("vv", "vvv", "vvvv")
+		)
+	autohiss_extra_map = list(
+			"s" = list("z", "zs", "zzz", "zzsz")
+		)
+	autohiss_exempt = list("Chittin")
 
-
-/datum/species/kidan/get_species_runechat_color(mob/living/carbon/human/H)
-	var/obj/item/organ/internal/eyes/E = H.get_int_organ(/obj/item/organ/internal/eyes)
-	return E.eye_color
+	plushie_type = /obj/item/toy/plushie/kidanplushie

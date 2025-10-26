@@ -1,10 +1,10 @@
 /obj/item/ammo_casing
 	name = "bullet casing"
 	desc = "A bullet casing."
-	icon = 'icons/obj/ammo.dmi'
-	icon_state = "s-casing"
+	icon = 'icons/obj/bullet.dmi'
+	icon_state = "pistol_brass"
 	flags = CONDUCT
-	slot_flags = SLOT_FLAG_BELT
+	slot_flags = ITEM_SLOT_BELT
 	throwforce = 1
 	w_class = WEIGHT_CLASS_TINY
 	var/fire_sound = null						//What sound should play when this ammo is fired
@@ -28,12 +28,13 @@
 	/// How strong the flash is
 	var/muzzle_flash_strength = MUZZLE_FLASH_STRENGTH_WEAK
 
+	scatter_distance = 10
+
 /obj/item/ammo_casing/New()
 	..()
 	if(projectile_type)
 		BB = new projectile_type(src)
-	pixel_x = rand(-10.0, 10)
-	pixel_y = rand(-10.0, 10)
+	scatter_atom()
 	dir = pick(GLOB.alldirs)
 	update_appearance(UPDATE_DESC|UPDATE_ICON_STATE)
 
@@ -49,7 +50,7 @@
 		BB = new projectile_type(src, params)
 	return
 
-/obj/item/ammo_casing/attackby(obj/item/I as obj, mob/user as mob, params)
+/obj/item/ammo_casing/attackby__legacy__attackchain(obj/item/I as obj, mob/user as mob, params)
 	if(istype(I, /obj/item/ammo_box))
 		var/obj/item/ammo_box/box = I
 		if(box.slow_loading)
@@ -83,7 +84,9 @@
 		return
 
 	var/tmp_label = ""
-	var/label_text = sanitize(input(user, "Inscribe some text into \the [initial(BB.name)]", "Inscription", tmp_label))
+	var/label_text = tgui_input_text(user, "Inscribe some text into \the [initial(BB.name)]", "Inscription", tmp_label)
+	if(!label_text)
+		return
 
 	if(length(label_text) > 20)
 		to_chat(user, "<span class='warning'>The inscription can be at most 20 characters long.</span>")
@@ -100,7 +103,7 @@
 
 
 /obj/item/ammo_casing/decompile_act(obj/item/matter_decompiler/C, mob/user)
-	if(!BB)
+	if(isdrone(user) && !BB)
 		C.stored_comms["metal"] += 1
 		qdel(src)
 		return TRUE
@@ -109,18 +112,15 @@
 /obj/item/ammo_casing/emp_act(severity)
 	BB?.emp_act(severity)
 
-#define AMMO_MULTI_SPRITE_STEP_NONE null
-#define AMMO_MULTI_SPRITE_STEP_ON_OFF -1
-
 //Boxes of ammo
 /obj/item/ammo_box
 	name = "ammo box (generic)"
 	desc = "A box of ammo?"
 	icon = 'icons/obj/ammo.dmi'
 	icon_state = "10mmbox" // placeholder icon
+	inhand_icon_state = "syringe_kit"
 	flags = CONDUCT
-	slot_flags = SLOT_FLAG_BELT
-	item_state = "syringe_kit"
+	slot_flags = ITEM_SLOT_BELT
 	materials = list(MAT_METAL = 30000)
 	throwforce = 2
 	w_class = WEIGHT_CLASS_TINY
@@ -129,7 +129,7 @@
 	var/list/stored_ammo = list()
 	var/ammo_type = /obj/item/ammo_casing
 	var/max_ammo = 7
-	var/multi_sprite_step = AMMO_MULTI_SPRITE_STEP_NONE // see update_icon_state() for details
+	var/multi_sprite_step = AMMO_BOX_MULTI_SPRITE_STEP_NONE // see update_icon_state for details
 	var/caliber
 	var/multiload = 1
 	var/slow_loading = FALSE
@@ -193,7 +193,7 @@
 /obj/item/ammo_box/proc/can_load(mob/user)
 	return 1
 
-/obj/item/ammo_box/attackby(obj/item/A, mob/user, params, silent = 0, replace_spent = 0)
+/obj/item/ammo_box/attackby__legacy__attackchain(obj/item/A, mob/user, params, silent = 0, replace_spent = 0)
 	var/num_loaded = 0
 	if(!can_load(user))
 		return
@@ -209,9 +209,10 @@
 	if(istype(A, /obj/item/ammo_casing))
 		var/obj/item/ammo_casing/AC = A
 		if(give_round(AC, replace_spent))
-			user.drop_item()
-			AC.loc = src
+			user.transfer_item_to(AC, src)
 			num_loaded++
+		else
+			to_chat(user, "<span class='notice'>You are unable to fit [AC] into \the [src].</span>")
 	if(num_loaded)
 		if(!silent)
 			to_chat(user, "<span class='notice'>You load [num_loaded] shell\s into \the [src]!</span>")
@@ -221,7 +222,7 @@
 
 	return num_loaded
 
-/obj/item/ammo_box/attack_self(mob/user as mob)
+/obj/item/ammo_box/attack_self__legacy__attackchain(mob/user as mob)
 	var/obj/item/ammo_casing/A = get_round()
 	if(A)
 		user.put_in_hands(A)
@@ -230,17 +231,17 @@
 		update_appearance(UPDATE_DESC|UPDATE_ICON_STATE)
 
 // `multi_sprite_step` governs whether there are different sprites for different degrees of being loaded.
-// AMMO_MULTI_SPRITE_STEP_NONE - just a single `icon_state`, no shenanigans
-// AMMO_MULTI_SPRITE_STEP_ON_OFF - empty sprite `[icon_state]-0`, full sprite `[icon_state]`, no inbetween
+// AMMO_BOX_MULTI_SPRITE_STEP_NONE - just a single `icon_state`, no shenanigans
+// AMMO_BOX_MULTI_SPRITE_STEP_ON_OFF - empty sprite `[icon_state]-0`, full sprite `[icon_state]`, no inbetween
 // (positive integer) - sprites for intermediate degrees of being loaded are present in the .dmi
 //   and are named `[icon_state]-[ammo_count]`, with `ammo_count` being incremented in steps of `multi_sprite_step`
 //   ... except the very final full mag sprite with is just `[icon_state]`
 /obj/item/ammo_box/update_icon_state()
 	var/icon_base = initial(icon_state)
 	switch(multi_sprite_step)
-		if(AMMO_MULTI_SPRITE_STEP_NONE)
+		if(AMMO_BOX_MULTI_SPRITE_STEP_NONE)
 			icon_state = icon_base
-		if(AMMO_MULTI_SPRITE_STEP_ON_OFF)
+		if(AMMO_BOX_MULTI_SPRITE_STEP_ON_OFF)
 			icon_state = "[icon_base][length(stored_ammo) ? "" : "-0"]"
 		else
 			var/shown_ammo = CEILING(length(stored_ammo), multi_sprite_step)
@@ -275,3 +276,12 @@
 	for(var/obj/item/ammo in stored_ammo)
 		ammo.forceMove(turf_mag)
 		stored_ammo -= ammo
+
+/obj/item/ammo_casing/proc/leave_residue(mob/living/carbon/human/H)
+	if(!istype(H))
+		return
+	if(H.gloves)
+		var/obj/item/clothing/G = H.gloves
+		G.gunshot_residue = caliber
+	else
+		H.gunshot_residue = caliber

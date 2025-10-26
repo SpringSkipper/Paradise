@@ -66,6 +66,7 @@
 		to_chat(user, "<span class='warning'>You disable \the [src]'s temperature safeguards.</span>")//Inform the mob of what emagging does.
 
 		emagged = TRUE //Set the emag var to true.
+		return TRUE
 
 /obj/machinery/poolcontroller/multitool_act(mob/user, obj/item/I)
 	. = TRUE
@@ -101,7 +102,7 @@
 			QDEL_IN(decal, 25)
 
 /obj/machinery/poolcontroller/proc/handleTemp(mob/M)
-	if(!M || isAIEye(M) || issilicon(M) || isobserver(M) || M.stat == DEAD)
+	if(!M || is_ai_eye(M) || issilicon(M) || isobserver(M) || M.stat == DEAD)
 		return
 	M.water_act(100, temperature, src)//leave temp at 0, we handle it in the switch. oh wait
 	switch(temperature) //Apply different effects based on what the temperature is set to.
@@ -148,7 +149,7 @@
 
 
 /obj/machinery/poolcontroller/proc/miston() //Spawn /obj/effect/mist (from the shower) on all linked pool tiles
-	if(linkedmist.len)
+	if(length(linkedmist))
 		return
 
 	for(var/turf/simulated/floor/beach/water/W in linkedturfs)
@@ -161,10 +162,13 @@
 	linkedmist.Cut()
 
 
-/obj/machinery/poolcontroller/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = TRUE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+/obj/machinery/poolcontroller/ui_state(mob/user)
+	return GLOB.default_state
+
+/obj/machinery/poolcontroller/ui_interact(mob/user, datum/tgui/ui = null)
+	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, ui_key, "PoolController", "Pool Controller Interface", 520, 410)
+		ui = new(user, src, "PoolController", "Pool Controller Interface")
 		ui.open()
 
 /obj/machinery/poolcontroller/proc/temp_to_str(temp)
@@ -181,7 +185,7 @@
 			return "scalding"
 
 /obj/machinery/poolcontroller/proc/set_temp(val)
-	if (val != WARM && val != NORMAL && val != COOL && !(emagged && (val == SCALDING || val == FRIGID)))
+	if(val != WARM && val != NORMAL && val != COOL && !(emagged && (val == SCALDING || val == FRIGID)))
 		return
 
 	if(val == SCALDING)

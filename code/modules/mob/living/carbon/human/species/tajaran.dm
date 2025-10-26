@@ -4,14 +4,12 @@
 	icobase = 'icons/mob/human_races/r_tajaran.dmi'
 	language = "Siik'tajr"
 	tail = "tajtail"
-	skinned_type = /obj/item/stack/sheet/fur
 	unarmed_type = /datum/unarmed_attack/claws
 
-	blurb = "The Tajaran race is a species of feline-like bipeds hailing from the planet of Ahdomai in the \
-	S'randarr system. They have been brought up into the space age by the Humans and Skrell, and have been \
-	influenced heavily by their long history of Slavemaster rule. They have a structured, clan-influenced way \
-	of family and politics. They prefer colder environments, and speak a variety of languages, mostly Siik'Maas, \
-	using unique inflections their mouths form."
+	blurb = "Tajaran hail from the mineral-rich arctic moon of Ahdomai. \
+	Currently a minor player within the Orion Sector, Adhomai is only loosely united by an alliance of Tajaran clans following their rebellion against the tyrannical Overseers.<br/><br/> \
+	The teachings of S'randarr and solar iconography dominate their religious practices, \
+	and Tajaran often speak in the third person due to the lack of first-person references in their native tongue."
 
 	cold_level_1 = 240
 	cold_level_2 = 180
@@ -34,6 +32,8 @@
 	base_color = "#424242"
 	butt_sprite = "tajaran"
 
+	meat_type = /obj/item/food/meat/human
+	skinned_type = /obj/item/stack/sheet/fur
 	has_organ = list(
 		"heart" =    /obj/item/organ/internal/heart/tajaran,
 		"lungs" =    /obj/item/organ/internal/lungs/tajaran,
@@ -45,13 +45,25 @@
 															unless they choose otherwise by selecting the colourblind disability in character creation (darksight = 8 but colourblind).*/
 		)
 
-	allowed_consumed_mobs = list(/mob/living/simple_animal/mouse, /mob/living/simple_animal/chick, /mob/living/simple_animal/butterfly, /mob/living/simple_animal/parrot, /mob/living/simple_animal/hostile/poison/bees)
+	allowed_consumed_mobs = list(
+		/mob/living/basic/mouse,
+		/mob/living/basic/chick,
+		/mob/living/basic/butterfly,
+		/mob/living/simple_animal/parrot,
+		/mob/living/simple_animal/hostile/poison/bees,
+	)
 
 	suicide_messages = list(
 		"is attempting to bite their tongue off!",
 		"is jamming their claws into their eye sockets!",
 		"is twisting their own neck!",
 		"is holding their breath!")
+	autohiss_basic_map = list(
+			"r" = list("rr", "rrr", "rrrr")
+		)
+	autohiss_exempt = list("Siik'tajr")
+
+	plushie_type = /obj/item/toy/plushie/grey_cat
 
 /datum/species/tajaran/handle_death(gibbed, mob/living/carbon/human/H)
 	H.stop_tail_wagging()

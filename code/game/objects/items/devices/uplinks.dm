@@ -17,7 +17,7 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 	var/list/uplink_items
 
 	var/purchase_log = ""
-	var/uplink_owner = null//text-only
+	var/uplink_owner = null //text-only
 	var/used_TC = 0
 
 	var/job = null
@@ -26,19 +26,20 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 	var/uplink_type = UPLINK_TYPE_TRAITOR
 	/// Whether the uplink is jammed and cannot be used to order items.
 	var/is_jammed = FALSE
+	/// Whether or not the uplink has generated its stock and discounts
+	var/items_generated = FALSE
+
+	var/datum/data/record/selected_record
 
 /obj/item/uplink/ui_host()
 	return loc
 
 /obj/item/uplink/proc/update_uplink_type(new_uplink_type)
 	uplink_type = new_uplink_type
-	uplink_items = get_uplink_items(src)
 
 /obj/item/uplink/New()
 	..()
-	uses = SSticker.mode.uplink_uses
-	uplink_items = get_uplink_items(src)
-
+	uses = 100
 	GLOB.world_uplinks += src
 
 /obj/item/uplink/Destroy()
@@ -58,19 +59,22 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 		job = user.mind.assigned_role
 	if(!species)
 		species = user.dna.species.name
+	if(!items_generated)
+		uplink_items = get_uplink_items(src, user)
+		items_generated = TRUE
 
 	var/list/cats = list()
 
 	for(var/category in uplink_items)
 		cats[++cats.len] = list("cat" = category, "items" = list())
 		for(var/datum/uplink_item/I in uplink_items[category])
-			if(I.job && I.job.len)
+			if(I.job && length(I.job))
 				if(!(I.job.Find(job)) && uplink_type != UPLINK_TYPE_ADMIN)
 					continue
 			if(length(I.species))
 				if(!(I.species.Find(species)) && uplink_type != UPLINK_TYPE_ADMIN)
 					continue
-			cats[cats.len]["items"] += list(list(
+			cats[length(cats)]["items"] += list(list(
 				"name" = sanitize(I.name),
 				"desc" = sanitize(I.description()),
 				"cost" = I.cost,
@@ -88,10 +92,10 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 
 	var/list/random_items = list()
 
-	for(var/IR in uplink_items)
-		var/datum/uplink_item/UI = uplink_items[IR]
-		if(UI.cost <= uses && UI.limited_stock != 0)
-			random_items += UI
+	for(var/uplink_section in uplink_items)
+		for(var/datum/uplink_item/UI in uplink_items[uplink_section])
+			if(UI.cost <= uses && UI.limited_stock != 0)
+				random_items += UI
 
 	return pick(random_items)
 
@@ -129,20 +133,31 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 
 /obj/item/uplink/proc/refund(mob/user as mob)
 	var/obj/item/I = user.get_active_hand()
-	if(I) // Make sure there's actually something in the hand before even bothering to check
-		for(var/category in uplink_items)
-			for(var/item in uplink_items[category])
-				var/datum/uplink_item/UI = item
-				var/path = UI.refund_path || UI.item
-				var/cost = UI.refund_amount || UI.cost
-				if(I.type == path && UI.refundable && I.check_uplink_validity())
-					uses += cost
-					used_TC -= cost
-					to_chat(user, "<span class='notice'>[I] refunded.</span>")
-					qdel(I)
-					return
-		// If we are here, we didnt refund
+	if(!I) // Make sure there's actually something in the hand before even bothering to check
 		to_chat(user, "<span class='warning'>[I] is not refundable.</span>")
+		return
+
+	for(var/category in uplink_items)
+		for(var/item in uplink_items[category])
+			var/datum/uplink_item/UI = item
+			var/path = UI.refund_path || UI.item
+			var/cost = UI.refund_amount || UI.cost
+
+			if(ispath(I.type, path) && UI.refundable && I.check_uplink_validity())
+				var/refund_amount = cost
+				if(istype(I, /obj/item/guardiancreator/tech))
+					var/obj/item/guardiancreator/tech/holopara = I
+					if(holopara.is_discounted && cost != holopara.refund_cost) // This has to be done because the normal holopara uplink datum precedes the discounted uplink datum
+						continue
+					refund_amount = holopara.refund_cost
+				uses += refund_amount
+				used_TC -= refund_amount
+				to_chat(user, "<span class='notice'>[I] refunded.</span>")
+				qdel(I)
+				return
+
+	// If we are here, we didnt refund
+	to_chat(user, "<span class='warning'>[I] is not refundable.</span>")
 
 // HIDDEN UPLINK - Can be stored in anything but the host item has to have a trigger for it.
 /* How to create an uplink in 3 easy steps!
@@ -195,10 +210,13 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 		return TRUE
 	return FALSE
 
-/obj/item/uplink/hidden/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.inventory_state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+/obj/item/uplink/hidden/ui_state(mob/user)
+	return GLOB.inventory_state
+
+/obj/item/uplink/hidden/ui_interact(mob/user, datum/tgui/ui = null)
+	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, ui_key, "Uplink", name, 900, 600, master_ui, state)
+		ui = new(user, src, "Uplink", name)
 		ui.open()
 
 /obj/item/uplink/hidden/ui_data(mob/user)
@@ -209,6 +227,18 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 	data["cart"] = generate_tgui_cart()
 	data["cart_price"] = calculate_cart_tc()
 	data["lucky_numbers"] = lucky_numbers
+	if(selected_record && GLOB.data_core.general.Find(selected_record))
+		data["selected_record"] = list(
+				"name" = html_encode(selected_record.fields["name"]),
+				"sex" = html_encode(selected_record.fields["sex"]),
+				"age" = html_encode(selected_record.fields["age"]),
+				"species" = html_encode(selected_record.fields["species"]),
+				"rank" = html_encode(selected_record.fields["rank"]),
+				"nt_relation" = html_encode(selected_record.fields["nt_relation"]),
+				"fingerprint" = html_encode(selected_record.fields["fingerprint"]),
+				"has_photos" = (selected_record.fields["photo-south"] || selected_record.fields["photo-west"]) ? TRUE : FALSE,
+				"photos" = list(selected_record.fields["photo-south"], selected_record.fields["photo-west"])
+			)
 
 	return data
 
@@ -225,13 +255,11 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 	// Exploitable info
 	var/list/exploitable = list()
 	for(var/datum/data/record/L in GLOB.data_core.general)
+		if(isnull(selected_record))
+			selected_record = L
 		exploitable += list(list(
 			"name" = html_encode(L.fields["name"]),
-			"sex" = html_encode(L.fields["sex"]),
-			"age" = html_encode(L.fields["age"]),
-			"species" = html_encode(L.fields["species"]),
-			"rank" = html_encode(L.fields["rank"]),
-			"fingerprint" = html_encode(L.fields["fingerprint"])
+			"uid_gen" = L.UID(),
 		))
 
 	data["exploitable"] = exploitable
@@ -364,6 +392,12 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 			// lets see paul allen's random uplink item
 			shuffle_lucky_numbers()
 
+		if("view_record") // View Record
+			var/datum/data/record/G = locateUID(params["uid_gen"])
+			if(!istype(G))
+				return
+			selected_record = G
+
 /obj/item/uplink/hidden/proc/shuffle_lucky_numbers()
 	lucky_numbers = list()
 	for(var/i in 1 to 4)
@@ -402,7 +436,16 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 	hidden_uplink = new(src)
 	icon_state = "radio"
 
-/obj/item/radio/uplink/attack_self(mob/user as mob)
+/obj/item/radio/uplink/AltClick()
+	return
+
+/obj/item/radio/uplink/CtrlShiftClick()
+	return
+
+/obj/item/radio/uplink/show_examine_hotkeys()
+	return list()
+
+/obj/item/radio/uplink/attack_self__legacy__attackchain(mob/user as mob)
 	if(hidden_uplink)
 		hidden_uplink.trigger(user)
 
@@ -431,7 +474,8 @@ GLOBAL_LIST_EMPTY(world_uplinks)
 	..()
 	hidden_uplink = new(src)
 
-/obj/item/multitool/uplink/attack_self(mob/user as mob)
+/obj/item/multitool/uplink/activate_self(mob/user as mob)
+	. = ..()
 	if(hidden_uplink)
 		hidden_uplink.trigger(user)
 

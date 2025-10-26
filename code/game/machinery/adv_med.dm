@@ -9,13 +9,16 @@
 	idle_power_consumption = 1250
 	active_power_consumption = 2500
 	light_color = "#00FF00"
+	light_power = 0.5
 	var/mob/living/carbon/human/occupant
-	var/known_implants = list(/obj/item/implant/chem, /obj/item/implant/death_alarm, /obj/item/implant/mindshield, /obj/item/implant/tracking, /obj/item/implant/health)
+	///What is the level of the stock parts in the body scanner. A scan_level of one detects organs of stealth_level 1 or below, while a scan level of 4 would detect 4 or below.
+	var/scan_level = 1
+	var/known_implants = list(/obj/item/bio_chip/chem, /obj/item/bio_chip/death_alarm, /obj/item/bio_chip/mindshield, /obj/item/bio_chip/tracking)
 
 /obj/machinery/bodyscanner/examine(mob/user)
 	. = ..()
 	if(occupant)
-		if(occupant.is_dead())
+		if(occupant.stat == DEAD)
 			. += "<span class='warning'>You see [occupant.name] inside. [occupant.p_they(TRUE)] [occupant.p_are()] dead!</span>"
 		else
 			. += "<span class='notice'>You see [occupant.name] inside.</span>"
@@ -52,33 +55,39 @@
 	component_parts += new /obj/item/stack/cable_coil(null, 2)
 	RefreshParts()
 
+/obj/machinery/bodyscanner/RefreshParts()
+	for(var/obj/item/stock_parts/scanning_module/S in component_parts)
+		scan_level = S.rating
+
 /obj/machinery/bodyscanner/update_icon_state()
 	if(occupant)
 		icon_state = "bodyscanner"
 	else
 		icon_state = "bodyscanner-open"
 
-/obj/machinery/bodyscanner/attackby(obj/item/I, mob/user)
-	if(exchange_parts(user, I))
-		return
-
-	if(istype(I, /obj/item/grab))
-		var/obj/item/grab/TYPECAST_YOUR_SHIT = I
+/obj/machinery/bodyscanner/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(istype(used, /obj/item/grab))
+		var/obj/item/grab/TYPECAST_YOUR_SHIT = used
 		if(panel_open)
 			to_chat(user, "<span class='notice'>Close the maintenance panel first.</span>")
-			return
+			return ITEM_INTERACT_COMPLETE
+
 		if(!ishuman(TYPECAST_YOUR_SHIT.affecting))
-			return
+			return ITEM_INTERACT_COMPLETE
+
 		if(occupant)
 			to_chat(user, "<span class='notice'>The scanner is already occupied!</span>")
-			return
+			return ITEM_INTERACT_COMPLETE
+
 		if(TYPECAST_YOUR_SHIT.affecting.has_buckled_mobs()) //mob attached to us
 			to_chat(user, "<span class='warning'>[TYPECAST_YOUR_SHIT.affecting] will not fit into [src] because [TYPECAST_YOUR_SHIT.affecting.p_they()] [TYPECAST_YOUR_SHIT.affecting.p_have()] a fucking slime latched onto [TYPECAST_YOUR_SHIT.affecting.p_their()] head.</span>")
-			return
+			return ITEM_INTERACT_COMPLETE
+
 		var/mob/living/carbon/human/M = TYPECAST_YOUR_SHIT.affecting
 		if(M.abiotic())
 			to_chat(user, "<span class='notice'>Subject may not hold anything in their hands.</span>")
-			return
+			return ITEM_INTERACT_COMPLETE
+
 		M.forceMove(src)
 		occupant = M
 		playsound(src, 'sound/machines/podclose.ogg', 5)
@@ -86,7 +95,7 @@
 		add_fingerprint(user)
 		qdel(TYPECAST_YOUR_SHIT)
 		SStgui.update_uis(src)
-		return
+		return ITEM_INTERACT_COMPLETE
 
 	return ..()
 
@@ -142,6 +151,7 @@
 	else
 		visible_message("[user] puts [H] into the body scanner.")
 
+	QDEL_LIST_CONTENTS(H.grabbed_by)
 	H.forceMove(src)
 	occupant = H
 	playsound(src, 'sound/machines/podclose.ogg', 5)
@@ -210,7 +220,6 @@
 	..()
 	if(A == occupant)
 		occupant = null
-		updateUsrDialog()
 		update_icon(UPDATE_ICON_STATE)
 
 /obj/machinery/bodyscanner/narsie_act()
@@ -218,10 +227,13 @@
 	new /obj/effect/gibspawner/generic(get_turf(loc)) //I REPLACE YOUR TECHNOLOGY WITH FLESH!
 	qdel(src)
 
-/obj/machinery/bodyscanner/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+/obj/machinery/bodyscanner/ui_state(mob/user)
+	return GLOB.default_state
+
+/obj/machinery/bodyscanner/ui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, ui_key, "BodyScanner", "Body Scanner", 690, 600)
+		ui = new(user, src, "BodyScanner")
 		ui.open()
 
 /obj/machinery/bodyscanner/ui_data(mob/user)
@@ -239,7 +251,7 @@
 		var/found_disease = FALSE
 		for(var/thing in occupant.viruses)
 			var/datum/disease/D = thing
-			if(D.visibility_flags & HIDDEN_SCANNER || D.visibility_flags & HIDDEN_PANDEMIC)
+			if(D.visibility_flags & VIRUS_HIDDEN_SCANNER || D.visibility_flags & VIRUS_HIDDEN_PANDEMIC)
 				continue
 			if(istype(D, /datum/disease/critical))
 				continue
@@ -271,13 +283,13 @@
 		occupantData["blood"] = bloodData
 
 		var/implantData[0]
-		for(var/obj/item/implant/I in occupant)
+		for(var/obj/item/bio_chip/I in occupant)
 			if(I.implanted && is_type_in_list(I, known_implants))
 				var/implantSubData[0]
 				implantSubData["name"] = sanitize(I.name)
 				implantData.Add(list(implantSubData))
 		occupantData["implant"] = implantData
-		occupantData["implant_len"] = implantData.len
+		occupantData["implant_len"] = length(implantData)
 
 		var/extOrganData[0]
 		for(var/obj/item/organ/external/E in occupant.bodyparts)
@@ -300,11 +312,14 @@
 				shrapnelData.Add(list(shrapnelSubData))
 
 			organData["shrapnel"] = shrapnelData
-			organData["shrapnel_len"] = shrapnelData.len
+			organData["shrapnel_len"] = length(shrapnelData)
 
 			var/organStatus[0]
 			if(E.status & ORGAN_BROKEN)
-				organStatus["broken"] = E.broken_description
+				if(!E.broken_description)
+					organStatus["broken"] = "Broken"
+				else
+					organStatus["broken"] = E.broken_description
 			if(E.is_robotic())
 				organStatus["robotic"] = TRUE
 			if(E.status & ORGAN_SPLINTED)
@@ -329,6 +344,8 @@
 
 		var/intOrganData[0]
 		for(var/obj/item/organ/internal/I in occupant.internal_organs)
+			if(I.stealth_level > scan_level)
+				continue
 			var/organData[0]
 			organData["name"] = I.name
 			organData["desc"] = I.desc
@@ -347,6 +364,7 @@
 		occupantData["blind"] = HAS_TRAIT(occupant, TRAIT_BLIND)
 		occupantData["colourblind"] = HAS_TRAIT(occupant, TRAIT_COLORBLIND)
 		occupantData["nearsighted"] = HAS_TRAIT(occupant, TRAIT_NEARSIGHT)
+		occupantData["paraplegic"] = HAS_TRAIT(occupant, TRAIT_PARAPLEGIC)
 
 	data["occupant"] = occupantData
 	return data
@@ -423,7 +441,7 @@
 		var/found_disease = FALSE
 		for(var/thing in occupant.viruses)
 			var/datum/disease/D = thing
-			if(D.visibility_flags & HIDDEN_SCANNER || D.visibility_flags & HIDDEN_PANDEMIC)
+			if(D.visibility_flags & VIRUS_HIDDEN_SCANNER || D.visibility_flags & VIRUS_HIDDEN_PANDEMIC)
 				continue
 			found_disease = TRUE
 			break
@@ -436,6 +454,8 @@
 			dat += "<font color='red'>Photoreceptor abnormalities detected.</font><br>"
 		if(HAS_TRAIT(occupant, TRAIT_NEARSIGHT))
 			dat += "<font color='red'>Retinal misalignment detected.</font><br>"
+		if(HAS_TRAIT(occupant, TRAIT_PARAPLEGIC))
+			dat += "<font color='red'>Lumbar nerves damaged.</font><br>"
 
 		dat += "<hr>"
 		dat += "<table border='1' style='width:100%'>"
@@ -506,12 +526,14 @@
 		dat += "<th>Injuries</th>"
 		dat += "</tr>"
 
-		for(var/obj/item/organ/internal/i in occupant.internal_organs)
+		for(var/obj/item/organ/internal/I in occupant.internal_organs)
+			if(I.stealth_level > scan_level)
+				continue
 			var/list/ailments = list()
 
-			if(i.status & ORGAN_DEAD)
+			if(I.status & ORGAN_DEAD)
 				ailments |= "Dead"
-			switch(i.germ_level)
+			switch(I.germ_level)
 				if(1 to INFECTION_LEVEL_ONE + 200)
 					ailments |= "Mild Infection"
 				if(INFECTION_LEVEL_ONE + 200 to INFECTION_LEVEL_ONE + 300)
@@ -527,8 +549,8 @@
 				if(INFECTION_LEVEL_TWO + 400 to INFINITY)
 					ailments |= "Septic"
 			dat += "<tr>"
-			dat += "<td>[i.name]</td>"
-			dat += "<td>[i.damage]</td>"
+			dat += "<td>[I.name]</td>"
+			dat += "<td>[I.damage]</td>"
 			dat += "<td>[jointext(ailments, "<br>")]</td>"
 			dat += "</tr>"
 		dat += "</table>"

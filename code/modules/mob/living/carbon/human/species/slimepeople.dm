@@ -6,11 +6,19 @@
 #define SLIMEPERSON_MINHUNGER 250
 #define SLIMEPERSON_REGROWTHDELAY 450 // 45 seconds
 
+
 /datum/species/slime
 	name = "Slime People"
 	name_plural = "Slime People"
 	max_age = 130
 	language = "Bubblish"
+
+	blurb = "Slime People are gelatinous and translucent beings hailing from the tropical world of Xarxis 5 and surrounding Xarxis Republic. \
+	Relatively recent entrants to the galactic scene, the Xarxis Republic, and slime people by extension, were discovered in the mid-2400s by a TSF survery fleet..<br/><br/> \
+	Today, the Xarxis Republic is a member state of the Trans-Solar Federation, having become an Associate State following first contact, and later moving through several stages of integration.  \
+	While a great deal of Slime People prefer the comforts and traditions of their home system and the Federation, a number have decided to take their chances in the wider sector, in \
+	search of adventure, profit, and freedom among the stars."
+
 	icobase = 'icons/mob/human_races/r_slime.dmi'
 	remains_type = /obj/effect/decal/remains/slime
 	inherent_factions = list("slime")
@@ -41,10 +49,9 @@
 	//Has default darksight of 2.
 
 	vision_organ = null
+	meat_type = /obj/item/food/meat/human
 	has_organ = list(
-		"heart" = /obj/item/organ/internal/heart/slime,
-		"brain" = /obj/item/organ/internal/brain/slime,
-		"lungs" = /obj/item/organ/internal/lungs/slime
+		"brain" = /obj/item/organ/internal/brain/slime
 		)
 	mutantears = null
 	suicide_messages = list(
@@ -53,6 +60,9 @@
 		"is turning a dull, brown color and melting into a puddle!")
 
 	var/reagent_skin_coloring = FALSE
+	var/static_bodyflags = HAS_SKIN_COLOR | NO_EYES
+
+	plushie_type = /obj/item/toy/plushie/slimeplushie
 
 /datum/species/slime/on_species_gain(mob/living/carbon/human/H)
 	..()
@@ -72,6 +82,7 @@
 		if(istype(i, /datum/action/innate/regrow))
 			i.Remove(H)
 	UnregisterSignal(H, COMSIG_HUMAN_UPDATE_DNA)
+
 
 /datum/species/slime/proc/blend(mob/living/carbon/human/H)
 	var/new_color = BlendRGB(H.skin_colour, "#acacac", 0.5) // Blends this to make it work better
@@ -95,8 +106,6 @@
 			blend(H)
 	..()
 
-
-
 /datum/species/slime/can_hear(mob/living/carbon/human/H) // fucking snowflakes
 	. = FALSE
 	if(!HAS_TRAIT(H, TRAIT_DEAF))
@@ -105,7 +114,7 @@
 /datum/action/innate/slimecolor
 	name = "Toggle Recolor"
 	check_flags = AB_CHECK_CONSCIOUS
-	icon_icon = 'icons/effects/effects.dmi'
+	button_icon = 'icons/effects/effects.dmi'
 	button_icon_state = "greenglow"
 
 /datum/action/innate/slimecolor/Activate()
@@ -121,7 +130,7 @@
 /datum/action/innate/regrow
 	name = "Regrow limbs"
 	check_flags = AB_CHECK_CONSCIOUS
-	icon_icon = 'icons/effects/effects.dmi'
+	button_icon = 'icons/effects/effects.dmi'
 	button_icon_state = "greenglow"
 
 /datum/action/innate/regrow/Activate()
@@ -134,19 +143,19 @@
 	for(var/l in H.bodyparts_by_name)
 		var/obj/item/organ/external/E = H.bodyparts_by_name[l]
 		if(!istype(E))
-			var/list/limblist = H.dna.species.has_limbs[l]
-			var/obj/item/organ/external/limb = limblist["path"]
+			var/list/limb_list = H.dna.species.has_limbs[l]
+			var/obj/item/organ/external/limb = limb_list["path"]
 			var/parent_organ = initial(limb.parent_organ)
 			var/obj/item/organ/external/parentLimb = H.bodyparts_by_name[parent_organ]
 			if(!istype(parentLimb))
 				continue
 			missing_limbs[initial(limb.name)] = l
 
-	if(!missing_limbs.len)
+	if(!length(missing_limbs))
 		to_chat(H, "<span class='warning'>You're not missing any limbs!</span>")
 		return
 
-	var/limb_select = input(H, "Choose a limb to regrow", "Limb Regrowth") as null|anything in missing_limbs
+	var/limb_select = tgui_input_list(H, "Choose a limb to regrow", "Limb Regrowth", missing_limbs)
 	if(!limb_select) // If the user hit cancel on the popup, return
 		return
 	var/chosen_limb = missing_limbs[limb_select]

@@ -10,7 +10,7 @@
 
 /datum/event/alien_infestation/announce(false_alarm)
 	if(successSpawn || false_alarm)
-		GLOB.major_announcement.Announce("Confirmed outbreak of level 3-X biohazard aboard [station_name()]. All personnel must contain the outbreak.", "Biohazard Alert", 'sound/effects/siren-spooky.ogg', new_sound2 = 'sound/AI/outbreak3.ogg')
+		GLOB.major_announcement.Announce("Xenomorph infestation detected aboard [station_name()]. All personnel must contain the outbreak.", "Biohazard Alert", 'sound/effects/siren-spooky.ogg', new_sound2 = 'sound/AI/outbreak_xeno.ogg')
 	else
 		log_and_message_admins("Warning: Could not spawn any mobs for event Alien Infestation")
 
@@ -18,6 +18,11 @@
 	playercount = length(GLOB.clients)//grab playercount when event starts not when game starts
 	if(playercount >= highpop_trigger) //spawn with 4 if highpop
 		spawncount = 4
+	if(length(GLOB.crew_list) < 50) // manifest must have 50 crew to roll
+		// if xenos dont roll due to pop, try again to roll for a major in 60 seconds
+		var/datum/event_container/EC = SSevents.event_containers[EVENT_LEVEL_MAJOR]
+		EC.next_event_time = world.time + 1 MINUTES
+		return
 	INVOKE_ASYNC(src, PROC_REF(spawn_xenos))
 
 /datum/event/alien_infestation/proc/spawn_xenos()
@@ -41,3 +46,5 @@
 
 			spawncount--
 			successSpawn = TRUE
+	SSticker.record_biohazard_start(BIOHAZARD_XENO)
+	SSevents.biohazards_this_round += BIOHAZARD_XENO

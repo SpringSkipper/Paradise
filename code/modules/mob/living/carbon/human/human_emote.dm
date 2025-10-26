@@ -12,7 +12,7 @@
 	var/mob/living/carbon/human/human_user = user
 
 	if(!species_custom_messages || (human_user.mind?.miming && !species_custom_mime_messages))
-		return .
+		return
 
 	var/custom_message
 	if(user.mind?.miming)
@@ -34,17 +34,15 @@
 /datum/emote/living/carbon/human/airguitar
 	key = "airguitar"
 	message = "is strumming the air and headbanging like a safari chimp."
-	emote_type = EMOTE_VISIBLE
 	hands_use_check = TRUE
 
 /datum/emote/living/carbon/human/clap
-	key = "clap"
 	key = "clap"
 	key_third_person = "claps"
 	message = "claps."
 	message_mime = "claps silently."
 	message_param = "claps at %t."
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	vary = TRUE
 
 /datum/emote/living/carbon/human/clap/run_emote(mob/user, params, type_override, intentional)
@@ -79,7 +77,7 @@
 	key = "crack"
 	key_third_person = "cracks"
 	message = "cracks their knuckles."
-	emote_type = EMOTE_AUDIBLE | EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	// knuckles.ogg by CGEffex. Shortened and cut.
 	// https://freesound.org/people/CGEffex/sounds/93981/
 	sound = "sound/effects/mob_effects/knuckles.ogg"
@@ -116,8 +114,7 @@
 	message = "facepalms."
 	hands_use_check = TRUE
 	sound = 'sound/weapons/slap.ogg'
-	emote_type = EMOTE_SOUND
-	volume = 50
+	emote_type = EMOTE_AUDIBLE
 
 /datum/emote/living/carbon/human/palm
 	key = "palm"
@@ -161,8 +158,7 @@
 	message_mime = "acts out a scream!"
 	message_postfix = "at %t!"
 	muzzled_noises = list("very loud")
-	emote_type = EMOTE_SOUND | EMOTE_MOUTH
-	only_forced_audio = FALSE
+	emote_type = EMOTE_AUDIBLE | EMOTE_MOUTH
 	vary = TRUE
 	age_based = TRUE
 	cooldown = 5 SECONDS
@@ -185,6 +181,8 @@
 	var/mob/living/carbon/human/human = user
 	if(human.mind?.miming || !istype(human))
 		return
+	if(HAS_TRAIT(human, TRAIT_I_WANT_BRAINS))
+		return 'sound/voice/zombie_scream.ogg'
 	if(human.gender == FEMALE)
 		return human.dna.species.female_scream_sound
 	else
@@ -195,7 +193,7 @@
 	key_third_person = "gasps"
 	message = "gasps!"
 	message_mime = "appears to be gasping!"
-	emote_type = EMOTE_SOUND  // Don't make this one a mouth emote since we don't want it to be caught by nobreath
+	emote_type = EMOTE_AUDIBLE  // Don't make this one a mouth emote since we don't want it to be caught by nobreath
 	age_based = TRUE
 	unintentional_stat_allowed = UNCONSCIOUS
 	volume = 100
@@ -234,7 +232,7 @@
 			volume_decrease = 95
 	sound_volume -= volume_decrease
 	// special handling here: we don't want monkeys' gasps to sound through walls so you can actually walk past xenobio
-	playsound(user.loc, sound_path, sound_volume, TRUE, -10, frequency = H.get_age_pitch(H.dna.species.max_age), ignore_walls = !isnull(user.mind))
+	playsound(user.loc, sound_path, sound_volume, TRUE, -10, frequency = H.get_age_pitch(H.dna.species.max_age) * alter_emote_pitch(user), ignore_walls = !isnull(user.mind))
 
 /datum/emote/living/carbon/human/shake
 	key = "shake"
@@ -322,7 +320,7 @@
 		)
 		if(cig.lit)
 			to_chat(user, "<span class='userdanger'>The lit [cig] burns on the way down!")
-			user.unEquip(cig)
+			user.unequip(cig)
 			qdel(cig)
 			H.adjustFireLoss(5)
 		return TRUE
@@ -333,7 +331,7 @@
 	key_third_person = "sneezes"
 	message = "sneezes."
 	muzzled_noises = list("strange", "sharp")
-	emote_type = EMOTE_SOUND | EMOTE_MOUTH
+	emote_type = EMOTE_AUDIBLE | EMOTE_MOUTH
 	volume = 70
 
 /datum/emote/living/carbon/human/sneeze/get_sound(mob/user)
@@ -375,6 +373,8 @@
 	cooldown = 5 SECONDS
 	/// Status effect to apply when this emote is used. Should be a subtype
 	var/status = STATUS_EFFECT_HIGHFIVE
+	/// title override, used for the re-use message.
+	var/action_name
 
 /datum/emote/living/carbon/human/highfive/can_run_emote(mob/user, status_check, intentional)
 	. = ..()
@@ -382,12 +382,17 @@
 	if(user_carbon.restrained())
 		return FALSE
 
+/datum/emote/living/carbon/human/highfive/proc/set_status(mob/living/carbon/user)
+	return user.apply_status_effect(status)
+
 /datum/emote/living/carbon/human/highfive/run_emote(mob/user, params, type_override, intentional)
 	var/mob/living/carbon/user_carbon = user
 	if(user_carbon.has_status_effect(status))
-		user.visible_message("[user.name] shakes [user.p_their()] hand around slightly, impatiently waiting for someone to [key].")
+		user.visible_message("[user.name] shakes [user.p_their()] hand around slightly, impatiently waiting for someone to [!isnull(action_name) ? action_name : key].")
 		return TRUE
-	user_carbon.apply_status_effect(status)
+	var/datum/result = set_status(user)
+	if(QDELETED(result))
+		return TRUE
 
 	return ..()
 
@@ -396,10 +401,67 @@
 	status = STATUS_EFFECT_DAP
 	key_third_person = "daps"
 
+/datum/emote/living/carbon/human/highfive/payme
+	key = "payme"
+	status = STATUS_EFFECT_OFFERING_EFTPOS
+
+/datum/emote/living/carbon/human/highfive/payme/run_emote(mob/living/user, params, type_override, intentional)
+	var/obj/item/eftpos/eftpos = user.is_holding_item_of_type(/obj/item/eftpos)
+	if(!eftpos)
+		to_chat(user, "<span class='warning'>You must be holding an EFTPOS to do that!</span>")
+		return TRUE
+	if(!eftpos.can_offer)
+		to_chat(user, "<span class='warning'>[eftpos] is too bulky to hold out to someone!</span>")
+		return TRUE
+	if(!eftpos.transaction_locked)
+		to_chat(user, "<span class='warning'>You must lock [eftpos] before it can accept payments.</span>")
+		return TRUE
+	if(user.has_status_effect(status))
+		user.visible_message("<span class='notice'>[user.name] shakes [eftpos] around slightly, impatiently waiting for someone to scan their card.</span>")
+		return TRUE
+
+	var/datum/result = set_status(user)
+	if(QDELETED(result))
+		return TRUE
+
+	return TRUE
+
 /datum/emote/living/carbon/human/highfive/handshake
 	key = "handshake"
 	key_third_person = "handshakes"
 	status = STATUS_EFFECT_HANDSHAKE
+
+/datum/emote/living/carbon/human/highfive/rps
+	key = "rps"
+	param_desc = "r,p,s"
+	status = STATUS_EFFECT_RPS
+	action_name = "play rock-paper-scissors with"
+	target_behavior = EMOTE_TARGET_BHVR_IGNORE
+	/// If the user used parameters, the move that will be made.
+	var/move
+
+/datum/emote/living/carbon/human/highfive/rps/run_emote(mob/user, emote_arg, type_override, intentional)
+	switch(lowertext(emote_arg))
+		if("r", "rock")
+			move = RPS_EMOTE_ROCK
+		if("p", "paper")
+			move = RPS_EMOTE_PAPER
+		if("s", "scissors")
+			move = RPS_EMOTE_SCISSORS
+
+		// if it's an invalid emote param, just fall through and let them select
+
+	return ..()
+
+/datum/emote/living/carbon/human/highfive/rps/set_status(mob/living/carbon/user)
+	if(!isnull(move))
+		// if they supplied a valid parameter, use that for the move
+		return user.apply_status_effect(status, move)
+	return user.apply_status_effect(status)
+
+/datum/emote/living/carbon/human/highfive/rps/reset_emote()
+	..()
+	move = initial(move)
 
 /datum/emote/living/carbon/human/snap
 	key = "snap"
@@ -407,7 +469,7 @@
 	message = "snaps their fingers."
 	message_param = "snaps their fingers at %t."
 	sound = "sound/effects/fingersnap.ogg"
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 
 /datum/emote/living/carbon/human/snap/run_emote(mob/user, params, type_override, intentional)
 
@@ -449,10 +511,20 @@
 	key = "signal"
 	key_third_person = "signals"
 	message_param = "raises %t fingers."
-	param_desc = "number(0-10)"
 	mob_type_allowed_typecache = list(/mob/living/carbon/human)
-	hands_use_check = TRUE
 
+/datum/emote/living/carbon/sign/signal/run_emote(mob/user, params, type_override, intentional)
+	var/fingers = round(text2num(params), 1)
+
+	if(fingers > 10)
+		to_chat(user, "<span class='warning'>You don't have enough fingers!</span>")
+		return TRUE
+	else if(fingers < 0)
+		to_chat(user, "<span class='warning'>You're not entirely sure how to raise negative fingers.</span>")
+		return TRUE
+
+	params = fingers
+	return ..()
 
 /////////
 // Species-specific emotes
@@ -589,18 +661,32 @@
 	key_third_person = "quills"
 	message = "rustles their quills."
 	message_param = "rustles their quills at %t."
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	age_based = TRUE
 	// Credit to sound-ideas (freesfx.co.uk) for the sound.
 	sound = "sound/effects/voxrustle.ogg"
 	species_type_whitelist_typecache = list(/datum/species/vox)
+
+/datum/emote/living/carbon/human/caw
+	key = "caw"
+	key_third_person = "caws"
+	message = "cawws!"
+	message_param = "cawws at %t!"
+	emote_type = EMOTE_AUDIBLE | EMOTE_MOUTH
+	// Credit to zeroisnotnull (opengameart.org) for the original sound.
+	species_type_whitelist_typecache = list(/datum/species/vox)
+	muzzled_noises = list("frustrated")
+	vary = TRUE
+
+/datum/emote/living/carbon/human/caw/get_sound(mob/living/user)
+	return pick("sound/effects/voxfcaw.ogg", "sound/effects/voxrcaw.ogg")
 
 /datum/emote/living/carbon/human/warble
 	key = "warble"
 	key_third_person = "warbles"
 	message = "warbles."
 	message_param = "warbles at %t."
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	age_based = TRUE
 	// Copyright CC BY 3.0 alienistcog (freesound.org) for the sound.
 	sound = "sound/effects/warble.ogg"
@@ -612,7 +698,7 @@
 	message = "clacks their mandibles."
 	message_param = "clacks their mandibles at %t."
 	species_type_whitelist_typecache = list(/datum/species/kidan)
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	audio_cooldown = 3 SECONDS
 	age_based = TRUE
 	// Credit to DrMinky (freesound.org) for the sound.
@@ -634,7 +720,7 @@
 
 /datum/emote/living/carbon/human/drask_talk
 	species_type_whitelist_typecache = list(/datum/species/drask)
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	age_based = TRUE
 	sound = "sound/voice/drasktalk.ogg"
 
@@ -662,21 +748,41 @@
 	message = "hisses."
 	message_param = "hisses at %t."
 	species_type_whitelist_typecache = list(/datum/species/unathi)
-	emote_type = EMOTE_SOUND | EMOTE_MOUTH
+	emote_type = EMOTE_AUDIBLE | EMOTE_MOUTH
 	age_based = TRUE
 	// Credit to Jamius (freesound.org) for the sound.
 	sound = "sound/effects/unathihiss.ogg"
 	muzzled_noises = list("weak hissing")
+
+/datum/emote/living/carbon/human/thump
+	key = "thump"
+	key_third_person = "thumps"
+	message = "thumps their tail."
+	message_param = "thumps their tail at %t."
+	species_type_whitelist_typecache = list(/datum/species/unathi)
+	emote_type = EMOTE_AUDIBLE
+	// Credit to TylerAM (freesound.org) for the sound.
+	sound = "sound/effects/unathitailthump.ogg"
 
 /datum/emote/living/carbon/human/creak
 	key = "creak"
 	key_third_person = "creaks"
 	message = "creaks."
 	message_param = "creaks at %t."
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	age_based = TRUE
 	species_type_whitelist_typecache = list(/datum/species/diona)
 	sound = "sound/voice/dionatalk1.ogg"
+
+/datum/emote/living/carbon/human/diona_chirp
+	key = "chirp"
+	key_third_person = "chirps"
+	message = "chirps!"
+	message_param = "chirps at %t."
+	emote_type = EMOTE_AUDIBLE
+	age_based = TRUE
+	species_type_whitelist_typecache = list(/datum/species/diona)
+	sound = "sound/creatures/nymphchirp.ogg"
 
 /datum/emote/living/carbon/human/slime
 
@@ -699,7 +805,7 @@
 	key_third_person = "squishes"
 	message = "squishes."
 	message_param = "squishes at %t."
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	age_based = TRUE
 	// Credit to DrMinky (freesound.org) for the sound.
 	sound = "sound/effects/slime_squish.ogg"
@@ -709,7 +815,7 @@
 	key_third_person = "bubbles"
 	message = "bubbles."
 	message_param = "bubbles at %t."
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	age_based = TRUE
 	// Sound is CC-4.0 by Audiolarx
 	// Effect is cut out of original clip
@@ -722,12 +828,11 @@
 	message = "makes a popping sound."
 	message_param = "makes a popping sound at %t."
 	message_mime = "makes a silent pop."
-	emote_type = EMOTE_SOUND
+	emote_type = EMOTE_AUDIBLE
 	age_based = TRUE
 	// CC0
 	// https://freesound.org/people/greenvwbeetle/sounds/244653/
 	sound = 'sound/effects/mob_effects/slime_pop.ogg'
-	volume = 50
 
 /datum/emote/living/carbon/human/howl
 	key = "howl"
@@ -736,7 +841,7 @@
 	message_mime = "acts out a howl."
 	message_param = "howls at %t."
 	species_type_whitelist_typecache = list(/datum/species/vulpkanin)
-	emote_type = EMOTE_SOUND | EMOTE_MOUTH
+	emote_type = EMOTE_AUDIBLE | EMOTE_MOUTH
 	age_based = TRUE
 	sound = "sound/goonstation/voice/howl.ogg"
 	muzzled_noises = list("very loud")
@@ -753,7 +858,7 @@
 	sound = "growls"  // what the fuck why is this just top level
 	volume = 80
 	muzzled_noises = list("annoyed")
-	emote_type = EMOTE_SOUND | EMOTE_MOUTH
+	emote_type = EMOTE_AUDIBLE | EMOTE_MOUTH
 
 /datum/emote/living/carbon/human/hiss/tajaran
 	message_mime = "hisses silently."

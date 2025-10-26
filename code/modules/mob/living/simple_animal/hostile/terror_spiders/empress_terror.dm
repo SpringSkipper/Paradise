@@ -15,13 +15,10 @@
 	You have more health than any other terror spider and deal extremely high damage to anything you attack. \
 	You can also lay eggs at an incredibly fast rate. \
 	You can also break through practically anything, so the crew will have zero hope of containing you. Have fun!"
-	ai_target_method = TS_DAMAGE_SIMPLE
 	maxHealth = 1000
 	health = 1000
 	melee_damage_lower = 30
 	melee_damage_upper = 60
-	ventcrawler = 1
-	idle_ventcrawl_chance = 0
 	ai_playercontrol_allowtype = 0
 	canlay = 1000
 	spider_tier = TS_TIER_5
@@ -46,10 +43,11 @@
 
 /mob/living/simple_animal/hostile/poison/terror_spider/queen/empress/NestMode()
 	..()
-	queeneggs_action.button.name = "Empress Eggs"
+	queeneggs_action.name = "Empress Eggs"
+	queeneggs_action.build_all_button_icons()
 
 /mob/living/simple_animal/hostile/poison/terror_spider/queen/empress/LayQueenEggs()
-	var/eggtype = input("What kind of eggs?") as null|anything in list(TS_DESC_QUEEN, TS_DESC_MOTHER, TS_DESC_PRINCE, TS_DESC_PRINCESS, TS_DESC_RED, TS_DESC_GRAY, TS_DESC_GREEN, TS_DESC_BLACK, TS_DESC_PURPLE, TS_DESC_WHITE, TS_DESC_BROWN)
+	var/eggtype = tgui_input_list(src, "What kind of eggs?", "Egg laying", list(TS_DESC_QUEEN, TS_DESC_MOTHER, TS_DESC_PRINCE, TS_DESC_PRINCESS, TS_DESC_RED, TS_DESC_GRAY, TS_DESC_GREEN, TS_DESC_BLACK, TS_DESC_PURPLE, TS_DESC_WHITE, TS_DESC_BROWN))
 	var/numlings = input("How many in the batch?") as null|anything in list(1, 2, 3, 4, 5, 10, 15, 20, 30, 40, 50)
 	if(eggtype == null || numlings == null)
 		to_chat(src, "<span class='danger'>Cancelled.</span>")

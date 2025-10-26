@@ -1,12 +1,3 @@
-
-/mob/living/simple_animal/slime
-	var/AIproc = FALSE // determines if the AI loop is activated
-	var/Atkcool = FALSE // attack cooldown
-	var/Tempstun = FALSE // temporary temperature stuns
-	var/Discipline = 0 // if a slime has been hit with a freeze gun, or wrestled/attacked off a human, they become disciplined and don't attack anymore for a while
-	var/SStun = 0 // stun variable
-
-
 /mob/living/simple_animal/slime/Life()
 	set invisibility = 0
 	if(notransform)
@@ -14,11 +5,12 @@
 	if(..())
 		if(buckled)
 			handle_feeding()
-		if(!stat) // Slimes in stasis don't lose nutrition, don't change mood and don't respond to speech
+		if(stat == CONSCIOUS) // Slimes in stasis don't lose nutrition, don't change mood and don't respond to speech
 			handle_nutrition()
+			handle_organs()
 			if(QDELETED(src)) // Stop if the slime split during handle_nutrition()
 				return
-			reagents.remove_all(0.5 * REAGENTS_METABOLISM * reagents.reagent_list.len) //Slimes are such snowflakes
+			reagents.remove_all(0.5 * REAGENTS_METABOLISM * length(reagents.reagent_list)) //Slimes are such snowflakes
 			handle_targets()
 			if(!ckey)
 				handle_mood()
@@ -36,9 +28,9 @@
 		return
 
 	var/hungry = 0
-	if (nutrition < get_starve_nutrition())
+	if(nutrition < get_starve_nutrition())
 		hungry = 2
-	else if (nutrition < get_grow_nutrition() && prob(25) || nutrition < get_hunger_nutrition())
+	else if(nutrition < get_grow_nutrition() && prob(25) || nutrition < get_hunger_nutrition())
 		hungry = 1
 
 	AIproc = TRUE
@@ -110,11 +102,11 @@
 
 	AIproc = FALSE
 
-/mob/living/simple_animal/slime/handle_environment(datum/gas_mixture/environment)
-	if(!environment)
+/mob/living/simple_animal/slime/handle_environment(datum/gas_mixture/readonly_environment)
+	if(!readonly_environment)
 		return
 
-	var/loc_temp = get_temperature(environment)
+	var/loc_temp = get_temperature(readonly_environment)
 
 	adjust_bodytemperature(adjust_body_temperature(bodytemperature, loc_temp, 1))
 
@@ -123,7 +115,7 @@
 	if(bodytemperature < (T0C + 5)) // start calculating temperature damage etc
 		if(bodytemperature <= (T0C - 40)) // stun temperature
 			Tempstun = TRUE
-			throw_alert("temp", /obj/screen/alert/cold, 3)
+			throw_alert("temp", /atom/movable/screen/alert/cold, 3)
 			to_chat(src,"<span class='userdanger'>You suddenly freeze up, you cannot move!</span>")
 
 		if(bodytemperature <= (T0C - 50)) // hurt temperature
@@ -161,9 +153,10 @@
 
 /mob/living/simple_animal/slime/handle_status_effects()
 	..()
-	if(prob(30) && !stat)
+	if(prob(30) && stat == CONSCIOUS)
 		adjustBruteLoss(-1)
 
+// This is where slime feeding is handled.
 /mob/living/simple_animal/slime/proc/handle_feeding()
 	if(!ismob(buckled))
 		return
@@ -183,6 +176,7 @@
 		Feedstop()
 		return
 
+	// This is where damage dealt by slime feeding is handled.
 	if(iscarbon(M))
 		var/mob/living/carbon/C = M
 		C.adjustCloneLoss(rand(2, 4))
@@ -212,13 +206,17 @@
 		Feedstop(0, 0)
 		return
 
-	add_nutrition(rand(7, 15))
+	if(ishuman(M))
+		var/mob/living/carbon/human/H = M
+		if(!H.dna.species.tox_mod && !H.dna.species.clone_mod)
+			Feedstop(0, 0)
+			return
 
+	add_nutrition(rand(7, 15))
 	//Heal yourself.
 	adjustBruteLoss(-3)
 
 /mob/living/simple_animal/slime/proc/handle_nutrition()
-
 	if(docile) //God as my witness, I will never go hungry again
 		set_nutrition(700) //fuck you for using the base nutrition var
 		return
@@ -253,9 +251,6 @@
 			if(prob(25-powerlevel*5))
 				powerlevel++
 
-
-
-
 /mob/living/simple_animal/slime/proc/handle_targets()
 	if(Tempstun)
 		if(!buckled) // not while they're eating!
@@ -275,10 +270,10 @@
 			if(prob(60))
 				rabid = FALSE
 
-		if(prob(10))
+		if(prob(10) && !trained)
 			Discipline--
 
-	if(!client)
+	if(!client && !stop_automated_movement)
 		if(!(mobility_flags & MOBILITY_MOVE))
 			return
 
@@ -287,7 +282,7 @@
 
 		if(Target)
 			--target_patience
-			if (target_patience <= 0 || SStun > world.time || Discipline || attacked || docile) // Tired of chasing or something draws out attention
+			if(target_patience <= 0 || SStun > world.time || Discipline || attacked || docile) // Tired of chasing or something draws out attention
 				target_patience = 0
 				Target = null
 
@@ -296,9 +291,9 @@
 
 		var/hungry = 0 // determines if the slime is hungry
 
-		if (nutrition < get_starve_nutrition())
+		if(nutrition < get_starve_nutrition())
 			hungry = 2
-		else if (nutrition < get_grow_nutrition() && prob(25) || nutrition < get_hunger_nutrition())
+		else if(nutrition < get_grow_nutrition() && prob(25) || nutrition < get_hunger_nutrition())
 			hungry = 1
 
 		if(!Target)
@@ -328,7 +323,7 @@
 
 					targets += L // Possible target found!
 
-				if(targets.len > 0)
+				if(length(targets) > 0)
 					if(attacked || rabid || hungry == 2)
 						Target = targets[1] // I am attacked and am fighting back or so hungry I don't even care
 					else
@@ -342,7 +337,7 @@
 								Target = C
 								break
 
-			if (Target)
+			if(Target)
 				target_patience = rand(5, 7)
 				if(is_adult)
 					target_patience += 3
@@ -361,20 +356,22 @@
 
 /mob/living/simple_animal/slime/proc/handle_mood()
 	var/newmood = ""
-	if (rabid || attacked)
+	if(rabid || attacked)
 		newmood = "angry"
-	else if (docile)
+	else if(docile)
 		newmood = ":3"
-	else if (Target)
+	else if(Target)
 		newmood = "mischievous"
+	else if(trained)
+		newmood = ":33"
 
-	if (!newmood)
-		if (Discipline && prob(25))
+	if(!newmood)
+		if(Discipline && prob(25))
 			newmood = "pout"
-		else if (prob(1))
+		else if(prob(1))
 			newmood = pick("sad", ":3", "pout")
 
-	if ((mood == "sad" || mood == ":3" || mood == "pout") && !newmood)
+	if((mood == "sad" || mood == ":3" || mood == "pout") && !newmood)
 		if(prob(75))
 			newmood = mood
 
@@ -392,7 +389,7 @@
 		for(var/mob/living/L in view(7,src))
 			if(isslime(L) && L != src)
 				++slimes_near
-				if (L.stat == DEAD)
+				if(L.stat == DEAD)
 					++dead_slimes
 		if(nutrition < get_hunger_nutrition())
 			t += 10
@@ -449,7 +446,11 @@
 				phrases += "What happened?"
 			if(!slimes_near)
 				phrases += "Lonely..."
-			if(!stat)
+			if(trained && prob(3))
+				phrases += "Treat? Have treat?"
+				phrases += "Can have treat?"
+				phrases += "Treat?..."
+			if(stat == CONSCIOUS)
 				say (pick(phrases))
 
 /mob/living/simple_animal/slime/proc/get_max_nutrition() // Can't go above it
@@ -482,3 +483,24 @@
 	if(hunger == 2 || rabid || attacked)
 		return TRUE
 	return TRUE
+
+// Handles xeno organ processing, and turns the unidentified organs into the true organ type.
+/mob/living/simple_animal/slime/proc/handle_organs()
+	if(!holding_organ)
+		return
+	if(istype(loc, /obj/machinery/computer/camera_advanced/xenobio))
+		return // no processing while in the computer
+	if(!trained) // if we somehow untrain mid process
+		say("BLECK!!", pick(speak_emote))
+		eject_organ()
+	if(organ_progress < 50)
+		organ_progress += 1
+		return
+	organ_progress = 1
+	say("All done!", pick(speak_emote))
+	var/obj/item/organ/internal/finished_organ = new holding_organ.true_organ_type(src.loc)
+	finished_organ.organ_quality = holding_organ.unknown_quality
+	finished_organ.icon_state = holding_organ.icon_state
+	finished_organ.name = "[quality_to_string(finished_organ.organ_quality, FALSE)] [finished_organ.name]"
+	underlays.Cut()
+	QDEL_NULL(holding_organ)

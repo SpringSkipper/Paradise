@@ -1,34 +1,28 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
-"aa" = (
-/obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
-	oxygen = 0;
-	nitrogen = 0
-	},
-/area/ruin/unpowered)
 "ab" = (
-/obj/effect/spawner/random_spawners/wall_rusted_maybe,
-/obj/effect/spawner/random_spawners/wall_rusted_maybe,
+/obj/effect/mapping_helpers/turfs/rust/maybe,
+/obj/effect/mapping_helpers/turfs/rust/maybe,
 /turf/simulated/wall/r_wall,
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "ac" = (
 /obj/effect/decal/cleanable/glass,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "ad" = (
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "ae" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/railing/corner,
-/obj/effect/landmark/damageturf,
-/obj/effect/decal/warning_stripes/southeastcorner,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/stripes/corner,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -38,7 +32,8 @@
 	dir = 1
 	},
 /obj/structure/railing,
-/turf/simulated/floor/chasm,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/chasm/straight_down/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "ag" = (
 /obj/structure/railing{
@@ -46,34 +41,41 @@
 	},
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "ah" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/largecrate,
 /obj/item/clothing/head/bomb_hood,
 /obj/item/clothing/suit/bomb_suit,
-/obj/effect/decal/warning_stripes/white/hollow,
-/turf/simulated/floor/pod/light{
+/obj/effect/turf_decal/delivery/white/hollow,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "ai" = (
 /obj/structure/railing{
 	dir = 6
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/southeast,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line{
+	dir = 6
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "aj" = (
 /obj/structure/railing{
 	dir = 1
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/pod/light{
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -81,80 +83,82 @@
 "ak" = (
 /obj/structure/marker_beacon/dock_marker/collision,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "am" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "an" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/bed/pod,
 /obj/item/bedsheet,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "ao" = (
 /obj/structure/table,
 /obj/structure/bedsheetbin,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "ap" = (
 /obj/structure/bed/pod,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "aq" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/closet/secure_closet/freezer/fridge/open,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "ar" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/table_frame,
 /obj/item/clothing/suit/hooded/explorer,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "as" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "at" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/washing_machine,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "au" = (
 /obj/structure/bed/pod,
 /obj/item/bedsheet,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "av" = (
 /obj/structure/sign/explosives/alt,
 /turf/simulated/wall/r_wall,
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "aw" = (
 /obj/structure/railing,
 /obj/structure/railing{
 	dir = 1
 	},
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "ax" = (
 /obj/effect/decal/cleanable/dirt,
@@ -164,156 +168,167 @@
 	name = "degraded payload";
 	desc = "A weathered payload core, its once vital center now shattered, rendering it indistinguishable from a mere stone."
 	},
-/obj/effect/decal/warning_stripes/white/hollow,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/turf_decal/delivery/white/hollow,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "ay" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/table_frame,
 /obj/item/clothing/mask/gas/explorer,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "az" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/table,
 /obj/item/clothing/mask/gas/explorer,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "aA" = (
 /obj/structure/marker_beacon/dock_marker/collision,
 /obj/effect/mapping_helpers/no_lava,
 /turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "aB" = (
-/turf/simulated/floor/chasm,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/chasm/straight_down/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "aC" = (
 /obj/structure/railing/corner{
 	dir = 4
 	},
-/obj/effect/decal/warning_stripes/northeastcorner,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 4
+	},
 /obj/effect/mapping_helpers/no_lava,
 /turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "aE" = (
 /obj/structure/mecha_wreckage/ripley/firefighter,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "aG" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/bed/pod,
 /obj/item/bedsheet,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "aI" = (
 /obj/item/chair{
 	dir = 1
 	},
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "aJ" = (
 /obj/structure/railing{
 	dir = 1
 	},
-/turf/simulated/floor/chasm,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/chasm/straight_down/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "aK" = (
 /obj/structure/sign/explosives,
-/obj/effect/spawner/random_spawners/wall_rusted_maybe,
+/obj/effect/mapping_helpers/turfs/rust/maybe,
 /turf/simulated/wall/r_wall,
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "aL" = (
 /obj/structure/railing{
 	dir = 1
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "aN" = (
 /obj/structure/railing,
-/obj/effect/landmark/damageturf,
-/obj/effect/decal/warning_stripes/south,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/stripes/line,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "aQ" = (
 /obj/structure/grille,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "aR" = (
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/obj/effect/decal/warning_stripes/south,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/stripes/line,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
 /area/lavaland/surface/outdoors)
 "aU" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "aV" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/item/deck/cards/black,
 /obj/structure/table_frame,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "aX" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/remains/human,
-/mob/living/simple_animal/hostile/asteroid/hivelord/legion,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/mob/living/basic/mining/hivelord/legion,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "aZ" = (
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "bi" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/atmospherics/portable/canister/air,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bj" = (
 /obj/structure/closet/crate/miningcar,
 /obj/item/stack/ore/plasma,
 /obj/item/stack/ore/plasma,
-/obj/effect/decal/warning_stripes/white/hollow,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/turf_decal/delivery/white/hollow,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "bk" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/largecrate,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bl" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bm" = (
 /obj/structure/girder/reinforced,
 /obj/effect/mapping_helpers/no_lava,
@@ -323,16 +338,17 @@
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bo" = (
 /obj/structure/grille/broken,
 /obj/effect/decal/cleanable/glass,
 /obj/item/chair,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "bq" = (
 /obj/structure/railing{
@@ -340,11 +356,13 @@
 	},
 /obj/structure/marker_beacon/dock_marker/collision,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "br" = (
 /obj/structure/lattice,
-/turf/simulated/floor/chasm,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/chasm/straight_down/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "bx" = (
 /obj/structure/railing{
@@ -352,56 +370,62 @@
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "bz" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/closet/crate/miningcar,
 /obj/item/gibtonite,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "bA" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/atmospherics/portable/pump,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin)
+/area/ruin/unpowered/althland_excavation)
 "bB" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/white,
-/turf/simulated/floor/pod/light{
+/obj/effect/turf_decal/delivery/white,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bC" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/atmospherics/unary/tank/oxygen_agent_b{
 	dir = 8
 	},
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin)
+/area/ruin/unpowered/althland_excavation)
 "bE" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/structure/chair/office{
+/obj/structure/chair{
 	dir = 4
 	},
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "bF" = (
 /obj/structure/railing{
 	dir = 1
 	},
-/obj/effect/landmark/damageturf,
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "bG" = (
 /obj/structure/railing{
@@ -410,82 +434,87 @@
 /obj/structure/marker_beacon/dock_marker/collision,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "bH" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/bed/pod,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bJ" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/glass,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "bK" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/remains/human,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bL" = (
 /obj/effect/decal/cleanable/dirt,
-/mob/living/simple_animal/hostile/asteroid/hivelord/legion,
-/turf/simulated/floor/pod/light{
+/mob/living/basic/mining/hivelord/legion,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bM" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/item/shard,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bN" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/girder/reinforced,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "bO" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/item/chair,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "bP" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/white/hollow,
+/obj/effect/turf_decal/delivery/white/hollow,
 /obj/item/stack/sheet/wood,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "bQ" = (
 /obj/structure/railing{
 	dir = 1
 	},
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "bR" = (
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "bS" = (
 /obj/structure/railing/corner,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/southeastcorner,
-/turf/simulated/floor/pod/light{
+/obj/effect/turf_decal/stripes/corner,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -494,16 +523,19 @@
 /obj/structure/railing{
 	dir = 4
 	},
-/obj/effect/decal/warning_stripes/east,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line{
+	dir = 4
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "bU" = (
 /obj/effect/decal/remains/human,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "bV" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
@@ -513,75 +545,79 @@
 /obj/structure/railing/corner{
 	dir = 1
 	},
-/obj/effect/decal/warning_stripes/west,
-/turf/simulated/floor/pod/light{
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
-"bW" = (
-/obj/effect/spawner/random_spawners/wall_rusted_maybe,
-/turf/simulated/wall/r_wall,
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "cb" = (
 /obj/structure/railing/corner{
 	dir = 1
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/obj/effect/decal/warning_stripes/northwestcorner,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "cs" = (
 /obj/machinery/door/airlock/maintenance_hatch,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "ct" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/remains/human,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "cR" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/closet/crate/miningcar,
 /obj/item/stack/ore/plasma,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "dp" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/table,
 /obj/machinery/kitchen_machine/microwave,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "ej" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/remains/human,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "eC" = (
 /obj/structure/railing/corner{
 	dir = 1
 	},
-/obj/effect/decal/warning_stripes/northwestcorner,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 1
+	},
 /obj/effect/mapping_helpers/no_lava,
 /turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "eX" = (
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "fc" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -591,163 +627,171 @@
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/remains/human,
 /obj/machinery/atmospherics/portable/scrubber,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "gg" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/girder/reinforced,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "gh" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/item/stack/sheet/metal,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "gF" = (
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/item/stack/sheet/metal,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "hn" = (
 /obj/structure/railing,
-/turf/simulated/floor/chasm,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/chasm/straight_down/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "hL" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/northwestcorner,
-/turf/simulated/floor/pod/light{
+/obj/effect/turf_decal/stripes/corner{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
 /area/lavaland/surface/outdoors)
 "ie" = (
 /obj/structure/table,
-/obj/item/reagent_containers/food/snacks/badrecipe,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/item/food/badrecipe,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "iv" = (
 /obj/structure/grille/broken,
 /obj/item/shard,
 /obj/effect/decal/cleanable/glass,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "iA" = (
 /obj/effect/decal/remains/human,
 /obj/item/clothing/suit/hooded/explorer,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "iW" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/structure/chair/office,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/structure/chair,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "je" = (
 /obj/structure/girder/reinforced,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "jj" = (
 /obj/effect/decal/cleanable/dirt,
-/mob/living/simple_animal/hostile/asteroid/hivelord/legion,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/mob/living/basic/mining/hivelord/legion,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "js" = (
 /obj/structure/railing{
 	dir = 1
 	},
 /obj/structure/lattice/lava,
-/turf/simulated/floor/chasm,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/chasm/straight_down/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "jL" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/item/stack/sheet/metal,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "jS" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/item/stack/sheet/metal,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
-"jT" = (
-/obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/cleanable/dirt,
-/obj/effect/spawner/random_spawners/wall_rusted_maybe,
-/turf/simulated/wall/r_wall,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "kh" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/mecha_wreckage/ripley,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "lh" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/item/stack/sheet/wood,
-/obj/effect/decal/warning_stripes/white/hollow,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/turf_decal/delivery/white/hollow,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "lF" = (
 /obj/structure/railing/corner,
 /obj/structure/railing/corner{
 	dir = 4
 	},
-/obj/effect/decal/warning_stripes/east,
+/obj/effect/turf_decal/stripes/line{
+	dir = 4
+	},
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/door_assembly/door_assembly_ext,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "lM" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/closet/crate/trashcart,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "mh" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "mK" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
 /area/lavaland/surface/outdoors)
 "mW" = (
 /obj/structure/door_assembly/door_assembly_mhatch,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "nw" = (
-/obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/turfs/rust/maybe,
 /turf/simulated/wall/r_wall,
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "nU" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/glass,
-/obj/effect/decal/warning_stripes/white,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/turf_decal/delivery/white,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
+"oh" = (
+/turf/simulated/mineral/volcanic/lava_land_surface,
+/area/lavaland/surface/outdoors/unexplored)
 "or" = (
 /obj/structure/railing/corner{
 	dir = 8
@@ -760,39 +804,37 @@
 /obj/structure/urinal{
 	pixel_y = 32
 	},
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "pE" = (
 /obj/machinery/atmospherics/pipe/simple/hidden{
 	dir = 6
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/machinery/power/apc/off_station/empty_charge{
-	pixel_y = 24
-	},
-/turf/simulated/floor/plating/airless,
-/area/ruin)
+/obj/machinery/power/apc/off_station/empty_charge/directional/north,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "pI" = (
 /obj/item/stack/sheet/metal,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "qa" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/closet/crate/miningcar,
-/obj/effect/decal/warning_stripes/white/hollow,
+/obj/effect/turf_decal/delivery/white/hollow,
 /obj/item/gibtonite,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "qp" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/structure/chair/office,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/structure/chair,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "qw" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/largecrate,
@@ -800,46 +842,45 @@
 	name = "degraded payload";
 	desc = "A weathered payload core, its once vital center now shattered, rendering it indistinguishable from a mere stone."
 	},
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "qT" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/white/hollow,
+/obj/effect/turf_decal/delivery/white/hollow,
 /obj/machinery/floodlight{
 	anchored = 1;
 	desc = "A melted floodlight, despite being completely welded into the floor, it still somehow works.";
 	name = "melted floodlight"
 	},
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "si" = (
 /obj/structure/sign/explosives/alt,
-/obj/effect/spawner/random_spawners/wall_rusted_maybe,
+/obj/effect/mapping_helpers/turfs/rust/maybe,
 /turf/simulated/wall/r_wall,
-/area/ruin/unpowered)
-"sp" = (
-/obj/effect/decal/cleanable/dirt,
-/obj/effect/spawner/random_spawners/wall_rusted_maybe,
-/turf/simulated/wall/r_wall,
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
+"sj" = (
+/turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
+/area/lavaland/surface/outdoors/unexplored)
 "sA" = (
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "tj" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/grille/broken,
 /obj/effect/decal/cleanable/glass,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "tV" = (
 /obj/effect/decal/remains/human,
 /obj/effect/mapping_helpers/no_lava,
@@ -848,40 +889,43 @@
 "ub" = (
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/obj/effect/decal/warning_stripes/south,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/stripes/line,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "ui" = (
 /obj/item/storage/toolbox/syndicate,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "uA" = (
 /obj/structure/grille,
 /obj/item/shard,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "uG" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "uP" = (
 /obj/item/chair{
 	dir = 1
 	},
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "vM" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/remains/human,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "wb" = (
 /obj/structure/railing{
 	dir = 1
@@ -889,44 +933,49 @@
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "wi" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/item/reagent_containers/food/drinks/oilcan,
-/obj/machinery/constructable_frame,
-/turf/simulated/floor/pod/light{
+/obj/item/reagent_containers/drinks/oilcan,
+/obj/structure/machine_frame,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "wA" = (
 /obj/structure/railing{
 	dir = 1
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/pod/light{
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
 /area/lavaland/surface/outdoors)
 "xf" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/effect/decal/cleanable/glass,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "xi" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/item/stack/sheet/metal,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -934,24 +983,27 @@
 "xB" = (
 /obj/effect/decal/remains/human,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "yb" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "yc" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/railing,
-/obj/effect/decal/warning_stripes/south,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "yn" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -959,13 +1011,17 @@
 "yz" = (
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/south,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "zh" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "zp" = (
 /obj/structure/railing/corner,
@@ -977,16 +1033,21 @@
 /obj/machinery/atmospherics/unary/tank/oxygen_agent_b{
 	dir = 8
 	},
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin)
+/area/ruin/unpowered/althland_excavation)
+"Ay" = (
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/chasm/straight_down/lava_land_surface,
+/area/lavaland/surface/outdoors/unexplored)
 "AD" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/item/stack/sheet/metal,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "AU" = (
 /obj/structure/railing{
@@ -994,105 +1055,113 @@
 	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "Bl" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/atmospherics/portable/canister/air,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "BW" = (
 /obj/structure/lattice/lava,
-/turf/simulated/floor/chasm,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/chasm/straight_down/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "BZ" = (
 /obj/machinery/atmospherics/binary/pump{
 	dir = 8
 	},
-/mob/living/simple_animal/hostile/asteroid/hivelord/legion,
-/turf/simulated/floor/plating/airless,
-/area/ruin)
+/mob/living/basic/mining/hivelord/legion,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "Cs" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/table_frame,
-/obj/item/reagent_containers/food/snacks/badrecipe,
-/obj/item/reagent_containers/food/snacks/badrecipe{
+/obj/item/food/badrecipe,
+/obj/item/food/badrecipe{
 	pixel_y = 14;
 	pixel_x = 14
 	},
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
+"CS" = (
+/obj/effect/mapping_helpers/no_lava,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
+/area/lavaland/surface/outdoors)
 "Ds" = (
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "Du" = (
 /obj/structure/door_assembly/door_assembly_mhatch,
 /turf/simulated/floor/pod,
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "DS" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "Ec" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/item/chair{
 	dir = 1
 	},
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "Ei" = (
 /obj/effect/mapping_helpers/no_lava,
 /turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
 /area/lavaland/surface/outdoors)
 "Es" = (
 /obj/structure/lattice/catwalk/mining,
-/obj/structure/ladder/unbreakable/dive_point{
-	desc = "The shattered remnants of a ladder hanging over the pitch-black chasm, providing no safe route to the abyss beneath. Its fractured rungs suggest an inevitable plunge, as if the remainder might soon join the void.";
-	name = "shattered ladder"
-	},
-/obj/effect/baseturf_helper/lava_land/surface,
+/obj/effect/mapping_helpers/no_lava,
+/obj/structure/ladder,
 /turf/simulated/floor/chasm,
 /area/lavaland/surface/outdoors)
 "Et" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/structure/door_assembly/door_assembly_ext,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "EG" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/mob/living/simple_animal/hostile/asteroid/hivelord/legion,
-/turf/simulated/floor/pod/light{
+/mob/living/basic/mining/hivelord/legion,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "EL" = (
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "Fe" = (
 /turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "Fs" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/door_assembly/door_assembly_ext,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "FQ" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -1100,71 +1169,81 @@
 "Gc" = (
 /obj/structure/marker_beacon/dock_marker,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "Gp" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/white/hollow,
-/mob/living/simple_animal/hostile/asteroid/hivelord/legion,
-/turf/simulated/floor/pod/light{
+/obj/effect/turf_decal/delivery/white/hollow,
+/mob/living/basic/mining/hivelord/legion,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "GE" = (
 /obj/structure/railing{
 	dir = 1
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "HC" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/structure/chair/office,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/structure/chair,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "In" = (
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/remains/human,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "IZ" = (
 /obj/effect/decal/cleanable/glass,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
+"Jn" = (
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
+/area/lavaland/surface/outdoors/unexplored)
 "Jp" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/atmospherics/pipe/manifold/hidden,
-/obj/effect/baseturf_helper/lava_land/surface,
-/turf/simulated/floor/plating/airless,
-/area/ruin)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "JF" = (
 /obj/structure/railing/corner,
 /obj/structure/railing/corner{
 	dir = 4
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "JG" = (
 /obj/structure/girder/reinforced,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "KU" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/remains/human,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -1172,44 +1251,52 @@
 "Lt" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/door/airlock/maintenance_hatch,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "Lz" = (
 /obj/effect/decal/cleanable/glass,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/table_frame,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "LK" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/item/stack/sheet/metal,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
 /area/lavaland/surface/outdoors)
+"Mm" = (
+/obj/structure/girder/reinforced,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
+/area/lavaland/surface/outdoors/unexplored)
 "MT" = (
 /obj/structure/grille/broken,
 /obj/effect/decal/cleanable/glass,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "Nv" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "Ow" = (
 /obj/item/shard,
+/obj/effect/mapping_helpers/no_lava,
 /obj/effect/mapping_helpers/no_lava,
 /turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
 /area/lavaland/surface/outdoors)
@@ -1218,200 +1305,225 @@
 	dir = 9
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/northwest,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line{
+	dir = 9
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "OX" = (
 /obj/structure/table_frame,
-/obj/item/reagent_containers/food/snacks/badrecipe,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/item/food/badrecipe,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "Pe" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/structure/toilet{
-	dir = 4
-	},
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/structure/toilet/directional/west,
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "PC" = (
 /obj/structure/railing{
 	dir = 8
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/west,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "PL" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin)
+/area/ruin/unpowered/althland_excavation)
 "PM" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "Qk" = (
 /obj/effect/decal/cleanable/glass,
-/obj/structure/chair/office{
+/obj/structure/chair{
 	dir = 1
 	},
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "QM" = (
 /obj/structure/railing{
 	dir = 6
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "QS" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/item/stack/sheet/metal,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "Rf" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/baseturf_helper/lava_land/surface,
-/turf/simulated/floor/pod/light{
+/obj/effect/baseturf_helper/lava/mapping_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "Ri" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/atmospherics/unary/portables_connector{
 	dir = 4
 	},
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin)
+/area/ruin/unpowered/althland_excavation)
 "RG" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/remains/human,
 /obj/structure/grille/broken,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "RW" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "SV" = (
 /obj/structure/girder/reinforced,
-/turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "TD" = (
 /obj/structure/girder/reinforced,
-/turf/simulated/floor/plating/airless,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "TJ" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "TN" = (
-/obj/effect/spawner/random_spawners/wall_rusted_maybe,
+/obj/effect/mapping_helpers/turfs/rust/maybe,
 /turf/simulated/wall/r_wall,
-/area/ruin)
+/area/ruin/unpowered/althland_excavation)
 "TP" = (
 /obj/structure/railing/corner{
 	dir = 8
 	},
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "TW" = (
 /obj/structure/railing/corner{
 	dir = 4
 	},
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/obj/effect/decal/warning_stripes/northeastcorner,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 4
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "UR" = (
 /obj/structure/railing{
 	dir = 1
 	},
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "US" = (
 /obj/structure/grille/broken,
 /obj/item/shard,
 /obj/effect/decal/cleanable/glass,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "Vg" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/door_assembly/door_assembly_mhatch,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "Vk" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/railing/corner{
 	dir = 1
 	},
-/obj/effect/decal/warning_stripes/north,
-/turf/simulated/floor/plating/airless,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "Vw" = (
 /obj/structure/grille/broken,
 /obj/item/shard,
 /obj/effect/decal/cleanable/glass,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "VO" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plating/airless,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/plating/lavaland_air,
 /area/lavaland/surface/outdoors)
 "Wt" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/grille,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
 "WH" = (
-/obj/machinery/door/poddoor/multi_tile/three_tile_hor,
+/obj/machinery/door/poddoor/multi_tile/triple,
 /turf/simulated/floor/plating/asteroid/basalt/lava_land_surface,
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "Xl" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "Xp" = (
 /obj/structure/noticeboard{
 	pixel_y = 28
 	},
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plating/airless,
-/area/ruin/unpowered)
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plating/lavaland_air,
+/area/ruin/unpowered/althland_excavation)
+"XS" = (
+/obj/effect/mapping_helpers/turfs/rust/maybe,
+/turf/simulated/wall/r_wall,
+/area/lavaland/surface/outdoors)
 "Ya" = (
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/south,
-/turf/simulated/floor/pod/light{
+/obj/effect/turf_decal/stripes/line,
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -1421,25 +1533,26 @@
 /obj/structure/urinal{
 	pixel_y = 32
 	},
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "YE" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/mecha_wreckage/ripley,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 "Zr" = (
 /obj/structure/marker_beacon/dock_marker,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/pod/light{
+/obj/effect/mapping_helpers/no_lava,
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
@@ -1448,57 +1561,89 @@
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/door_assembly/door_assembly_ext,
-/turf/simulated/floor/pod/light{
+/turf/simulated/floor/pod/light/lavaland_air{
 	oxygen = 0;
 	nitrogen = 0
 	},
-/area/ruin/unpowered)
+/area/ruin/unpowered/althland_excavation)
 
 (1,1,1) = {"
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-bW
-bW
-bW
+oh
+oh
+oh
+oh
+oh
+oh
+oh
+oh
+oh
+sj
+sj
+sj
+sj
+sj
+Jn
+Jn
+Jn
+Jn
+Jn
+Jn
+Jn
+Jn
+Jn
+Jn
+sj
+sj
+oh
+oh
+oh
+oh
+"}
+(2,1,1) = {"
+oh
+oh
+oh
+oh
+sj
+sj
+sj
+sj
+sj
+sj
+sj
+TN
+TN
+TN
 pI
 JG
 Du
-bW
-bW
-bW
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
+TN
+TN
+TN
+Jn
+Jn
+Jn
+Jn
+Jn
+Jn
+Jn
+oh
+oh
+oh
 "}
-(2,1,1) = {"
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-bW
-bW
-bW
-bW
-bW
-bW
+(3,1,1) = {"
+oh
+oh
+sj
+sj
+sj
+sj
+TN
+TN
+TN
+TN
+TN
+TN
 Xl
 Et
 ad
@@ -1507,124 +1652,124 @@ eX
 Fs
 ct
 ab
-bW
-bW
-bW
-bW
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
+TN
+TN
+TN
+TN
+Jn
+Jn
+Jn
+Jn
+oh
+oh
 "}
-(3,1,1) = {"
-Ei
-Ei
-Ei
-Ei
-bW
-bW
-bW
+(4,1,1) = {"
+oh
+sj
+sj
+sj
+TN
+TN
+TN
 bK
-aa
+PL
 yb
 bO
 nw
 gh
-jT
+TN
 Wt
 RG
 tj
-jT
+TN
 Zy
-sp
+TN
 aq
 dp
 Cs
-bW
-bW
-bW
-Ei
-Ei
-Ei
-Ei
+TN
+TN
+TN
+Jn
+Jn
+sj
+sj
 "}
-(4,1,1) = {"
-Ei
-Ei
-Ei
-bW
-sp
+(5,1,1) = {"
+oh
+sj
+sj
+TN
+TN
 aU
 Lt
 am
 iW
 OX
 Rf
-aa
+PL
 yb
 aX
 IZ
 Ec
-aU
+EL
 yb
 bL
 yb
 uP
-aa
+PL
 ct
 je
 Ei
-bW
-bW
-Ei
-Ei
-Ei
+TN
+TN
+Jn
+sj
+sj
 "}
-(5,1,1) = {"
-Ei
-Ei
-bW
-bW
+(6,1,1) = {"
+sj
+sj
+TN
+TN
 Ri
 bl
-bW
+TN
 Nv
 bl
 ct
 IZ
 qp
 Lz
-aa
+PL
 bU
 aU
 Nv
-aa
+PL
 ie
 Qk
 bK
 US
 yb
-bW
+TN
 Ei
 Ei
 bm
-bm
-Ei
-Ei
+Mm
+sj
+sj
 "}
-(6,1,1) = {"
-Ei
-Ei
-bW
+(7,1,1) = {"
+sj
+sj
+TN
 PL
 BZ
 fH
 ab
-bW
+TN
 AD
-bW
+TN
 uA
 Vw
 aQ
@@ -1636,27 +1781,27 @@ bo
 aQ
 uA
 MT
-bW
+TN
 mW
-bW
+TN
 Ei
 Ei
 Ei
-bm
-Ei
-Ei
+Mm
+sj
+sj
 "}
-(7,1,1) = {"
-Ei
-bW
+(8,1,1) = {"
+sj
+TN
 TN
 pE
 Jp
 bA
-bW
+TN
 mK
 ae
-bW
+TN
 Ei
 Ei
 Ei
@@ -1668,24 +1813,24 @@ BW
 Ow
 BW
 Ei
-bW
+TN
 Ei
 Ei
 Ei
 Ei
 bm
-Ei
-Ei
-Ei
+Jn
+sj
+sj
 "}
-(8,1,1) = {"
-Ei
-bW
-sp
+(9,1,1) = {"
+sj
+TN
+TN
 bC
 zw
-bW
-bW
+TN
+TN
 mK
 yc
 aA
@@ -1701,22 +1846,22 @@ aB
 aB
 aA
 TD
-bW
+XS
 Ei
 zp
-bW
+XS
 BW
-aB
-Ei
-Ei
+Ay
+sj
+sj
 "}
-(9,1,1) = {"
-Ei
-bW
-bW
-bW
-bW
-bW
+(10,1,1) = {"
+sj
+TN
+TN
+TN
+TN
+TN
 mK
 bS
 ai
@@ -1733,18 +1878,18 @@ aB
 aB
 aB
 Ei
-TD
+SV
 aC
 sA
 aB
 aB
-Ei
-bm
-Ei
+Jn
+Mm
+Jn
 "}
-(10,1,1) = {"
-Ei
-bW
+(11,1,1) = {"
+sj
+TN
 ct
 Pe
 je
@@ -1770,13 +1915,13 @@ GE
 aB
 aB
 Ei
-Ei
-bm
-Ei
+Jn
+Mm
+Jn
 "}
-(11,1,1) = {"
-Ei
-bW
+(12,1,1) = {"
+sj
+TN
 pC
 yb
 gF
@@ -1803,15 +1948,15 @@ In
 aB
 Ei
 Ei
-bW
-Ei
+TN
+Jn
 "}
-(12,1,1) = {"
-Ei
-bW
-bW
-bW
-bW
+(13,1,1) = {"
+Jn
+TN
+TN
+TN
+TN
 VO
 mK
 aB
@@ -1835,15 +1980,15 @@ Ds
 Ei
 Ei
 Ei
-bW
-Ei
+TN
+sj
 "}
-(13,1,1) = {"
-Ei
-bW
+(14,1,1) = {"
+Jn
+TN
 aU
-aa
-bW
+PL
+TN
 mh
 aB
 hn
@@ -1864,15 +2009,15 @@ aB
 aB
 aL
 or
-bW
+XS
 Ei
 Ei
-bW
-Ei
+TN
+sj
 "}
-(14,1,1) = {"
-Ei
-bW
+(15,1,1) = {"
+Jn
+TN
 Yz
 yb
 Vg
@@ -1893,21 +2038,21 @@ aB
 aB
 aB
 aB
-bW
+XS
 eC
 Ei
 Ei
 Ei
 Ei
-bW
-Ei
+TN
+sj
 "}
-(15,1,1) = {"
-Ei
-bW
-bW
-bW
-bW
+(16,1,1) = {"
+Jn
+TN
+TN
+TN
+TN
 bT
 TW
 aR
@@ -1931,16 +2076,16 @@ Ei
 Ei
 BW
 aB
-bW
-Ei
+TN
+sj
 "}
-(16,1,1) = {"
-Ei
-bW
-Ei
-Ei
+(17,1,1) = {"
+Jn
+TN
 Ei
 Ei
+Ei
+CS
 bF
 Ya
 aB
@@ -1963,11 +2108,11 @@ uG
 mK
 uG
 BW
-bW
-Ei
+TN
+sj
 "}
-(17,1,1) = {"
-Ei
+(18,1,1) = {"
+Jn
 bm
 Ei
 BW
@@ -1995,11 +2140,11 @@ mK
 BW
 LK
 PM
-bW
-Ei
+TN
+sj
 "}
-(18,1,1) = {"
-Ei
+(19,1,1) = {"
+Jn
 bm
 Ei
 BW
@@ -2027,14 +2172,14 @@ aB
 aB
 BW
 KU
-bW
-Ei
+TN
+sj
 "}
-(19,1,1) = {"
+(20,1,1) = {"
+Jn
+TN
 Ei
-bW
-Ei
-SV
+bm
 BW
 aB
 aj
@@ -2059,16 +2204,16 @@ mh
 aB
 aB
 uG
-bW
-Ei
+TN
+sj
 "}
-(20,1,1) = {"
-Ei
-bW
-bW
-bW
-bW
-bW
+(21,1,1) = {"
+Jn
+TN
+TN
+TN
+TN
+TN
 Vk
 aN
 BW
@@ -2091,16 +2236,16 @@ uG
 aB
 aB
 aB
-bW
-Ei
+TN
+sj
 "}
-(21,1,1) = {"
-Ei
-bW
+(22,1,1) = {"
+Jn
+TN
 ao
 ar
 ay
-bW
+TN
 zh
 ub
 aA
@@ -2123,16 +2268,16 @@ xi
 BW
 TJ
 BW
-bW
-Ei
+TN
+sj
 "}
-(22,1,1) = {"
-Ei
-bW
+(23,1,1) = {"
+Jn
+TN
 at
 bl
 Nv
-TD
+SV
 hL
 yz
 Ei
@@ -2155,19 +2300,19 @@ br
 mh
 mK
 uG
-bW
-Ei
+TN
+sj
 "}
-(23,1,1) = {"
-Ei
-bW
+(24,1,1) = {"
+Jn
+TN
 aG
 aU
-aa
-bW
+PL
+TN
 mW
-bW
-bW
+TN
+TN
 Ei
 Ei
 Ei
@@ -2187,22 +2332,22 @@ mh
 mh
 mh
 Gc
-bW
-Ei
+TN
+sj
 "}
-(24,1,1) = {"
-Ei
-bW
-bW
+(25,1,1) = {"
+sj
+TN
+TN
 bU
 RW
 aI
 Xl
 vM
-bW
+TN
 gg
-TD
-bW
+SV
+TN
 aQ
 uA
 aK
@@ -2210,31 +2355,31 @@ bV
 si
 aQ
 iv
-bW
+TN
 PC
 cb
 TD
-bW
-bW
+TN
+TN
 gg
 bN
-bW
-bW
-Ei
+TN
+TN
+sj
 "}
-(25,1,1) = {"
-Ei
-Ei
-bW
+(26,1,1) = {"
+sj
+sj
+TN
 az
 DS
 bL
 RW
 bl
-aa
+PL
 yb
 bE
-bW
+TN
 ac
 bJ
 ct
@@ -2242,7 +2387,7 @@ Nv
 Rf
 bM
 Bl
-bW
+TN
 bR
 VO
 WH
@@ -2250,15 +2395,15 @@ wi
 jL
 Nv
 jS
-bW
-Ei
-Ei
+TN
+sj
+sj
 "}
-(26,1,1) = {"
-Ei
-Ei
-bW
-bW
+(27,1,1) = {"
+oh
+sj
+TN
+TN
 ap
 aU
 RW
@@ -2281,56 +2426,56 @@ Fe
 ui
 bL
 YE
-bW
-bW
-Ei
-Ei
+TN
+TN
+sj
+sj
 "}
-(27,1,1) = {"
-Ei
-Ei
-Ei
-bW
-bW
+(28,1,1) = {"
+oh
+sj
+sj
+TN
+TN
 iA
 au
 aU
 bO
 jj
-aa
-bW
+PL
+TN
 Xp
 Gp
 bP
 eX
 ax
 lh
-aa
+PL
 je
 tV
 Ei
 Fe
 kh
 aE
-bW
-bW
-Ei
-Ei
-Ei
+TN
+TN
+sj
+sj
+oh
 "}
-(28,1,1) = {"
-Ei
-Ei
-Ei
-Ei
-bW
-bW
-bW
+(29,1,1) = {"
+oh
+sj
+sj
+sj
+TN
+TN
+TN
 bH
 bK
 aG
 an
-bW
+TN
 bi
 Nv
 bl
@@ -2338,31 +2483,31 @@ EG
 as
 ej
 lM
-bW
+TN
 Ei
 Ei
-bW
-bW
-bW
-bW
-Ei
-Ei
-Ei
-Ei
+TN
+TN
+TN
+TN
+sj
+sj
+oh
+oh
 "}
-(29,1,1) = {"
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-bW
-bW
-bW
-bW
-bW
-bW
+(30,1,1) = {"
+oh
+oh
+sj
+sj
+sj
+sj
+TN
+TN
+TN
+TN
+TN
+TN
 bj
 qw
 bz
@@ -2370,47 +2515,47 @@ qT
 ah
 qa
 cR
-bW
-bW
-bW
-bW
-bW
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
+TN
+TN
+TN
+TN
+TN
+sj
+sj
+sj
+oh
+oh
+oh
 "}
-(30,1,1) = {"
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-bW
-bW
-bW
-bW
-bW
-bW
-bW
-bW
-bW
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
-Ei
+(31,1,1) = {"
+oh
+oh
+oh
+sj
+sj
+sj
+sj
+sj
+sj
+sj
+sj
+TN
+TN
+TN
+TN
+TN
+TN
+TN
+TN
+TN
+sj
+sj
+sj
+sj
+sj
+oh
+oh
+oh
+oh
+oh
 "}

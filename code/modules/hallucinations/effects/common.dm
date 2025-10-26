@@ -4,7 +4,6 @@
   * A generic hallucination that causes the target to trip if they cross it.
   */
 /obj/effect/hallucination/tripper
-	anchored = TRUE
 	/// Chance to trip when crossing.
 	var/trip_chance = 100
 	/// Stun to add when crossed.
@@ -101,7 +100,7 @@
 	if(was_weakened && !should_attack_weakened)
 		return
 
-	attack(was_weakened)
+	attacker_attack(was_weakened)
 
 /**
   * Called every Think when we are attacking the target.
@@ -109,10 +108,10 @@
   * Arguments:
   * * was_weakened - Whether the target was already knocked down prior to this attack.
   */
-/obj/effect/hallucination/chaser/attacker/proc/attack(was_weakened)
+/obj/effect/hallucination/chaser/attacker/proc/attacker_attack(was_weakened)
 	dir = get_dir(src, target)
 	attack_effects()
-	target.adjustStaminaLoss(damage)
+	target.apply_damage(damage, STAMINA)
 	if(!was_weakened && target.IsWeakened())
 		on_knockdown()
 

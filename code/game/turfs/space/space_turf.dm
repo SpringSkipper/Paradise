@@ -13,10 +13,9 @@
 	dynamic_lighting = DYNAMIC_LIGHTING_DISABLED
 	intact = FALSE
 
-	var/destination_z
-	var/destination_x
-	var/destination_y
-	plane = PLANE_SPACE
+	atmos_mode = ATMOS_MODE_SPACE
+
+	rad_insulation_alpha = RAD_NO_INSULATION
 
 /turf/space/Initialize(mapload)
 	SHOULD_CALL_PARENT(FALSE)
@@ -42,26 +41,19 @@
 	if(!IS_DYNAMIC_LIGHTING(src) && IS_DYNAMIC_LIGHTING(A))
 		add_overlay(/obj/effect/fullbright)
 
-	if (light_power && light_range)
+	if(light_power && light_range)
 		update_light()
 
-	if (opacity)
-		has_opaque_atom = TRUE
+	if(opacity)
+		directional_opacity = ALL_CARDINALS
 
 	return INITIALIZE_HINT_NORMAL
 
 /turf/space/BeforeChange()
 	..()
-	var/datum/space_level/S = GLOB.space_manager.get_zlev(z)
-	S.remove_from_transit(src)
+
 	if(light_sources) // Turn off starlight, if present
 		set_light(0)
-
-/turf/space/AfterChange(ignore_air, keep_cabling = FALSE)
-	..()
-	var/datum/space_level/S = GLOB.space_manager.get_zlev(z)
-	S.add_to_transit(src)
-	S.apply_transition(src)
 
 /turf/space/proc/update_starlight()
 	if(GLOB.configuration.general.starlight)
@@ -73,62 +65,55 @@
 			return
 		set_light(0)
 
-/turf/space/attackby(obj/item/C as obj, mob/user as mob, params)
-	..()
-	if(istype(C, /obj/item/stack/rods))
-		var/obj/item/stack/rods/R = C
+/turf/space/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(istype(used, /obj/item/stack/rods))
+		var/obj/item/stack/rods/R = used
 		var/obj/structure/lattice/L = locate(/obj/structure/lattice, src)
 		var/obj/structure/lattice/catwalk/W = locate(/obj/structure/lattice/catwalk, src)
 		if(W)
 			to_chat(user, "<span class='warning'>There is already a catwalk here!</span>")
-			return
+			return ITEM_INTERACT_COMPLETE
 		if(L)
 			if(R.use(1))
 				to_chat(user, "<span class='notice'>You construct a catwalk.</span>")
 				playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
 				new/obj/structure/lattice/catwalk(src)
+				return ITEM_INTERACT_COMPLETE
 			else
 				to_chat(user, "<span class='warning'>You need two rods to build a catwalk!</span>")
-			return
+				return ITEM_INTERACT_COMPLETE
 		if(R.use(1))
 			to_chat(user, "<span class='notice'>Constructing support lattice...</span>")
 			playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
 			ReplaceWithLattice()
+			return ITEM_INTERACT_COMPLETE
 		else
 			to_chat(user, "<span class='warning'>You need one rod to build a lattice.</span>")
-		return
+			return ITEM_INTERACT_COMPLETE
 
-	if(istype(C, /obj/item/stack/tile/plasteel))
+	if(istype(used, /obj/item/stack/tile/plasteel))
 		var/obj/structure/lattice/L = locate(/obj/structure/lattice, src)
 		if(L)
-			var/obj/item/stack/tile/plasteel/S = C
+			var/obj/item/stack/tile/plasteel/S = used
 			if(S.use(1))
 				qdel(L)
 				playsound(src, 'sound/weapons/genhit.ogg', 50, 1)
 				to_chat(user, "<span class='notice'>You build a floor.</span>")
 				ChangeTurf(/turf/simulated/floor/plating)
+				return ITEM_INTERACT_COMPLETE
 			else
 				to_chat(user, "<span class='warning'>You need one floor tile to build a floor!</span>")
+				return ITEM_INTERACT_COMPLETE
 		else
 			to_chat(user, "<span class='warning'>The plating is going to need some support! Place metal rods first.</span>")
+			return ITEM_INTERACT_COMPLETE
+
+	return ..()
 
 /turf/space/Entered(atom/movable/A as mob|obj, atom/OL, ignoreRest = 0)
 	..()
 	if((!(A) || !(src in A.locs)))
 		return
-
-	if(destination_z && destination_x && destination_y)
-		A.forceMove(locate(destination_x, destination_y, destination_z))
-
-		if(isliving(A))
-			var/mob/living/L = A
-			if(L.pulling)
-				var/turf/T = get_step(L.loc,turn(A.dir, 180))
-				L.pulling.forceMove(T)
-
-		//now we're on the new z_level, proceed the space drifting
-		sleep(0)//Let a diagonal move finish, if necessary
-		A.newtonian_move(A.inertia_dir)
 
 /turf/space/proc/Sandbox_Spacemove(atom/movable/A as mob|obj)
 	var/cur_x
@@ -147,7 +132,7 @@
 		if(!cur_pos) return
 		cur_x = cur_pos["x"]
 		cur_y = cur_pos["y"]
-		next_x = (--cur_x||GLOB.global_map.len)
+		next_x = (--cur_x||length(GLOB.global_map))
 		y_arr = GLOB.global_map[next_x]
 		target_z = y_arr[cur_y]
 /*
@@ -161,7 +146,7 @@
 			A.z = target_z
 			A.x = world.maxx - 2
 			spawn (0)
-				if((A && A.loc))
+				if(A && A.loc)
 					A.loc.Entered(A)
 	else if(src.x >= world.maxx)
 		if(istype(A, /obj/effect/meteor))
@@ -172,7 +157,7 @@
 		if(!cur_pos) return
 		cur_x = cur_pos["x"]
 		cur_y = cur_pos["y"]
-		next_x = (++cur_x > GLOB.global_map.len ? 1 : cur_x)
+		next_x = (++cur_x > length(GLOB.global_map) ? 1 : cur_x)
 		y_arr = GLOB.global_map[next_x]
 		target_z = y_arr[cur_y]
 /*
@@ -186,7 +171,7 @@
 			A.z = target_z
 			A.x = 3
 			spawn (0)
-				if((A && A.loc))
+				if(A && A.loc)
 					A.loc.Entered(A)
 	else if(src.y <= 1)
 		if(istype(A, /obj/effect/meteor))
@@ -197,7 +182,7 @@
 		cur_x = cur_pos["x"]
 		cur_y = cur_pos["y"]
 		y_arr = GLOB.global_map[cur_x]
-		next_y = (--cur_y||y_arr.len)
+		next_y = (--cur_y||length(y_arr))
 		target_z = y_arr[next_y]
 /*
 		//debug
@@ -210,7 +195,7 @@
 			A.z = target_z
 			A.y = world.maxy - 2
 			spawn (0)
-				if((A && A.loc))
+				if(A && A.loc)
 					A.loc.Entered(A)
 
 	else if(src.y >= world.maxy)
@@ -222,7 +207,7 @@
 		cur_x = cur_pos["x"]
 		cur_y = cur_pos["y"]
 		y_arr = GLOB.global_map[cur_x]
-		next_y = (++cur_y > y_arr.len ? 1 : cur_y)
+		next_y = (++cur_y > length(y_arr) ? 1 : cur_y)
 		target_z = y_arr[next_y]
 /*
 		//debug
@@ -235,7 +220,7 @@
 			A.z = target_z
 			A.y = 3
 			spawn (0)
-				if((A && A.loc))
+				if(A && A.loc)
 					A.loc.Entered(A)
 	return
 
@@ -246,34 +231,6 @@
 	if(locate(/obj/structure/lattice/catwalk, src))
 		return 1
 	return 0
-
-/turf/space/proc/set_transition_north(dest_z)
-	destination_x = x
-	destination_y = TRANSITION_BORDER_SOUTH + 1
-	destination_z = dest_z
-
-/turf/space/proc/set_transition_south(dest_z)
-	destination_x = x
-	destination_y = TRANSITION_BORDER_NORTH - 1
-	destination_z = dest_z
-
-/turf/space/proc/set_transition_east(dest_z)
-	destination_x = TRANSITION_BORDER_WEST + 1
-	destination_y = y
-	destination_z = dest_z
-
-/turf/space/proc/set_transition_west(dest_z)
-	destination_x = TRANSITION_BORDER_EAST - 1
-	destination_y = y
-	destination_z = dest_z
-
-/turf/space/proc/remove_transitions()
-	destination_z = initial(destination_z)
-
-/turf/space/attack_ghost(mob/dead/observer/user)
-	if(destination_z)
-		var/turf/T = locate(destination_x, destination_y, destination_z)
-		user.forceMove(T)
 
 /turf/space/acid_act(acidpwr, acid_volume)
 	return 0

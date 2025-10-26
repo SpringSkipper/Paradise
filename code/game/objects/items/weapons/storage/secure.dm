@@ -12,9 +12,6 @@
 // -----------------------------
 /obj/item/storage/secure
 	name = "secstorage"
-	w_class = WEIGHT_CLASS_NORMAL
-	max_w_class = WEIGHT_CLASS_SMALL
-	max_combined_w_class = 14
 	var/icon_locking = "secureb"
 	var/icon_sparking = "securespark"
 	var/icon_opened = "secure0"
@@ -39,7 +36,7 @@
 	new /obj/item/paper(src)
 	new /obj/item/pen(src)
 
-/obj/item/storage/secure/attackby(obj/item/W as obj, mob/user as mob, params)
+/obj/item/storage/secure/attackby__legacy__attackchain(obj/item/W as obj, mob/user as mob, params)
 	if(locked)
 		if((istype(W, /obj/item/melee/energy/blade)) && (!emagged))
 			emag_act(user, W)
@@ -84,6 +81,7 @@
 			to_chat(user, "You slice through the lock on [src].")
 		else
 			to_chat(user, "You short out the lock on [src].")
+			return TRUE
 
 /obj/item/storage/secure/AltClick(mob/user)
 	if(!try_to_open())
@@ -125,13 +123,16 @@
 /obj/item/storage/secure/hear_message(mob/living/M as mob, msg)
 	return
 
-/obj/item/storage/secure/attack_self(mob/user)
+/obj/item/storage/secure/attack_self__legacy__attackchain(mob/user)
 	ui_interact(user)
 
-/obj/item/storage/secure/ui_interact(mob/user, ui_key, datum/tgui/ui, force_open, datum/tgui/master_ui, datum/ui_state/state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+/obj/item/storage/secure/ui_state(mob/user)
+	return GLOB.default_state
+
+/obj/item/storage/secure/ui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, ui_key, "SecureStorage", name, 275, 500, master_ui, state)
+		ui = new(user, src, "SecureStorage", name)
 		ui.open()
 
 /obj/item/storage/secure/ui_data(mob/user)
@@ -199,14 +200,12 @@
 /obj/item/storage/secure/briefcase
 	name = "secure briefcase"
 	desc = "A large briefcase with a digital locking system."
-	icon = 'icons/obj/storage.dmi'
 	icon_state = "secure"
-	item_state = "sec-case"
+	inhand_icon_state = "sec-case"
 	flags = CONDUCT
 	hitsound = "swing_hit"
 	use_sound = 'sound/effects/briefcase.ogg'
 	force = 8
-	throw_speed = 2
 	throw_range = 4
 	w_class = WEIGHT_CLASS_BULKY
 	max_w_class = WEIGHT_CLASS_NORMAL
@@ -245,7 +244,6 @@
 
 /obj/item/storage/secure/safe
 	name = "secure safe"
-	icon = 'icons/obj/storage.dmi'
 	icon_state = "safe"
 	icon_opened = "safe0"
 	icon_locking = null
@@ -254,7 +252,6 @@
 	w_class = WEIGHT_CLASS_HUGE
 	max_w_class = 8
 	anchored = TRUE
-	density = FALSE
 	cant_hold = list(/obj/item/storage/secure/briefcase)
 
 /obj/item/storage/secure/safe/attack_hand(mob/user as mob)

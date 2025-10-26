@@ -4,9 +4,6 @@
 #define ERT_TYPE_RED		2
 #define ERT_TYPE_GAMMA		3
 
-/datum/game_mode
-	var/list/datum/mind/ert = list()
-
 GLOBAL_LIST_EMPTY(response_team_members)
 GLOBAL_VAR_INIT(responseteam_age, 21) // Minimum account age to play as an ERT member
 GLOBAL_DATUM(active_team, /datum/response_team)
@@ -22,7 +19,7 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 	if(!check_rights(R_EVENT))
 		return
 
-	if(!SSticker)
+	if(SSticker.current_state < GAME_STATE_PLAYING)
 		to_chat(usr, "<span class='warning'>The game hasn't started yet!</span>")
 		return
 
@@ -48,11 +45,13 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 		to_chat(src, "<span class='warning'>This role is not yet available to you. You need to wait another [player_age_check] days.</span>")
 		return FALSE
 
-	if(cannotPossess(src))
+	return TRUE
+
+/mob/dead/observer/JoinResponseTeam()
+	. = ..()
+	if(!check_ahud_rejoin_eligibility())
 		to_chat(src, "<span class='boldnotice'>Upon using the antagHUD you forfeited the ability to join the round.</span>")
 		return FALSE
-
-	return TRUE
 
 /proc/trigger_armed_response_team(datum/response_team/response_team_type, commander_slots, security_slots, medical_slots, engineering_slots, janitor_slots, paranormal_slots, cyborg_slots, cyborg_security)
 	GLOB.response_team_members = list()
@@ -61,7 +60,7 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 	GLOB.active_team.cyborg_security_permitted = cyborg_security
 
 	GLOB.send_emergency_team = TRUE
-	var/list/ert_candidates = shuffle(SSghost_spawns.poll_candidates("Join the Emergency Response Team?",, GLOB.responseteam_age, 45 SECONDS, TRUE, GLOB.role_playtime_requirements[ROLE_ERT]))
+	var/list/ert_candidates = shuffle(SSghost_spawns.poll_candidates("Join the Emergency Response Team?", null, GLOB.responseteam_age, 45 SECONDS, TRUE, GLOB.role_playtime_requirements[ROLE_ERT]))
 	if(!length(ert_candidates))
 		GLOB.active_team.cannot_send_team()
 		GLOB.send_emergency_team = FALSE
@@ -96,7 +95,7 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 		A.close()
 	var/list/ert_species_prefs = list()
 	for(var/mob/M in GLOB.response_team_members)
-		ert_species_prefs.Add(input_async(M, "Please select a species (10 seconds):", list("Human", "Tajaran", "Skrell", "Unathi", "Diona", "Vulpkanin", "Nian", "Random")))
+		ert_species_prefs.Add(input_async(M, "Please select a species (10 seconds):", list("Human", "Tajaran", "Skrell", "Unathi", "Diona", "Vulpkanin", "Nian", "Drask", "Kidan", "Grey", "Random")))
 	addtimer(CALLBACK(GLOBAL_PROC, GLOBAL_PROC_REF(get_ert_role_prefs), GLOB.response_team_members, ert_gender_prefs, ert_species_prefs), 10 SECONDS)
 
 /proc/get_ert_role_prefs(list/response_team_members, list/ert_gender_prefs, list/ert_species_prefs) // Why the FUCK is this variable the EXACT SAME as the global one
@@ -110,10 +109,10 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 /proc/dispatch_response_team(list/response_team_members, list/datum/async_input/ert_gender_prefs, list/datum/async_input/ert_species_prefs, list/datum/async_input/ert_role_prefs)
 	var/spawn_index = 1
 
-	for(var/i = 1, i <= response_team_members.len, i++)
-		if(spawn_index > GLOB.emergencyresponseteamspawn.len)
+	for(var/i = 1, i <= length(response_team_members), i++)
+		if(spawn_index > length(GLOB.emergencyresponseteamspawn))
 			break
-		if(!GLOB.active_team.get_slot_list().len)
+		if(!length(GLOB.active_team.get_slot_list()))
 			break
 		var/gender_pref = ert_gender_prefs[i].result
 		var/species_pref = ert_species_prefs[i].result
@@ -151,18 +150,20 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 			R.force_modules = list("Engineering", "Medical")
 		return R
 
-	var/mob/living/carbon/human/M = new(null)
+	var/mob/living/carbon/human/M = new(spawn_location)
 
 	if(new_gender)
 		if(new_gender == "Male")
 			M.change_gender(MALE)
+			M.change_body_type(MALE)
 		else
 			M.change_gender(FEMALE)
+			M.change_body_type(FEMALE)
 
 	if(!new_species)
 		new_species = "Human"
 	if(new_species == "Random")
-		new_species = pick("Human", "Tajaran", "Skrell", "Unathi", "Diona", "Vulpkanin", "Nian")
+		new_species = pick("Human", "Tajaran", "Skrell", "Unathi", "Diona", "Vulpkanin", "Nian", "Drask", "Kidan", "Grey")
 	var/datum/species/S = GLOB.all_species[new_species]
 	var/species = S.type
 	M.set_species(species, TRUE)
@@ -170,10 +171,9 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 	M.cleanSE() //No fat/blind/colourblind/epileptic/whatever ERT.
 	M.overeatduration = 0
 	var/obj/item/organ/external/head/head_organ = M.get_organ("head")
-	var/eye_c = pick("#000000", "#8B4513", "#1E90FF") // Black, brown, blue
-	var/skin_tone = rand(-120, 20) // A range of skin colors
+	var/eye_c = pick("#000000", "#8B4513", "#1E90FF", "#8c00ff", "#a80c0c", "#2fdb63") // Black, brown, blue, purple, red, green
 
-	switch(new_species) //Diona not included as they don't use the hair colours
+	switch(new_species) //Diona not included as they don't use the hair colours, kidan use accessory, drask are skin tone Grey not included as they are BALD
 		if("Human", "Tajaran", "Vulpkanin", "Nian")
 			var/hair_c_htvn = pick("#8B4513", "#000000", "#FF4500", "#FFD700", "#d4d1bf") // Brown, black, red, blonde, grey
 			head_organ.facial_colour = hair_c_htvn
@@ -193,19 +193,22 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 			else
 				M.skin_colour = pick(su) //Pick a diffrent colour for body.
 
-	M.change_eye_color(eye_c)
-	M.s_tone = skin_tone
-	head_organ.h_style = random_hair_style(M.gender, head_organ.dna.species.name)
-	head_organ.f_style = random_facial_hair_style(M.gender, head_organ.dna.species.name)
 
-	M.rename_character(null, "[pick("Corporal", "Sergeant", "Staff Sergeant", "Sergeant First Class", "Master Sergeant", "Sergeant Major")] [pick(GLOB.last_names)]")
+	M.change_eye_color(eye_c, FALSE)
+	M.change_skin_tone(random_skin_tone(M.dna.species.name))
+	head_organ.headacc_colour = pick("#1f138b", "#272525", "#07a035", "#8c00ff", "#a80c0c")
+	head_organ.h_style = random_hair_style(M.gender, head_organ.dna.species.name)
+	if(M.gender != FEMALE) // no beard for women pls
+		head_organ.f_style = random_facial_hair_style(M.gender, head_organ.dna.species.name)
+
+	M.rename_character(M.real_name, "[pick("Corporal", "Sergeant", "Staff Sergeant", "Sergeant First Class", "Master Sergeant", "Sergeant Major")] [pick(GLOB.last_names)]")
 	M.age = rand(23,35)
+	M.update_dna()
 	M.regenerate_icons()
-	M.update_body()
 
 	//Creates mind stuff.
 	M.mind = new
-	M.mind.current = M
+	M.mind.bind_to(M)
 	M.mind.set_original_mob(M)
 	M.mind.assigned_role = SPECIAL_ROLE_ERT
 	M.mind.special_role = SPECIAL_ROLE_ERT
@@ -213,7 +216,6 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 	if(!(M.mind in SSticker.minds))
 		SSticker.minds += M.mind //Adds them to regular mind list.
 	SSticker.mode.ert += M.mind
-	M.forceMove(spawn_location)
 
 	SSjobs.CreateMoneyAccount(M, role, null)
 
@@ -307,12 +309,12 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 // -- AMBER TEAM --
 
 /datum/response_team/amber
-	engineering_outfit = /datum/outfit/job/centcom/response_team/engineer/amber
-	security_outfit = /datum/outfit/job/centcom/response_team/security/amber
-	medical_outfit = /datum/outfit/job/centcom/response_team/medic/amber
-	command_outfit = /datum/outfit/job/centcom/response_team/commander/amber
-	janitor_outfit = /datum/outfit/job/centcom/response_team/janitorial/amber
-	paranormal_outfit = /datum/outfit/job/centcom/response_team/paranormal/amber
+	engineering_outfit = /datum/outfit/job/response_team/engineer/amber
+	security_outfit = /datum/outfit/job/response_team/security/amber
+	medical_outfit = /datum/outfit/job/response_team/medic/amber
+	command_outfit = /datum/outfit/job/response_team/commander/amber
+	janitor_outfit = /datum/outfit/job/response_team/janitorial/amber
+	paranormal_outfit = /datum/outfit/job/response_team/paranormal/amber
 
 /datum/response_team/amber/announce_team()
 	if(silent)
@@ -322,12 +324,12 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 // -- RED TEAM --
 
 /datum/response_team/red
-	engineering_outfit = /datum/outfit/job/centcom/response_team/engineer/red
-	security_outfit = /datum/outfit/job/centcom/response_team/security/red
-	medical_outfit = /datum/outfit/job/centcom/response_team/medic/red
-	command_outfit = /datum/outfit/job/centcom/response_team/commander/red
-	janitor_outfit = /datum/outfit/job/centcom/response_team/janitorial/red
-	paranormal_outfit = /datum/outfit/job/centcom/response_team/paranormal/red
+	engineering_outfit = /datum/outfit/job/response_team/engineer/red
+	security_outfit = /datum/outfit/job/response_team/security/red
+	medical_outfit = /datum/outfit/job/response_team/medic/red
+	command_outfit = /datum/outfit/job/response_team/commander/red
+	janitor_outfit = /datum/outfit/job/response_team/janitorial/red
+	paranormal_outfit = /datum/outfit/job/response_team/paranormal/red
 	borg_path = /mob/living/silicon/robot/ert/red
 
 /datum/response_team/red/announce_team()
@@ -338,12 +340,12 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 // -- GAMMA TEAM --
 
 /datum/response_team/gamma
-	engineering_outfit = /datum/outfit/job/centcom/response_team/engineer/gamma
-	security_outfit = /datum/outfit/job/centcom/response_team/security/gamma
-	medical_outfit = /datum/outfit/job/centcom/response_team/medic/gamma
-	command_outfit = /datum/outfit/job/centcom/response_team/commander/gamma
-	janitor_outfit = /datum/outfit/job/centcom/response_team/janitorial/gamma
-	paranormal_outfit = /datum/outfit/job/centcom/response_team/paranormal/gamma
+	engineering_outfit = /datum/outfit/job/response_team/engineer/gamma
+	security_outfit = /datum/outfit/job/response_team/security/gamma
+	medical_outfit = /datum/outfit/job/response_team/medic/gamma
+	command_outfit = /datum/outfit/job/response_team/commander/gamma
+	janitor_outfit = /datum/outfit/job/response_team/janitorial/gamma
+	paranormal_outfit = /datum/outfit/job/response_team/paranormal/gamma
 	borg_path = /mob/living/silicon/robot/ert/gamma
 
 /datum/response_team/gamma/announce_team()
@@ -351,7 +353,7 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 		return
 	GLOB.major_announcement.Announce("Attention, [station_name()]. We are sending a code GAMMA elite Emergency Response Team. Standby.", "ERT En-Route")
 
-/datum/outfit/job/centcom/response_team
+/datum/outfit/job/response_team
 	name = "Response team"
 	var/rt_assignment = "Emergency Response Team Member"
 	var/rt_job = "This is a bug"
@@ -364,10 +366,14 @@ GLOBAL_LIST_EMPTY(ert_request_messages)
 	box = /obj/item/storage/box/responseteam
 	gloves = /obj/item/clothing/gloves/combat
 
-	implants = list(/obj/item/implant/mindshield)
+	bio_chips = list(/obj/item/bio_chip/mindshield)
 
 /obj/item/radio/centcom
 	name = "centcomm bounced radio"
 	frequency = ERT_FREQ
 	icon_state = "radio"
 	freqlock = TRUE
+
+#undef ERT_TYPE_AMBER
+#undef ERT_TYPE_RED
+#undef ERT_TYPE_GAMMA

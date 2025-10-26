@@ -18,11 +18,11 @@
 	throw_speed = 1
 	throw_range = 5
 	force = 2
-	w_class = WEIGHT_CLASS_NORMAL
 	attack_verb = list("bashed", "whacked")
 	resistance_flags = FLAMMABLE
 	drop_sound = 'sound/items/handling/book_drop.ogg'
 	pickup_sound =  'sound/items/handling/book_pickup.ogg'
+	new_attack_chain = TRUE
 
 	///Title & Real name of the book
 	var/title
@@ -40,6 +40,8 @@
 	var/pages = list()
 	///What page is the book currently opened to? Page 0 - Intro Page | Page 1-5 - Content Pages
 	var/current_page = 0
+	///Is this item imaginary and not able to interact with anything else?
+	var/imaginary = FALSE
 
 	///Book UI Popup Height
 	var/book_height = 400
@@ -75,36 +77,47 @@
 
 
 /obj/item/book/attack(mob/M, mob/living/user)
+	if(imaginary)
+		return FINISH_ATTACK
 	if(user.a_intent == INTENT_HELP)
 		force = 0
 		attack_verb = list("educated")
 	else
 		force = initial(force)
 		attack_verb = list("bashed", "whacked")
-	..()
+	return ..()
 
-/obj/item/book/attack_self(mob/user)
+/obj/item/book/activate_self(mob/user)
+	if(..())
+		return
+	if(imaginary)
+		read_book(user)
+		return FINISH_ATTACK
 	if(carved)
 		//Attempt to remove inserted object, if none found, remind user that someone vandalized their book (Bastards)!
 		if(!remove_stored_item(user, TRUE))
 			to_chat(user, "<span class='notice'>The pages of [title] have been cut out!</span>")
-		return
+		return FINISH_ATTACK
 	user.visible_message("<span class='notice'>[user] opens a book titled \"[title]\" and begins reading intently.</span>")
 	read_book(user)
+	return ..()
 
-/obj/item/book/attackby(obj/item/I, mob/user, params)
-	if(is_pen(I))
+/obj/item/book/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(imaginary)
+		return ITEM_INTERACT_COMPLETE
+	if(is_pen(used))
 		edit_book(user)
-	else if(istype(I, /obj/item/barcodescanner))
-		var/obj/item/barcodescanner/scanner = I
+	else if(istype(used, /obj/item/barcodescanner))
+		var/obj/item/barcodescanner/scanner = used
 		scanner.scanBook(src, user) //abstraction and proper scoping ftw | did you know barcode scanner code used to be here?
-		return
-	else if(I.sharp && !carved) //don't use sharp objects on your books if you don't want to carve out all of its pages kids!
-		carve_book(user, I)
-	else if(store_item(I, user))
-		return
+		return ITEM_INTERACT_COMPLETE
+	else if(used.sharp && !carved) //don't use sharp objects on your books if you don't want to carve out all of its pages kids!
+		carve_book(user, used)
+		return ITEM_INTERACT_COMPLETE
+	else if(store_item(used, user))
+		return ITEM_INTERACT_COMPLETE
 	else
-		..()
+		return ..()
 
 /obj/item/book/examine(mob/user)
 	. = ..()
@@ -159,15 +172,15 @@
   * buttons and then builds the rest of the UI based on what page the player is turned to.
   */
 /obj/item/book/proc/show_content(mob/user)
-	var/dat = ""
+	var/dat = "<meta charset='utf-8'>"
 	//First, we're going to choose/generate our header buttons for switching pages and store it in var/dat
 	var/header_left = "<div style='float:left; text-align:left; width:49.9%'></div>"
 	var/header_right = "<div style ='float;left; text-align:right; width:49.9%'></div>"
 	if(length(pages)) //No need to have page switching buttons if there's no pages
 		if(current_page < length(pages))
-			header_right = "<div style='float:left; text-align:right; width:49.9%'><a href='?src=[UID()];next_page=1'>Next Page</a></div><br><hr>"
+			header_right = "<div style='float:left; text-align:right; width:49.9%'><a href='byond://?src=[UID()];next_page=1'>Next Page</a></div><br><hr>"
 		if(current_page)
-			header_left = "<div style='float:left; text-align:left; width:49.9%'><a href='?src=[UID()];prev_page=1'>Previous Page</a></div>"
+			header_left = "<div style='float:left; text-align:left; width:49.9%'><a href='byond://?src=[UID()];prev_page=1'>Previous Page</a></div>"
 
 	dat += header_left + header_right
 	//Now we're going to display the header buttons + the current page selected, if it's page 0, we display the cover_page instead
@@ -210,11 +223,11 @@
 	if(protected) //we don't want people touching "special" books, especially ones that use iframes
 		to_chat(user, "<span class='notice'>These pages don't seem to take the ink well. Looks like you can't modify it.</span>")
 		return
-	var/choice = input(user, "What would you like to edit?") as null|anything in list("Title", "Edit Current Page", "Author", "Summary", "Add Page", "Remove Page")
+	var/choice = tgui_input_list(user, "What would you like to edit?", "Book Edit", list("Title", "Edit Current Page", "Author", "Summary", "Add Page", "Remove Page"))
 	switch(choice)
 		if("Title")
-			var/newtitle = reject_bad_text(stripped_input(user, "Write a new title:"))
-			if(!newtitle)
+			var/newtitle = reject_bad_text(tgui_input_text(user, "Write a new title:", "Title", title))
+			if(isnull(newtitle))
 				to_chat(user, "<span class='notice'>You change your mind.</span>")
 				return
 			//Like with paper, the name (not title) of the book should indicate that THIS IS A BOOK when actions are performed with it
@@ -222,14 +235,14 @@
 			name = "Book: " + newtitle
 			title = newtitle
 		if("Author")
-			var/newauthor = stripped_input(user, "Write the author's name:")
-			if(!newauthor)
+			var/newauthor = tgui_input_text(user, "Write the author's name:", "Author", author, MAX_NAME_LEN)
+			if(isnull(newauthor))
 				to_chat(user, "<span class='notice'>You change your mind.</span>")
 				return
 			author = newauthor
 		if("Summary")
-			var/newsummary = strip_html(input(user, "Write the new summary:") as message|null, MAX_SUMMARY_LEN)
-			if(!newsummary)
+			var/newsummary = tgui_input_text(user, "Write the new summary:", "Summary", summary, MAX_SUMMARY_LEN, multiline = TRUE)
+			if(isnull(newsummary))
 				to_chat(user, "<span class='notice'>You change your mind.</span>")
 				return
 			summary = newsummary
@@ -244,8 +257,8 @@
 			if(character_space_remaining <= 0)
 				to_chat(user, "<span class='notice'>There's not enough space left on this page to write anything!</span>")
 				return
-			var/content = strip_html(input(user, "Add Text to this page, you have [character_space_remaining] characters of space left:") as message|null, MAX_CHARACTERS_PER_BOOKPAGE)
-			if(!content)
+			var/content = tgui_input_text(user, "Add Text to this page, you have [character_space_remaining] characters of space left:", "Edit Current Page", max_length = MAX_CHARACTERS_PER_BOOKPAGE, multiline = TRUE)
+			if(isnull(content))
 				to_chat(user, "<span class='notice'>You change your mind.</span>")
 				return
 			//check if length of current text content + what player is adding is larger than our character limit
@@ -267,8 +280,8 @@
 			if(!length(pages))
 				to_chat(user, "<span class='notice'>There aren't any pages in this book!</span>")
 				return
-			var/page_choice = input(user, "There are [length(pages)] pages, which page number would you like to remove?", "Input Page Number", null) as num|null
-			if(!page_choice)
+			var/page_choice = tgui_input_number(user, "There are [length(pages)] pages, which page number would you like to remove?", "Input Page Number", max_value = length(pages))
+			if(isnull(page_choice))
 				to_chat(user, "<span class='notice'>You change your mind.</span>")
 				return
 			if(page_choice <= 0 || page_choice > length(pages))
@@ -359,12 +372,15 @@
 	icon_state = "random_book"
 	var/amount = 1
 
-/obj/item/book/random/Initialize()
-	..()
+/obj/item/book/random/Initialize(mapload)
+	. = ..()
+	END_OF_TICK(CALLBACK(src, PROC_REF(spawn_books)))
+
+/obj/item/book/random/proc/spawn_books()
 	var/list/books = GLOB.library_catalog.get_random_book(amount)
 	for(var/datum/cachedbook/book as anything in books)
 		new /obj/item/book(loc, book, TRUE, FALSE)
-	return INITIALIZE_HINT_QDEL
+	qdel(src)
 
 /obj/item/book/random/triple
 	amount = 3
@@ -376,7 +392,6 @@
 	name = "\improper Codex Gigas"
 	desc = "A book documenting the nature of devils, it seems whatever magic that once possessed this codex is long gone."
 	icon_state = "demonomicon"
-	throw_speed = 1
 	throw_range = 10
 	resistance_flags = LAVA_PROOF | FIRE_PROOF | ACID_PROOF
 	author = "Forces beyond your comprehension"

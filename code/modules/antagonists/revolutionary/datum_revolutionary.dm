@@ -1,3 +1,5 @@
+RESTRICT_TYPE(/datum/antagonist/rev)
+
 /datum/antagonist/rev
 	name = "Revolutionary"
 	roundend_category = "revs"
@@ -19,13 +21,13 @@
 	SEND_SOUND(owner.current, sound('sound/ambience/antag/revalert.ogg'))
 
 /datum/antagonist/rev/greet()
-	to_chat(owner.current, "<span class='userdanger'>You are now a revolutionary! Help your cause. \
+	return "<span class='userdanger'>You are now a revolutionary! Help your cause. \
 				Do not harm your fellow freedom fighters. You can identify your comrades by the red \"R\" icons, \
-				and your leaders by the blue \"R\" icons. Help them kill the heads to win the revolution!</span>")
+				and your leaders by the blue \"R\" icons. Help them kill the heads to win the revolution!</span>"
 
 /datum/antagonist/rev/farewell()
 	if(owner && owner.current)
-		to_chat(owner.current,"<span class='userdanger'>You have been brainwashed! You are no longer a [special_role]! </span>")
+		to_chat(owner.current,"<span class='userdanger'>You have been brainwashed! You are no longer a [special_role]!</span>")
 
 
 /datum/antagonist/rev/add_owner_to_gamemode()
@@ -38,7 +40,7 @@
 	return SSticker.mode.get_rev_team()
 
 /datum/antagonist/rev/get_team()
-	return SSticker.mode.get_rev_team()
+	return SSticker.mode.rev_team
 
 /datum/antagonist/rev/give_objectives()
 	var/datum/team/revolution/revolting = get_team()
@@ -46,8 +48,7 @@
 
 /datum/antagonist/rev/proc/promote()
 	var/datum/mind/old_owner = owner
-	silent = TRUE
-	owner.remove_antag_datum(/datum/antagonist/rev, FALSE)
+	owner.remove_antag_datum(/datum/antagonist/rev, FALSE, silent_removal = TRUE)
 
 	var/datum/antagonist/rev/head/new_revhead = new()
 	new_revhead.silent = TRUE

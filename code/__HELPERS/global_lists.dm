@@ -75,45 +75,52 @@
 		GLOB.pai_software_by_key[P.id] = P
 
 	// Setup loadout gear
-	for(var/geartype in subtypesof(/datum/gear))
-		var/datum/gear/G = geartype
+	for(var/gear_type in subtypesof(/datum/gear))
+		var/datum/gear/gear = gear_type
 
-		var/use_category = initial(G.sort_category)
-
-		if(G == initial(G.main_typepath))
+		if(gear == initial(gear.main_typepath))
 			continue
 
-		if(!initial(G.display_name))
-			stack_trace("Loadout - Missing display name: [G]")
+		if(!initial(gear.display_name))
+			stack_trace("Loadout - Missing display name: [gear]")
 			continue
-		if(!initial(G.cost))
-			stack_trace("Loadout - Missing cost: [G]")
+		if(!initial(gear.cost))
+			stack_trace("Loadout - Missing cost: [gear]")
 			continue
-		if(!initial(G.path))
-			stack_trace("Loadout - Missing path definition: [G]")
+		if(!initial(gear.path))
+			stack_trace("Loadout - Missing path definition: [gear]")
 			continue
 
-		if(!GLOB.loadout_categories[use_category])
-			GLOB.loadout_categories[use_category] = new /datum/loadout_category(use_category)
-		var/datum/loadout_category/LC = GLOB.loadout_categories[use_category]
-		GLOB.gear_datums[geartype] = new geartype
-		LC.gear[geartype] = GLOB.gear_datums[geartype]
+		gear = new gear_type
+		var/obj/gear_item = gear.path
+		var/list/tweaks = list()
+		for(var/datum/gear_tweak/tweak as anything in gear.gear_tweaks)
+			tweaks[tweak.type] += list(list(
+				"name" = tweak.display_type,
+				"icon" = tweak.fa_icon,
+				"tooltip" = tweak.info,
+			))
 
-	GLOB.loadout_categories = sortAssoc(GLOB.loadout_categories)
-	for(var/loadout_category in GLOB.loadout_categories)
-		var/datum/loadout_category/LC = GLOB.loadout_categories[loadout_category]
-		LC.gear = sortAssoc(LC.gear)
+		GLOB.gear_tgui_info[gear.sort_category] += list(
+			"[gear_type]" = list(
+				"name" = gear.display_name,
+				"desc" = gear.description,
+				"icon" = gear_item.icon,
+				"icon_state" = gear_item.icon_state,
+				"cost" = gear.cost,
+				"gear_tier" = gear.donator_tier,
+				"allowed_roles" = gear.allowed_roles,
+				"tweaks" = tweaks,
+			)
+		)
 
+		GLOB.gear_datums[gear_type] = gear
 
 	// Setup a list of robolimbs
 	GLOB.basic_robolimb = new()
 	for(var/limb_type in typesof(/datum/robolimb))
 		var/datum/robolimb/R = new limb_type()
 		GLOB.all_robolimbs[R.company] = R
-		if(!R.unavailable_at_chargen)
-			if(R != "head" && R != "chest" && R != "groin" ) //Part of the method that ensures only IPCs can access head, chest and groin prosthetics.
-				if(R.has_subtypes) //Ensures solos get added to the list as well be incorporating has_subtypes == 1 and has_subtypes == 2.
-					GLOB.chargen_robolimbs[R.company] = R //List only main brands and solo parts.
 		if(R.selectable)
 			GLOB.selectable_robolimbs[R.company] = R
 
@@ -137,17 +144,36 @@
 
 	GLOB.emote_list = init_emote_list()
 
+	// Set up PCWJ recipes
+	initialize_cooking_recipes()
+
 	// Keybindings
 	for(var/path in subtypesof(/datum/keybinding))
 		var/datum/keybinding/D = path
 		if(initial(D.name))
 			GLOB.keybindings += new path()
 
+	for(var/path in subtypesof(/datum/preference_toggle))
+		var/datum/preference_toggle/pref_toggle = path
+		if(initial(pref_toggle.name))
+			GLOB.preference_toggles[path] = new path()
+
 	for(var/path in subtypesof(/datum/objective))
 		var/datum/objective/O = path
 		if(isnull(initial(O.name)))
 			continue // These are not valid objectives to add.
 		GLOB.admin_objective_list[initial(O.name)] = path
+
+	for(var/path in subtypesof(/datum/tilt_crit))
+		var/datum/tilt_crit/crit = path
+		if(isnull(initial(crit.name)))
+			continue
+		crit = new path()
+		GLOB.tilt_crits[path] = crit
+
+	for(var/path in subtypesof(/datum/tech))
+		var/datum/tech/T = path
+		GLOB.rnd_tech_id_to_name[initial(T.id)] = initial(T.name)
 
 /* // Uncomment to debug chemical reaction list.
 /client/verb/debug_chemical_list()

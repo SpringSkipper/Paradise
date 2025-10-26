@@ -79,17 +79,14 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 			verb = "slurs"
 
 		if(AmountStuttering())
-			if(robot)
-				S.message = robostutter(S.message)
-			else
-				S.message = stutter(S.message)
+			S.message = stutter(S.message, getStaminaLoss(), robot)
 			verb = "stammers"
 
 		if(AmountCultSlurring())
 			S.message = cultslur(S.message)
 			verb = "slurs"
 
-		if(!IsVocal())
+		if(!IsVocal() || HAS_TRAIT(src, TRAIT_MUTE))
 			S.message = ""
 	return list("verb" = verb)
 
@@ -108,14 +105,20 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 	return returns
 
 
-/mob/living/say(message, verb = "says", sanitize = TRUE, ignore_speech_problems = FALSE, ignore_atmospherics = FALSE, ignore_languages = FALSE)
+/mob/living/say(message, verb = null, sanitize = TRUE, ignore_speech_problems = FALSE, ignore_atmospherics = FALSE, ignore_languages = FALSE, automatic = FALSE, bigvoice = FALSE)
 	if(client)
 		if(check_mute(client.ckey, MUTE_IC))
 			to_chat(src, "<span class='danger'>You cannot speak in IC (Muted).</span>")
 			return FALSE
 
 	if(sanitize)
-		message = trim_strip_html_properly(message)
+		if(speaks_ooc)
+			if(GLOB.configuration.general.enable_ooc_emoji)
+				message = emoji_parse(sanitize(message))
+			else
+				message = sanitize(message)
+		else
+			message = sanitize_for_ic(message)
 
 	if(stat)
 		if(stat == DEAD)
@@ -130,11 +133,14 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 	//parse the radio code and consume it
 	if(message_mode)
 		if(message_mode == "headset")
-			message = copytext(message, 2)	//it would be really nice if the parse procs could do this for us.
+			message = copytext_char(message, 2)	//it would be really nice if the parse procs could do this for us.
 		else
-			message = copytext(message, 3)
+			message = copytext_char(message, 3)
 
 	message = trim_left(message)
+
+	if(big_voice)
+		message = "<span class='reallybig'>[message]</span>"
 
 	//parse the language code and consume it
 	var/list/message_pieces = list()
@@ -163,7 +169,8 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 		return TRUE
 
 	var/datum/multilingual_say_piece/first_piece = message_pieces[1]
-	verb = say_quote(message, first_piece.speaking)
+	if(isnull(verb))
+		verb = say_quote(message, first_piece.speaking)
 
 	if(is_muzzled())
 		var/obj/item/clothing/mask/muzzle/G = wear_mask
@@ -182,9 +189,12 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 		var/list/hsp = handle_speech_problems(message_pieces, verb)
 		verb = hsp["verb"]
 
+	if(cannot_speak_loudly())
+		return whisper(message)
+
 	// Do this so it gets logged for all types of communication
 	var/log_message = "[message_mode ? "([message_mode])" : ""] '[message]'"
-	create_log(SAY_LOG, log_message)
+	create_log(SAY_LOG, log_message, automatic = TRUE)
 
 	var/list/used_radios = list()
 	if(handle_message_mode(message_mode, message_pieces, verb, used_radios))
@@ -193,7 +203,7 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 	// Log of what we've said, plain message, no spans or junk
 	// handle_message_mode should have logged this already if it handled it
 	say_log += log_message
-	log_say(log_message, src)
+	log_say(log_message, src, automatic = TRUE)
 
 	var/list/handle_v = handle_speech_sound()
 	var/sound/speech_sound = handle_v[1]
@@ -204,7 +214,7 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 	var/message_range = world.view
 
 	//speaking into radios
-	if(used_radios.len)
+	if(length(used_radios))
 		italics = TRUE
 		message_range = 1
 		if(first_piece.speaking)
@@ -231,9 +241,11 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 	var/list/listening = list()
 	var/list/listening_obj = list()
 
+	message_range += extra_message_range
+
 	if(T)
 		//make sure the air can transmit speech - speaker's side
-		var/datum/gas_mixture/environment = T.return_air()
+		var/datum/gas_mixture/environment = T.get_readonly_air()
 		var/pressure = environment ? environment.return_pressure() : 0
 		if(!ignore_atmospherics)
 			if(pressure < SOUND_MINIMUM_PRESSURE)
@@ -277,6 +289,8 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 			if(get_turf(M) in hearturfs)
 				listening |= M
 
+	SEND_SIGNAL(src, COMSIG_MOB_SAY, args)
+
 	var/list/speech_bubble_recipients = list()
 	var/speech_bubble_test = say_test(message)
 
@@ -305,7 +319,7 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 	return name
 
 /mob/living/whisper(message as text)
-	message = trim_strip_html_properly(message)
+	message = trim_strip_html_tags(message)
 
 	//parse the language code and consume it
 	var/list/message_pieces = parse_languages(message)
@@ -434,7 +448,7 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 		if(M.client)
 			speech_bubble_recipients.Add(M.client)
 
-	if(eavesdropping.len)
+	if(length(eavesdropping))
 		stars_all(message_pieces)	//hopefully passing the message twice through stars() won't hurt... I guess if you already don't understand the language, when they speak it too quietly to hear normally you would be able to catch even less.
 		for(var/mob/M in eavesdropping)
 			M.hear_say(message_pieces, verb, italics, src, use_voice = FALSE)
@@ -443,7 +457,7 @@ GLOBAL_LIST_EMPTY(channel_to_radio_key)
 
 	speech_bubble("[bubble_icon][speech_bubble_test]", src, speech_bubble_recipients)
 
-	if(watching.len)
+	if(length(watching))
 		var/rendered = "<span class='game say'><span class='name'>[name]</span> [not_heard].</span>"
 		for(var/mob/M in watching)
 			M.show_message(rendered, 2)

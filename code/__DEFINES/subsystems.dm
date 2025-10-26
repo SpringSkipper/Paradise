@@ -12,7 +12,7 @@
 #define TIMER_STOPPABLE		(1<<3)
 //To be used with TIMER_UNIQUE
 //prevents distinguishing identical timers with the wait variable
-#define TIMER_NO_HASH_WAIT  (1<<4)
+#define TIMER_NO_HASH_WAIT	(1<<4)
 
 //Loops the timer repeatedly until qdeleted
 //In most cases you want a subsystem instead
@@ -50,19 +50,26 @@
 #define INIT_ORDER_PROFILER	101
 #define INIT_ORDER_QUEUE 100 // Load this quickly so people cant queue skip
 #define INIT_ORDER_TITLE 99 // Load this quickly so people dont see a blank lobby screen
-#define INIT_ORDER_GARBAGE 22
-#define INIT_ORDER_DBCORE 21
-#define INIT_ORDER_REDIS 20 // Make sure we dont miss any events
-#define INIT_ORDER_BLACKBOX 19
-#define INIT_ORDER_CLEANUP 18
-#define INIT_ORDER_INPUT 17
-#define INIT_ORDER_SOUNDS 16
-#define INIT_ORDER_INSTRUMENTS 15
-#define INIT_ORDER_RESEARCH 14 // SoonTM
-#define INIT_ORDER_EVENTS 13
-#define INIT_ORDER_JOBS 12
-#define INIT_ORDER_TICKER 10
-#define INIT_ORDER_MAPPING 9
+#define INIT_ORDER_GARBAGE 27
+#define INIT_ORDER_DBCORE 26
+#define INIT_ORDER_REDIS 25 // Make sure we dont miss any events
+#define INIT_ORDER_BLACKBOX 24
+#define INIT_ORDER_CLEANUP 23
+#define INIT_ORDER_INPUT 22
+#define INIT_ORDER_SOUNDS 21
+#define INIT_ORDER_INSTRUMENTS 20
+#define INIT_ORDER_RESEARCH 19 // SoonTM
+#define INIT_ORDER_VIS 18
+#define INIT_ORDER_STATION 17 //This is high priority because it manipulates a lot of the subsystems that will initialize after it.
+#define INIT_ORDER_EVENTS 16
+#define INIT_ORDER_JOBS 15
+#define INIT_ORDER_AI_MOVEMENT 14
+#define INIT_ORDER_AI_CONTROLLERS 13
+#define INIT_ORDER_TICKER 12
+#define INIT_ORDER_MAPPING 11
+#define INIT_ORDER_SPATIAL_GRID 10
+#define INIT_ORDER_AI_IDLE_CONTROLLERS 9
+#define INIT_ORDER_EARLY_ASSETS 8
 #define INIT_ORDER_ATOMS 7
 #define INIT_ORDER_MACHINES 5
 #define INIT_ORDER_HOLIDAY 4
@@ -83,21 +90,27 @@
 #define INIT_ORDER_LATE_MAPPING -40
 #define INIT_ORDER_PATH -50
 #define INIT_ORDER_PERSISTENCE -95
+#define INIT_ORDER_STATPANELS -98
+#define INIT_ORDER_CHAT -100 // Should be last to ensure chat remains smooth during init.
 
 // Subsystem fire priority, from lowest to highest priority
 // If the subsystem isn't listed here it's either DEFAULT or PROCESS (if it's a processing subsystem child)
 
-#define FIRE_PRIORITY_NANOMOB       10
+#define FIRE_PRIORITY_PING			10
 #define FIRE_PRIORITY_NIGHTSHIFT	10
 #define FIRE_PRIORITY_IDLE_NPC		10
 #define FIRE_PRIORITY_CLEANUP		10
 #define FIRE_PRIORITY_TICKETS		10
 #define FIRE_PRIORITY_RESEARCH		10 // SoonTM
 #define FIRE_PRIORITY_AMBIENCE		10
+#define FIRE_PRIORITY_VIS			10
 #define FIRE_PRIORITY_GARBAGE		15
 #define FIRE_PRIORITY_AIR			20
 #define FIRE_PRIORITY_NPC			20
 #define FIRE_PRIORITY_CAMERA		20
+#define FIRE_PRIORITY_NPC_MOVEMENT	21
+#define FIRE_PRIORITY_NPC_ACTIONS	22
+#define FIRE_PRIORITY_PATHFINDING	23
 #define FIRE_PRIORITY_PROCESS		25
 #define FIRE_PRIORITY_THROWING		25
 #define FIRE_PRIORITY_SPACEDRIFT	30
@@ -111,23 +124,25 @@
 #define FIRE_PRIORITY_MOBS			100
 #define FIRE_PRIORITY_TGUI			110
 #define FIRE_PRIORITY_TICKER		200
+#define FIRE_PRIORITY_STATPANEL		390
+#define FIRE_PRIORITY_CHAT 			400
 #define FIRE_PRIORITY_RUNECHAT		410 // I hate how high the fire priority on this is -aa
 #define FIRE_PRIORITY_OVERLAYS		500
-#define FIRE_PRIORITY_DELAYED_VERBS 950
+#define FIRE_PRIORITY_DELAYED_VERBS	950
 #define FIRE_PRIORITY_INPUT			1000 // This must always always be the max highest priority. Player input must never be lost.
 
 
 // SS runlevels
 
-#define RUNLEVEL_INIT 0
-#define RUNLEVEL_LOBBY 1
-#define RUNLEVEL_SETUP 2
-#define RUNLEVEL_GAME 4
-#define RUNLEVEL_POSTGAME 8
+#define RUNLEVEL_INIT		0
+#define RUNLEVEL_LOBBY		(1<<0)
+#define RUNLEVEL_SETUP		(1<<1)
+#define RUNLEVEL_GAME		(1<<2)
+#define RUNLEVEL_POSTGAME	(1<<3)
 
 #define RUNLEVELS_DEFAULT (RUNLEVEL_SETUP | RUNLEVEL_GAME | RUNLEVEL_POSTGAME)
 
-// This do{} WHILE (FALSE) syntax may look stupid, but it speeds things up because BYOND memes
+// This do{} WHILE(FALSE) syntax may look stupid, but it speeds things up because BYOND memes
 #define COMPILE_OVERLAYS(A)\
 	do { \
 		var/list/ad = A.add_overlays;\
@@ -145,7 +160,7 @@
 			A.overlays |= po;\
 		}\
 		A.flags_2 &= ~OVERLAY_QUEUED_2;\
-} while (FALSE)
+} while(FALSE)
 
 // SS CPU display category flags
 #define SS_CPUDISPLAY_LOW 1

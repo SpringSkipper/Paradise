@@ -7,11 +7,11 @@
 
 /datum/action/innate/slime
 	check_flags = AB_CHECK_CONSCIOUS
-	icon_icon = 'icons/mob/actions/actions_slime.dmi'
+	button_icon = 'icons/mob/actions/actions_slime.dmi'
 	background_icon_state = "bg_alien"
 	var/needs_growth = NO_GROWTH_NEEDED
 
-/datum/action/innate/slime/IsAvailable()
+/datum/action/innate/slime/IsAvailable(show_message = TRUE)
 	if(..())
 		var/mob/living/simple_animal/slime/S = owner
 		if(needs_growth == GROWTH_NEEDED)
@@ -20,10 +20,7 @@
 			return 0
 		return 1
 
-/mob/living/simple_animal/slime/verb/Feed()
-	set category = "Slime"
-	set desc = "This will let you feed on any valid creature in the surrounding area. This should also be used to halt the feeding process."
-
+/mob/living/simple_animal/slime/proc/Feed()
 	if(stat)
 		return 0
 
@@ -32,12 +29,16 @@
 		if(C!=src && Adjacent(C))
 			choices += C
 
-	var/mob/living/M = input(src,"Who do you wish to feed on?") in null|choices
+	if(!length(choices))
+		to_chat(src, "<span class='warning'>No subjects nearby to feed on!</span>")
+		return
+
+	var/mob/living/M = tgui_input_list(src, "Who do you wish to feed on?", "Feeding Selection", choices)
 	if(!M)
-		return 0
+		return FALSE
 	if(CanFeedon(M))
 		Feedon(M)
-		return 1
+		return TRUE
 
 /datum/action/innate/slime/feed
 	name = "Feed"
@@ -121,12 +122,9 @@
 			visible_message("<span class='warning'>[src] has let go of [buckled]!</span>", \
 							"<span class='notice'><i>I stopped feeding.</i></span>")
 		layer = initial(layer)
-		buckled.unbuckle_mob(src,force=TRUE)
+		unbuckle(force=TRUE)
 
-/mob/living/simple_animal/slime/verb/Evolve()
-	set category = "Slime"
-	set desc = "This will let you evolve from baby to adult slime."
-
+/mob/living/simple_animal/slime/proc/Evolve()
 	if(stat)
 		to_chat(src, "<i>I must be conscious to do this...</i>")
 		return
@@ -138,7 +136,7 @@
 			for(var/datum/action/innate/slime/evolve/E in actions)
 				E.Remove(src)
 			regenerate_icons()
-			update_name()
+			update_appearance(UPDATE_NAME)
 		else
 			to_chat(src, "<i>I am not ready to evolve yet...</i>")
 	else
@@ -156,10 +154,7 @@
 		var/datum/action/innate/slime/reproduce/A = new
 		A.Grant(S)
 
-/mob/living/simple_animal/slime/verb/Reproduce()
-	set category = "Slime"
-	set desc = "This will make you split into four Slimes."
-
+/mob/living/simple_animal/slime/proc/Reproduce()
 	if(stat)
 		to_chat(src, "<i>I must be conscious to do this...</i>")
 		return
@@ -172,7 +167,8 @@
 
 			if(istype(loc, /obj/machinery/computer/camera_advanced/xenobio))
 				return //no you cannot split while you're in the matrix (this prevents GC issues and slimes disappearing)
-
+			if(holding_organ)
+				eject_organ()
 			var/list/babies = list()
 			var/new_nutrition = round(nutrition * 0.9)
 			var/new_powerlevel = round(powerlevel / 4)
@@ -215,3 +211,9 @@
 /datum/action/innate/slime/reproduce/Activate()
 	var/mob/living/simple_animal/slime/S = owner
 	S.Reproduce()
+
+#undef SIZE_DOESNT_MATTER
+#undef BABIES_ONLY
+#undef ADULTS_ONLY
+#undef NO_GROWTH_NEEDED
+#undef GROWTH_NEEDED

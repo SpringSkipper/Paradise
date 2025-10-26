@@ -17,7 +17,6 @@
 	harm_intent_damage = 5
 	melee_damage_lower = 8
 	melee_damage_upper = 12
-	attacktext = "attacks"
 	attack_sound = 'sound/weapons/bite.ogg'
 	emote_taunt = list("growls")
 	speak_emote = list("creaks")
@@ -315,11 +314,11 @@ GLOBAL_LIST_INIT(protected_objects, list(/obj/structure/table, /obj/structure/ca
 				visible_message("<span class='danger'>The <b>[src]</b> clears a jam!</span>")
 			Pewgun.chambered.loc = loc //rip revolver immersions, blame shotgun snowflake procs
 			Pewgun.chambered = null
-			if(Pewgun.magazine && Pewgun.magazine.stored_ammo.len)
+			if(Pewgun.magazine && length(Pewgun.magazine.stored_ammo))
 				Pewgun.chambered = Pewgun.magazine.get_round(0)
 				Pewgun.chambered.loc = Pewgun
 			Pewgun.update_icon()
-		else if(Pewgun.magazine && Pewgun.magazine.stored_ammo.len) //only true for pumpguns i think
+		else if(Pewgun.magazine && length(Pewgun.magazine.stored_ammo)) //only true for pumpguns i think
 			Pewgun.chambered = Pewgun.magazine.get_round(0)
 			Pewgun.chambered.loc = Pewgun
 			visible_message("<span class='danger'>The <b>[src]</b> cocks itself!</span>")

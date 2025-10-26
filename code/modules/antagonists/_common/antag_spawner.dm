@@ -14,7 +14,7 @@
 /obj/item/antag_spawner/nuke_ops
 	name = "syndicate operative teleporter"
 	desc = "A single-use teleporter designed to quickly reinforce operatives in the field."
-	icon = 'icons/obj/implants.dmi'
+	icon = 'icons/obj/bio_chips.dmi'
 	icon_state = "locator"
 	var/borg_to_spawn
 	var/checking = FALSE
@@ -40,7 +40,7 @@
 		return FALSE
 	return TRUE
 
-/obj/item/antag_spawner/nuke_ops/attack_self(mob/user)
+/obj/item/antag_spawner/nuke_ops/attack_self__legacy__attackchain(mob/user)
 	if(!(check_usability(user)))
 		return
 
@@ -94,7 +94,6 @@
 //////SYNDICATE BORG
 /obj/item/antag_spawner/nuke_ops/borg_tele
 	name = "syndicate cyborg teleporter"
-	desc = "A single-use teleporter designed to quickly reinforce operatives in the field."
 	var/switch_roles = FALSE
 
 /obj/item/antag_spawner/nuke_ops/borg_tele/assault
@@ -104,7 +103,7 @@
 
 /obj/item/antag_spawner/nuke_ops/borg_tele/assault/Initialize(mapload)
 	. = ..()
-	poll_icon = image(icon = 'icons/mob/robots.dmi', icon_state = "syndie-bloodhound-preview")
+	poll_icon = image(icon = 'icons/mob/robots.dmi', icon_state = "spidersyndi-preview")
 
 /obj/item/antag_spawner/nuke_ops/borg_tele/medical
 	name = "syndicate medical teleporter"
@@ -125,8 +124,8 @@
 	poll_icon = image(icon = 'icons/mob/robots.dmi', icon_state = "syndi-engi-preview")
 
 /obj/item/antag_spawner/nuke_ops/borg_tele/before_candidate_search(mob/user)
-	var/switch_roles_choice = input("Would you like to continue playing as an operative or take over as the cyborg? If you play as the cyborg, another player will control your old self.", "Play As") as null|anything in list("Nuclear Operative", "Syndicate Cyborg")
-	if(!switch_roles_choice || !(check_usability(user)))
+	var/switch_roles_choice = tgui_input_list(user, "Would you like to continue playing as an operative or take over as the cyborg? If you play as the cyborg, another player will control your old self.", "Play As", list("Nuclear Operative", "Syndicate Cyborg", "Don't activate this Cyborg Teleporter"))
+	if(!switch_roles_choice || !(check_usability(user)) || switch_roles_choice == "Don't activate this Cyborg Teleporter")
 		return FALSE
 
 	if(switch_roles_choice == "Syndicate Cyborg")
@@ -174,7 +173,8 @@
 
 ///////////SLAUGHTER DEMON
 
-/obj/item/antag_spawner/slaughter_demon //Warning edgiest item in the game
+/// Warning edgiest item in the game
+/obj/item/antag_spawner/slaughter_demon
 	name = "vial of blood"
 	desc = "A magically infused bottle of blood, distilled from countless murder victims. Used in unholy rituals to attract horrifying creatures."
 	icon = 'icons/obj/wizard.dmi'
@@ -186,7 +186,7 @@
 	var/objective_verb = "Kill"
 	var/mob/living/demon_type = /mob/living/simple_animal/demon/slaughter
 
-/obj/item/antag_spawner/slaughter_demon/attack_self(mob/user)
+/obj/item/antag_spawner/slaughter_demon/attack_self__legacy__attackchain(mob/user)
 	if(level_blocks_magic(user.z)) //this is to make sure the wizard does NOT summon a demon from the Den..
 		to_chat(user, "<span class='notice'>You should probably wait until you reach the station.</span>")
 		return
@@ -197,12 +197,9 @@
 	used = TRUE
 	to_chat(user, "<span class='notice'>You break the seal on the bottle, calling upon the dire spirits of the underworld...</span>")
 
-	var/type = "slaughter"
-	if(demon_type == /mob/living/simple_animal/demon/slaughter/laughter)
-		type = "laughter"
-	var/list/candidates = SSghost_spawns.poll_candidates("Do you want to play as a [type] demon summoned by [user.real_name]?", ROLE_DEMON, TRUE, 10 SECONDS, source = demon_type)
+	var/list/candidates = SSghost_spawns.poll_candidates("Do you want to play as a [demon_type::name] summoned by [user.real_name]?", ROLE_DEMON, TRUE, 10 SECONDS, source = demon_type)
 
-	if(candidates.len > 0)
+	if(length(candidates) > 0)
 		var/mob/C = pick(candidates)
 		spawn_antag(C, get_turf(src.loc), initial(demon_type.name), user)
 		dust_if_respawnable(C)
@@ -226,25 +223,25 @@
 	D.mind.special_role = D.name
 	SSticker.mode.traitors += D.mind
 
+	var/list/messages = list()
 	var/datum/objective/assassinate/KillDaWiz = new /datum/objective/assassinate
 	KillDaWiz.target = user.mind
 	KillDaWiz.explanation_text = "[objective_verb] [user.real_name], the one who was foolish enough to summon you."
+	messages.Add(KillDaWiz.explanation_text)
 	D.mind.add_mind_objective(KillDaWiz)
 
 	var/datum/objective/KillDaCrew = new /datum/objective
 	KillDaCrew.explanation_text = "[objective_verb] everyone else while you're at it."
+	messages.Add(KillDaCrew.explanation_text)
 	KillDaCrew.completed = TRUE
 	D.mind.add_mind_objective(KillDaCrew)
-
-	D.mind.announce_objectives(title = FALSE)
-
+	to_chat(D, chat_box_red(messages.Join("<br>")))
 
 /obj/item/antag_spawner/slaughter_demon/laughter
 	name = "vial of tickles"
 	desc = "A magically infused bottle of clown love, distilled from \
 		countless hugging attacks. Used in funny rituals to attract \
 		adorable creatures."
-	icon = 'icons/obj/wizard.dmi'
 	icon_state = "vialtickles"
 	veil_msg = "<span class='warning'>You sense an adorable presence \
 		lurking just beyond the veil...</span>"
@@ -256,11 +253,9 @@
 	desc = "A magically infused bottle of pure darkness, distilled from \
 		ground up shadowling bones. Used in dark rituals to attract \
 		dark creatures."
-	icon = 'icons/obj/wizard.dmi'
 	icon_state = "vialshadows"
 	veil_msg = "<span class='warning'>You sense a dark presence \
 		lurking in the shadows...</span>"
-	objective_verb = "Kill"
 	demon_type = /mob/living/simple_animal/demon/shadow
 
 ///////////MORPH
@@ -277,7 +272,7 @@
 	var/objective_verb = "Eat"
 	var/mob/living/morph_type = /mob/living/simple_animal/hostile/morph
 
-/obj/item/antag_spawner/morph/attack_self(mob/user)
+/obj/item/antag_spawner/morph/attack_self__legacy__attackchain(mob/user)
 	if(level_blocks_magic(user.z))//this is to make sure the wizard does NOT summon a morph from the Den..
 		to_chat(user, "<span class='notice'>You should probably wait until you reach the station.</span>")
 		return
@@ -290,7 +285,7 @@
 
 	var/list/candidates = SSghost_spawns.poll_candidates("Do you want to play as a magical morph awakened by [user.real_name]?", ROLE_MORPH, 1, 10 SECONDS, source = morph_type)
 
-	if(candidates.len > 0)
+	if(length(candidates) > 0)
 		var/mob/C = pick(candidates)
 		spawn_antag(C, get_turf(src.loc), initial(morph_type.name), user)
 		dust_if_respawnable(C)
@@ -303,22 +298,35 @@
 		to_chat(user, "<span class='notice'>The sludge does not respond to your attempt to awake it. Perhaps you should try again later.</span>")
 
 /obj/item/antag_spawner/morph/spawn_antag(client/C, turf/T, type = "", mob/user)
-	var/mob/living/simple_animal/hostile/morph/wizard/M = new /mob/living/simple_animal/hostile/morph/wizard(pick(GLOB.xeno_spawn))
+	var/list/vents = get_valid_vent_spawns(exclude_mobs_nearby = TRUE)
+	if(!length(vents))
+		message_admins("Warning: No suitable vents detected for spawning morphs. Force picking from station vents regardless of state!")
+		vents = get_valid_vent_spawns(unwelded_only = FALSE, min_network_size = 0)
+		if(!length(vents))
+			message_admins("Warning: No vents detected for spawning morphs at all!")
+			return
+	var/obj/vent = pick(vents)
+	var/mob/living/simple_animal/hostile/morph/wizard/M = new /mob/living/simple_animal/hostile/morph/wizard(vent)
 	M.key = C.key
 	M.make_morph_antag(FALSE)
+	M.forceMove(vent)
+	M.add_ventcrawl(vent)
 
+	var/list/messages = list()
 	var/datum/objective/assassinate/KillDaWiz = new /datum/objective/assassinate
 	KillDaWiz.owner = M.mind
 	KillDaWiz.target = user.mind
 	KillDaWiz.explanation_text = "[objective_verb] [user.real_name], the one who was foolish enough to awake you."
+	messages.Add(KillDaWiz.explanation_text)
 	M.mind.add_mind_objective(KillDaWiz)
 
 	var/datum/objective/KillDaCrew = new /datum/objective
 	KillDaCrew.explanation_text = "[objective_verb] everyone and everything else while you're at it."
+	messages.Add(KillDaCrew.explanation_text)
 	KillDaCrew.completed = TRUE
 	M.mind.add_mind_objective(KillDaCrew)
 
-	M.mind.announce_objectives(title = FALSE)
+	to_chat(M, chat_box_red(messages.Join("<br>")))
 
 ///////////Revenant
 
@@ -334,7 +342,7 @@
 	var/objective_verb = "Harvest"
 	var/mob/living/revenant = /mob/living/simple_animal/revenant
 
-/obj/item/antag_spawner/revenant/attack_self(mob/user)
+/obj/item/antag_spawner/revenant/attack_self__legacy__attackchain(mob/user)
 	if(level_blocks_magic(user.z)) //this is to make sure the wizard does NOT summon a revenant from the Den..
 		to_chat(user, "<span class='notice'>You should probably wait until you reach the station.</span>")
 		return
@@ -364,31 +372,34 @@
 	var/mob/living/simple_animal/revenant/M = new /mob/living/simple_animal/revenant(pick(GLOB.xeno_spawn))
 	M.key = C.key
 
+	var/list/messages = list()
 	var/datum/objective/assassinate/KillDaWiz = new /datum/objective/assassinate
 	KillDaWiz.target = user.mind
 	KillDaWiz.explanation_text = "[objective_verb] [user.real_name], the one who was foolish enough to awake you."
+	messages.Add(KillDaWiz.explanation_text)
 	M.mind.add_mind_objective(KillDaWiz)
 
 	var/datum/objective/KillDaCrew = new /datum/objective
 	KillDaCrew.explanation_text = "[objective_verb] everyone and everything else while you're at it."
+	messages.Add(KillDaCrew.explanation_text)
 	KillDaCrew.completed = TRUE
 	M.mind.add_mind_objective(KillDaCrew)
 
-	M.mind.announce_objectives(title = FALSE)
+	to_chat(M, chat_box_red(messages.Join("<br>")))
 
 ///////////Pulse Demon
 
 /obj/item/antag_spawner/pulse_demon
 	name = "living lightbulb"
-	desc = "A magically sealed lightbulb confining some manner of electricity based creature."
+	desc = "A magically sealed lightbulb confining some manner of electricity based creature. It is *heavily* advised not to summon it in maintenance areas."
 	icon = 'icons/obj/lighting.dmi'
 	icon_state = "lbulb"
 	var/shatter_msg = "<span class='notice'>You shatter the bulb, no turning back now!</span>"
 	var/veil_msg = "<span class='warning'>The creature sparks energetically and zips away...</span>"
 	var/objective_verb = "Electrocute"
-	var/mob/living/demon_type = /mob/living/simple_animal/demon/pulse_demon
+	var/mob/living/demon_type = /mob/living/simple_animal/demon/pulse_demon/wizard
 
-/obj/item/antag_spawner/pulse_demon/attack_self(mob/user)
+/obj/item/antag_spawner/pulse_demon/attack_self__legacy__attackchain(mob/user)
 	if(level_blocks_magic(user.z))
 		to_chat(user, "<span class='notice'>You should probably wait until you reach the station.</span>")
 		return
@@ -404,7 +415,7 @@
 		return
 
 	used = TRUE
-	to_chat(user, "<span class='notice'>You break the seal on the bulb, waiting for the creature to spark to life...</span>")
+	to_chat(user, "<span class='danger'>You break the seal on the bulb, waiting for the creature to spark to life... you might wish to get to safety!</span>")
 
 	var/list/candidates = SSghost_spawns.poll_candidates("Do you want to play as a pulse demon summoned by [user.real_name]?", ROLE_DEMON, TRUE, 10 SECONDS, source = demon_type)
 
@@ -425,20 +436,23 @@
 	var/datum/mind/player_mind = new /datum/mind(C.key)
 	player_mind.active = TRUE
 
-	var/mob/living/simple_animal/demon/pulse_demon/demon = new(T)
+	var/mob/living/simple_animal/demon/pulse_demon/wizard/demon = new(T)
 	player_mind.transfer_to(demon)
 	player_mind.assigned_role = SPECIAL_ROLE_DEMON
 	player_mind.special_role = SPECIAL_ROLE_DEMON
 	demon.give_objectives()
 
+	var/list/messages = list()
 	var/datum/objective/assassinate/KillDaWiz = new /datum/objective/assassinate
 	KillDaWiz.target = user.mind
 	KillDaWiz.explanation_text = "[objective_verb] [user.real_name], the one who was foolish enough to awake you."
+	messages.Add(KillDaWiz.explanation_text)
 	demon.mind.add_mind_objective(KillDaWiz)
 
 	var/datum/objective/KillDaCrew = new /datum/objective
 	KillDaCrew.explanation_text = "[objective_verb] everyone and everything else while you're at it."
+	messages.Add(KillDaCrew.explanation_text)
 	KillDaCrew.completed = TRUE
 	demon.mind.add_mind_objective(KillDaCrew)
 
-	demon.mind.announce_objectives(title = FALSE)
+	to_chat(demon, chat_box_red(messages.Join("<br>")))

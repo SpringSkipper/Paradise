@@ -3,89 +3,41 @@
 
 /obj/item/clothing/gloves/color/yellow
 	name = "insulated gloves"
-	desc = "These gloves will protect the wearer from electric shock."
+	desc = "A pair of rubber-lined industrial gloves. They'll protect the wearer from electrical shocks."
 	icon_state = "yellow"
-	item_state = "ygloves"
 	siemens_coefficient = 0
-	permeability_coefficient = 0.05
-	item_color="yellow"
+	permeability_coefficient = 0.01
 	resistance_flags = NONE
-
-/obj/item/clothing/gloves/color/yellow/power
-	var/old_mclick_override
-	var/datum/middleClickOverride/power_gloves/mclick_override = new /datum/middleClickOverride/power_gloves
-	var/last_shocked = 0
-	var/shock_delay = 3 SECONDS
-	var/unlimited_power = FALSE // Does this really need explanation?
-	var/shock_range = 7
-
-/obj/item/clothing/gloves/color/yellow/power/examine(mob/user)
-	. = ..()
-	if(isAntag(user))
-		. += "<span class='warning'>These are a pair of power gloves, and can be used to fire bolts of electricity while standing over powered power cables.</span>"
-
-/obj/item/clothing/gloves/color/yellow/power/equipped(mob/user, slot)
-	if(!ishuman(user))
-		return
-	var/mob/living/carbon/human/H = user
-	if(slot == SLOT_HUD_GLOVES)
-		if(H.middleClickOverride)
-			old_mclick_override = H.middleClickOverride
-		H.middleClickOverride = mclick_override
-		if(!unlimited_power)
-			to_chat(H, "<span class='notice'>You feel electricity begin to build up in [src].</span>")
-		else
-			to_chat(H, "<span class='biggerdanger'>You feel like you have UNLIMITED POWER!!</span>")
-
-/obj/item/clothing/gloves/color/yellow/power/dropped(mob/user, slot)
-	..()
-	if(!ishuman(user))
-		return
-	var/mob/living/carbon/human/H = user
-	if(H.get_item_by_slot(SLOT_HUD_GLOVES) == src && H.middleClickOverride == mclick_override)
-		if(old_mclick_override)
-			H.middleClickOverride = old_mclick_override
-			old_mclick_override = null
-		else
-			H.middleClickOverride = null
-
-/obj/item/clothing/gloves/color/yellow/power/unlimited
-	name = "UNLIMITED POWER gloves"
-	desc = "These gloves possess UNLIMITED POWER."
-	shock_delay = 0
-	unlimited_power = TRUE
 
 /obj/item/clothing/gloves/color/yellow/fake
 	siemens_coefficient = 1
 
-/obj/item/clothing/gloves/color/fyellow                             //Cheap Chinese Crap
+/// Cheap Chinese Crap
+/obj/item/clothing/gloves/color/fyellow
 	name = "budget insulated gloves"
-	desc = "These gloves are cheap copies of the coveted gloves, no way this can end badly."
+	desc = "A pair of knock-off insulated gloves. They might stop a shock, but it'll be a gamble."
 	icon_state = "yellow"
-	item_state = "ygloves"
 	siemens_coefficient = 1			//Set to a default of 1, gets overridden in New()
-	permeability_coefficient = 0.05
-	item_color="yellow"
+	permeability_coefficient = 0.01
 	resistance_flags = NONE
 
 /obj/item/clothing/gloves/color/fyellow/Initialize(mapload)
 	. = ..()
-	siemens_coefficient = pick(0,0.5,0.5,0.5,0.5,0.75,1.5)
+	siemens_coefficient = pick(0, 0.5, 0.5, 0.5, 0.5, 0.75, 1.5)
 
 /obj/item/clothing/gloves/color/fyellow/old
 	name = "worn out insulated gloves"
-	desc = "Old and worn out insulated gloves, hopefully they still work."
+	desc = "An old pair of insulated gloves. While a lot of the rubber is worn away, enough should be left to at least reduce any electrical shocks. Probably."
 
 /obj/item/clothing/gloves/color/fyellow/old/Initialize(mapload)
 	. = ..()
-	siemens_coefficient = pick(0,0,0,0.5,0.5,0.5,0.75)
+	siemens_coefficient = pick(0, 0, 0, 0.5, 0.5, 0.5, 0.75)
 
 /obj/item/clothing/gloves/color/black
 	name = "black gloves"
-	desc = "These gloves are fire-resistant."
+	desc = "A pair of black gloves made of fire-resistant fabric."
 	icon_state = "black"
-	item_state = "bgloves"
-	item_color="black"
+	inhand_icon_state = "bgloves"
 	cold_protection = HANDS
 	min_cold_protection_temperature = GLOVES_MIN_TEMP_PROTECT
 	heat_protection = HANDS
@@ -98,21 +50,15 @@
 		"Grey" = 'icons/mob/clothing/species/grey/gloves.dmi',
 		"Kidan" = 'icons/mob/clothing/species/kidan/gloves.dmi',
 		)
-
-
-/obj/item/clothing/gloves/color/black/hos
-	item_color = "hosred"		//Exists for washing machines. Is not different from black gloves in any way.
-
-/obj/item/clothing/gloves/color/black/ce
-	item_color = "chief"			//Exists for washing machines. Is not different from black gloves in any way.
+	permeability_coefficient = 0.1
 
 /obj/item/clothing/gloves/color/black/thief
 	pickpocket = 1
 
-/obj/item/clothing/gloves/color/black/attackby(obj/item/W as obj, mob/user as mob, params)
+/obj/item/clothing/gloves/color/black/attackby__legacy__attackchain(obj/item/W as obj, mob/user as mob, params)
 	if(istype(W, /obj/item/wirecutters))
 		if(can_be_cut && icon_state == initial(icon_state))//only if not dyed
-			var/confirm = alert("Do you want to cut off the gloves fingertips? Warning: It might destroy their functionality.","Cut tips?","Yes","No")
+			var/confirm = tgui_alert(user, "Do you want to cut off the gloves fingertips? Warning: It might destroy their functionality.", "Cut tips?", list("Yes","No"))
 			if(get_dist(user, src) > 1)
 				to_chat(user, "You have moved too far away.")
 				return
@@ -127,116 +73,85 @@
 	..()
 
 /obj/item/clothing/gloves/color/black/poisoner
-	desc = "These gloves are fire-resistant. They seem thicker than usual."
+	desc = "A pair of thick black gloves. They're coated with a hydrophobic material that repels liquids."
 	safe_from_poison = TRUE
 
 /obj/item/clothing/gloves/color/orange
 	name = "orange gloves"
 	desc = "A pair of gloves, they don't look special in any way."
 	icon_state = "orange"
-	item_state = "orangegloves"
-	item_color="orange"
 
 /obj/item/clothing/gloves/color/red
 	name = "red gloves"
 	desc = "A pair of gloves, they don't look special in any way."
 	icon_state = "red"
-	item_state = "redgloves"
-	item_color = "red"
 
 /obj/item/clothing/gloves/color/red/insulated
 	name = "insulated gloves"
-	desc = "These gloves will protect the wearer from electric shock."
+	desc = "A pair of rubber-lined industrial gloves. They'll protect the wearer from electrical shocks."
 	siemens_coefficient = 0
-	permeability_coefficient = 0.05
+	permeability_coefficient = 0.01
 	resistance_flags = NONE
 
 /obj/item/clothing/gloves/color/rainbow
 	name = "rainbow gloves"
 	desc = "A pair of gloves, they don't look special in any way."
 	icon_state = "rainbow"
-	item_state = "rainbowgloves"
-	item_color = "rainbow"
 
 /obj/item/clothing/gloves/color/rainbow/clown
-	item_color = "clown"
 
 /obj/item/clothing/gloves/color/blue
 	name = "blue gloves"
 	desc = "A pair of gloves, they don't look special in any way."
 	icon_state = "blue"
-	item_state = "bluegloves"
-	item_color="blue"
 
 /obj/item/clothing/gloves/color/purple
 	name = "purple gloves"
 	desc = "A pair of gloves, they don't look special in any way."
 	icon_state = "purple"
-	item_state = "purplegloves"
-	item_color="purple"
 
 /obj/item/clothing/gloves/color/green
 	name = "green gloves"
 	desc = "A pair of gloves, they don't look special in any way."
 	icon_state = "green"
-	item_state = "greengloves"
-	item_color="green"
 
 /obj/item/clothing/gloves/color/grey
 	name = "grey gloves"
 	desc = "A pair of gloves, they don't look special in any way."
 	icon_state = "gray"
-	item_state = "graygloves"
-	item_color="grey"
-
-/obj/item/clothing/gloves/color/grey/rd
-	item_color = "director"			//Exists for washing machines. Is not different from gray gloves in any way.
-
-/obj/item/clothing/gloves/color/grey/hop
-	item_color = "hop"				//Exists for washing machines. Is not different from gray gloves in any way.
+	inhand_icon_state = "bgloves"
 
 /obj/item/clothing/gloves/color/light_brown
 	name = "light brown gloves"
 	desc = "A pair of gloves, they don't look special in any way."
 	icon_state = "lightbrown"
-	item_state = "lightbrowngloves"
-	item_color="light brown"
 
 /obj/item/clothing/gloves/color/brown
 	name = "brown gloves"
 	desc = "A pair of gloves, they don't look special in any way."
 	icon_state = "brown"
-	item_state = "browngloves"
-	item_color="brown"
-
-/obj/item/clothing/gloves/color/brown/cargo
-	item_color = "cargo"				//Exists for washing machines. Is not different from brown gloves in any way.
 
 /obj/item/clothing/gloves/color/latex
 	name = "latex gloves"
-	desc = "Cheap sterile gloves made from latex."
+	desc = "A pair of thin sterile gloves made from latex. The material's thin enough that fingerprints can still be transferred to objects you touch."
 	icon_state = "latex"
-	item_state = "lgloves"
+	inhand_icon_state = "lgloves"
 	siemens_coefficient = 0.30
 	permeability_coefficient = 0.01
-	item_color="white"
 	transfer_prints = TRUE
 	resistance_flags = NONE
 
 /obj/item/clothing/gloves/color/latex/nitrile
 	name = "nitrile gloves"
-	desc = "Pricy sterile gloves that are stronger than latex."
+	desc = "A pair of high-quality sterile gloves made from thick nitrile material. "
 	icon_state = "nitrile"
-	item_state = "nitrilegloves"
 	transfer_prints = FALSE
-	item_color = "medical"
 
 /obj/item/clothing/gloves/color/white
 	name = "white gloves"
-	desc = "These look pretty fancy."
+	desc = "A pair of white silk gloves for individuals of class and discerning taste."
 	icon_state = "white"
-	item_state = "wgloves"
-	item_color="mime"
+	inhand_icon_state = "lgloves"
 	sprite_sheets = list(
 		"Vox" = 'icons/mob/clothing/species/vox/gloves.dmi',
 		"Drask" = 'icons/mob/clothing/species/drask/gloves.dmi',
@@ -244,18 +159,12 @@
 		"Kidan" = 'icons/mob/clothing/species/kidan/gloves.dmi',
 		)
 
-/obj/item/clothing/gloves/color/white/redcoat
-	item_color = "redcoat"		//Exists for washing machines. Is not different from white gloves in any way.
-
-
 /obj/item/clothing/gloves/color/captain
 	name = "captain's gloves"
-	desc = "Regal blue gloves, with a nice gold trim. Swanky."
+	desc = "A pair of very expensive gloves made of reinforced blue & gold fabric. They're insulated against both electrical shocks and extreme temperatures."
 	icon_state = "captain"
-	item_state = "captain"
-	item_color = "captain"
 	siemens_coefficient = 0
-	permeability_coefficient = 0.05
+	permeability_coefficient = 0.01
 	cold_protection = HANDS
 	min_cold_protection_temperature = GLOVES_MIN_TEMP_PROTECT
 	heat_protection = HANDS
@@ -273,6 +182,4 @@
 	desc = "These gloves are warm and furry."
 	name = "fur gloves"
 	icon_state = "furglovesico"
-	item_state = "furgloves"
 	transfer_prints = TRUE
-	transfer_blood = TRUE

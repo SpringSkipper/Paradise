@@ -1,5 +1,3 @@
-GLOBAL_VAR_INIT(sent_spiders_to_station, 0)
-
 /datum/event/spider_infestation
 	announceWhen	= 400
 	var/spawncount = 1
@@ -8,7 +6,6 @@ GLOBAL_VAR_INIT(sent_spiders_to_station, 0)
 /datum/event/spider_infestation/setup()
 	announceWhen = rand(announceWhen, announceWhen + 50)
 	spawncount = round(num_players() * 0.8)
-	GLOB.sent_spiders_to_station = 1
 
 /datum/event/spider_infestation/announce(false_alarm)
 	if(successSpawn || false_alarm)
@@ -22,6 +19,6 @@ GLOBAL_VAR_INIT(sent_spiders_to_station, 0)
 		var/obj/vent = pick_n_take(vents)
 		var/obj/structure/spider/spiderling/S = new(vent.loc)
 		if(prob(66))
-			S.grow_as = /mob/living/simple_animal/hostile/poison/giant_spider/nurse
+			S.grow_as = /mob/living/basic/giant_spider/nurse
 		spawncount--
 		successSpawn = TRUE

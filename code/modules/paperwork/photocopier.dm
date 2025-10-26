@@ -4,6 +4,7 @@
 
 /obj/machinery/photocopier
 	name = "photocopier"
+	desc = "For making copies of important documents, or more likely, your ass."
 	icon = 'icons/obj/library.dmi'
 	icon_state = "bigscanner"
 
@@ -14,6 +15,8 @@
 	max_integrity = 300
 	integrity_failure = 100
 	atom_say_verb = "bleeps"
+
+	COOLDOWN_DECLARE(copying_cooldown)
 
 	var/insert_anim = "bigscanner1"
 	///Is the photocopier performing an action currently?
@@ -39,11 +42,12 @@
 	var/static/total_copies = 0
 	var/static/max_copies_reached = FALSE
 
+
 /obj/machinery/photocopier/attack_ai(mob/user)
 	return attack_hand(user)
 
 /obj/machinery/photocopier/attack_ghost(mob/user)
-	return attack_hand(user)
+	ui_interact(user)
 
 /obj/machinery/photocopier/attack_hand(mob/user)
 	if(..())
@@ -83,8 +87,8 @@
 	c.offset_y = copy.offset_y
 	var/list/temp_overlays = copy.stamp_overlays       //Iterates through stamps
 	var/image/img                                //and puts a matching
-	for(var/j = 1, j <= temp_overlays.len, j++) //gray overlay onto the copy
-		if(copy.ico.len)
+	for(var/j = 1, j <= length(temp_overlays), j++) //gray overlay onto the copy
+		if(length(copy.ico))
 			if(findtext(copy.ico[j], "cap") || findtext(copy.ico[j], "cent") || findtext(copy.ico[j], "rep"))
 				img = image('icons/obj/bureaucracy.dmi', "paper_stamp-circle")
 			else if(findtext(copy.ico[j], "deny"))
@@ -94,6 +98,7 @@
 			img.pixel_x = copy.offset_x[j]
 			img.pixel_y = copy.offset_y[j]
 			c.stamp_overlays += img
+	c.update_icon()
 	c.updateinfolinks()
 	return c
 
@@ -124,8 +129,7 @@
 	p.tiny = photocopy.tiny
 	p.img = photocopy.img
 	p.desc = photocopy.desc
-	p.pixel_x = rand(-10, 10)
-	p.pixel_y = rand(-10, 10)
+	p.scatter_atom()
 	if(photocopy.scribble)
 		p.scribble = photocopy.scribble
 	return p
@@ -156,7 +160,7 @@
 		temp_img = icon('icons/obj/butts.dmi', "drone")
 	else if(isnymph(copymob))
 		temp_img = icon('icons/obj/butts.dmi', "nymph")
-	else if(isalien(copymob) || istype(copymob,/mob/living/simple_animal/hostile/alien)) //Xenos have their own asses, thanks to Pybro.
+	else if(isalien(copymob) || istype(copymob,/mob/living/basic/alien)) //Xenos have their own asses, thanks to Pybro.
 		temp_img = icon('icons/obj/butts.dmi', "xeno")
 	else
 		return
@@ -166,8 +170,7 @@
 	else if(folder)
 		p.forceMove(folder)
 	p.desc = "You see [copymob]'s ass on the photo."
-	p.pixel_x = rand(-10, 10)
-	p.pixel_y = rand(-10, 10)
+	p.scatter_atom()
 	p.img = temp_img
 	var/icon/small_img = icon(temp_img) //Icon() is needed or else temp_img will be rescaled too >.>
 	var/icon/ic = icon('icons/obj/items.dmi',"photo")
@@ -186,7 +189,7 @@
   * * use_toner - If true, this operation uses toner, this is not done in copy() because partial bundles would be impossible otherwise
   */
 /obj/machinery/photocopier/proc/bundlecopy(obj/item/paper_bundle/bundle, scanning = FALSE, use_toner = FALSE)
-	var/obj/item/paper_bundle/P = new /obj/item/paper_bundle (src, default_papers = FALSE)
+	var/obj/item/paper_bundle/P = new(src, FALSE)
 	P.forceMove(src) //Bundle is initially inside copier to give copier time to build the bundle before the player can pick it up
 	for(var/obj/item/W in bundle)
 		if(istype(W, /obj/item/paper))
@@ -197,7 +200,7 @@
 			W = photocopy(W, bundled = TRUE)
 			if(use_toner && W)
 				toner -= 5
-		if (!W)
+		if(!W)
 			break
 		W.forceMove(P)
 		P.amount++
@@ -216,8 +219,7 @@
 
 	P.icon_state = "paper_words"
 	P.name = bundle.name
-	P.pixel_y = rand(-8, 8)
-	P.pixel_x = rand(-9, 9)
+	P.scatter_atom()
 	return P
 
 /obj/machinery/photocopier/proc/remove_document()
@@ -289,7 +291,7 @@
 	if(!cancopy(scancopy))
 		return
 	copying = TRUE
-	playsound(loc, 'sound/goonstation/machines/printer_dotmatrix.ogg', 50, 1)
+	playsound(loc, 'sound/goonstation/machines/printer_dotmatrix.ogg', 50, TRUE)
 	if(istype(C, /obj/item/paper))
 		for(var/i in copies to 1 step -1)
 			if(!papercopy(C))
@@ -344,10 +346,10 @@
 		copying = FALSE
 		return
 	use_power(active_power_consumption)
-	sleep(PHOTOCOPIER_DELAY)
+	COOLDOWN_START(src, copying_cooldown, PHOTOCOPIER_DELAY)
 	LAZYADD(saved_documents, O)
 	copying = FALSE
-	playsound(loc, 'sound/machines/ping.ogg', 50, 0)
+	playsound(loc, 'sound/machines/ping.ogg', 50, FALSE)
 	atom_say("Document successfully scanned!")
 
 /obj/machinery/photocopier/proc/delete_file(uid)
@@ -362,10 +364,13 @@
 		copy(document, scancopy = TRUE)
 
 
-/obj/machinery/photocopier/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = FALSE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+/obj/machinery/photocopier/ui_state(mob/user)
+	return GLOB.default_state
+
+/obj/machinery/photocopier/ui_interact(mob/user, datum/tgui/ui = null)
+	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, ui_key, "Photocopier", name, 402, 368, master_ui, state)
+		ui = new(user, src, "Photocopier", name)
 		ui.open()
 
 /obj/machinery/photocopier/ui_data(mob/user)
@@ -386,10 +391,13 @@
 			data["files"] += list(document_data)
 	return data
 
-/obj/machinery/photocopier/ui_act(action, list/params)
+/obj/machinery/photocopier/ui_act(action, list/params, datum/tgui/ui)
 	if(..())
 		return
 	. = FALSE
+	if(!COOLDOWN_FINISHED(src, copying_cooldown))
+		to_chat(usr, "<span class='warning'>[src] is busy, try again in a few seconds.</span>")
+		return
 	add_fingerprint(usr)
 	switch(action)
 		if("copy")
@@ -410,6 +418,8 @@
 				. = TRUE
 		if("scandocument")
 			scan_document()
+		if("ai_text")
+			ai_text(ui.user)
 		if("ai_pic")
 			ai_pic()
 		if("filecopy")
@@ -419,61 +429,87 @@
 			. = TRUE
 	update_icon()
 
+/obj/machinery/photocopier/proc/ai_text(mob/user)
+	if(!issilicon(user))
+		return
+	if(stat & (BROKEN|NOPOWER))
+		return
+	var/text = tgui_input_text(user, "Enter what you want to write:", "Write", multiline = TRUE, encode = FALSE)
+	if(!text)
+		return
+	if(toner < 1 || !user)
+		return
+	playsound(loc, 'sound/goonstation/machines/printer_dotmatrix.ogg', 50, TRUE)
+	var/obj/item/paper/p = new /obj/item/paper(loc)
+	text = p.parsepencode(text, null, user)
+	p.info = text
+	p.populatefields()
+	toner -= 1
+	use_power(active_power_consumption)
+	COOLDOWN_START(src, copying_cooldown, PHOTOCOPIER_DELAY)
+
 /obj/machinery/photocopier/proc/ai_pic()
 	if(!issilicon(usr))
 		return
 	if(stat & (BROKEN|NOPOWER))
 		return
+	if(toner < 5)
+		return
+	var/mob/living/silicon/tempAI = usr
+	var/obj/item/camera/siliconcam/camera = tempAI.aiCamera
 
-	if(toner >= 5)
-		var/mob/living/silicon/tempAI = usr
-		var/obj/item/camera/siliconcam/camera = tempAI.aiCamera
+	if(!camera)
+		return
+	var/datum/picture/selection = camera.selectpicture()
+	if(!selection)
+		return
 
-		if(!camera)
-			return
-		var/datum/picture/selection = camera.selectpicture()
-		if(!selection)
-			return
+	playsound(loc, 'sound/goonstation/machines/printer_dotmatrix.ogg', 50, TRUE)
+	var/obj/item/photo/p = new /obj/item/photo(loc)
+	p.construct(selection)
+	if(p.desc == "")
+		p.desc += "Copied by [tempAI.name]"
+	else
+		p.desc += " - Copied by [tempAI.name]"
+	toner -= 5
+	use_power(active_power_consumption)
+	COOLDOWN_START(src, copying_cooldown, PHOTOCOPIER_DELAY)
 
-		playsound(loc, 'sound/goonstation/machines/printer_dotmatrix.ogg', 50, 1)
-		var/obj/item/photo/p = new /obj/item/photo(loc)
-		p.construct(selection)
-		if(p.desc == "")
-			p.desc += "Copied by [tempAI.name]"
-		else
-			p.desc += " - Copied by [tempAI.name]"
-		toner -= 5
-		sleep(15)
-
-/obj/machinery/photocopier/attackby(obj/item/O, mob/user, params)
-	if(istype(O, /obj/item/paper) || istype(O, /obj/item/photo) || istype(O, /obj/item/paper_bundle))
+/obj/machinery/photocopier/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(istype(used, /obj/item/paper) || istype(used, /obj/item/photo) || istype(used, /obj/item/paper_bundle))
 		if(!copyitem)
 			user.drop_item()
-			copyitem = O
-			O.forceMove(src)
-			to_chat(user, "<span class='notice'>You insert \the [O] into \the [src].</span>")
+			copyitem = used
+			used.forceMove(src)
+			to_chat(user, "<span class='notice'>You insert \the [used] into \the [src].</span>")
 			flick(insert_anim, src)
 		else
 			to_chat(user, "<span class='notice'>There is already something in \the [src].</span>")
-	else if(istype(O, /obj/item/toner))
+
+		return ITEM_INTERACT_COMPLETE
+	else if(istype(used, /obj/item/toner))
 		if(toner <= 10) //allow replacing when low toner is affecting the print darkness
 			user.drop_item()
 			to_chat(user, "<span class='notice'>You insert the toner cartridge into \the [src].</span>")
-			var/obj/item/toner/T = O
+			var/obj/item/toner/T = used
 			toner += T.toner_amount
-			qdel(O)
+			qdel(used)
 		else
 			to_chat(user, "<span class='notice'>This cartridge is not yet ready for replacement! Use up the rest of the toner.</span>")
-	else if(istype(O, /obj/item/folder))
+
+		return ITEM_INTERACT_COMPLETE
+	else if(istype(used, /obj/item/folder))
 		if(!folder) //allow replacing when low toner is affecting the print darkness
 			user.drop_item()
-			to_chat(user, "<span class='notice'>You slide the [O] into \the [src].</span>")
-			folder = O
-			O.forceMove(src)
+			to_chat(user, "<span class='notice'>You slide the [used] into \the [src].</span>")
+			folder = used
+			used.forceMove(src)
 		else
 			to_chat(user, "<span class='notice'>This cartridge is not yet ready for replacement! Use up the rest of the toner.</span>")
-	else if(istype(O, /obj/item/grab)) //For ass-copying.
-		var/obj/item/grab/G = O
+
+		return ITEM_INTERACT_COMPLETE
+	else if(istype(used, /obj/item/grab)) //For ass-copying.
+		var/obj/item/grab/G = used
 		if(ismob(G.affecting) && G.affecting != copymob)
 			var/mob/GM = G.affecting
 			visible_message("<span class='warning'>[usr] drags [GM.name] onto the photocopier!</span>")
@@ -482,6 +518,8 @@
 			if(copyitem)
 				copyitem.forceMove(get_turf(src))
 				copyitem = null
+
+		return ITEM_INTERACT_COMPLETE
 	else
 		return ..()
 
@@ -496,7 +534,7 @@
 			toner = 0
 
 /obj/machinery/photocopier/MouseDrop_T(mob/target, mob/living/user)
-	if(!istype(target) || target.buckled || get_dist(user, src) > 1 || get_dist(user, target) > 1 || user.stat || isAI(user) || target.move_resist > user.pull_force)
+	if(!istype(target) || target.buckled || get_dist(user, src) > 1 || get_dist(user, target) > 1 || user.stat || is_ai(user) || target.move_resist > user.pull_force)
 		return
 	if(check_mob()) //is target mob or another mob on this photocopier already?
 		return
@@ -513,7 +551,7 @@
 		copyitem.forceMove(get_turf(src))
 		visible_message("<span class='notice'>[copyitem] is shoved out of the way by [copymob]!</span>")
 		copyitem = null
-	playsound(loc, 'sound/machines/ping.ogg', 50, 0)
+	playsound(loc, 'sound/machines/ping.ogg', 50, FALSE)
 	atom_say("Attention: Posterior Placed on Printing Plaque!")
 	SStgui.update_uis(src)
 	return TRUE
@@ -539,6 +577,7 @@
 	if(!emagged)
 		emagged = TRUE
 		to_chat(user, "<span class='notice'>You overload [src]'s laser printing mechanism.</span>")
+		return TRUE
 	else
 		to_chat(user, "<span class='notice'>[src]'s laser printing mechanism is already overloaded!</span>")
 
@@ -547,6 +586,7 @@
 
 /obj/item/toner
 	name = "toner cartridge"
+	desc = "Has 140 papers worth of ink in it! Shame you can only use 30 before it runs out of cyan..."
 	icon = 'icons/obj/device.dmi'
 	icon_state = "tonercartridge"
 	var/toner_amount = 30

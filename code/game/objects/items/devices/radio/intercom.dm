@@ -1,12 +1,11 @@
 /obj/item/radio/intercom
 	name = "station intercom (General)"
-	desc = "Talk through this."
+	desc = "A reliable form of communication even during local communication blackouts."
 	icon_state = "intercom"
 	layer = ABOVE_WINDOW_LAYER
 	anchored = TRUE
 	w_class = WEIGHT_CLASS_BULKY
 	canhear_range = 2
-	flags = CONDUCT
 	blocks_emissive = FALSE
 	var/circuitry_installed = 1
 	var/buildstage = 0
@@ -16,7 +15,6 @@
 /obj/item/radio/intercom/custom
 	name = "station intercom (Custom)"
 	custom_name = TRUE
-	broadcasting = FALSE
 	listening = FALSE
 
 /obj/item/radio/intercom/interrogation
@@ -42,8 +40,6 @@
 /obj/item/radio/intercom/department
 	canhear_range = 5
 	custom_name = TRUE
-	broadcasting = FALSE
-	listening = TRUE
 
 /obj/item/radio/intercom/department/medbay
 	name = "station intercom (Medbay)"
@@ -67,7 +63,7 @@
 	GLOB.global_intercoms.Add(src)
 	update_icon(UPDATE_ICON_STATE | UPDATE_OVERLAYS)
 
-/obj/item/radio/intercom/Initialize()
+/obj/item/radio/intercom/Initialize(mapload)
 	. = ..()
 	if(!custom_name)
 		name = "station intercom (General)"
@@ -85,7 +81,7 @@
 
 /obj/item/radio/intercom/syndicate
 	name = "illicit intercom"
-	desc = "Talk through this. Evilly"
+	desc = "Communicate with your minions. Evilly"
 	frequency = SYND_FREQ
 	syndiekey = new /obj/item/encryptionkey/syndicate/nukeops
 
@@ -121,11 +117,11 @@
 /obj/item/radio/intercom/attack_ai(mob/user)
 	add_hiddenprint(user)
 	add_fingerprint(user)
-	attack_self(user)
+	attack_self__legacy__attackchain(user)
 
 /obj/item/radio/intercom/attack_hand(mob/user)
 	add_fingerprint(user)
-	attack_self(user)
+	attack_self__legacy__attackchain(user)
 
 /obj/item/radio/intercom/receive_range(freq, level)
 	if(!is_listening())
@@ -151,7 +147,7 @@
 		if(2)
 			. += "<span class='notice'>The intercom is <b>wired</b>, and the maintenance panel is <i>unscrewed</i>.</span>"
 
-/obj/item/radio/intercom/attackby(obj/item/W, mob/user)
+/obj/item/radio/intercom/attackby__legacy__attackchain(obj/item/W, mob/user)
 	if(istype(W, /obj/item/stack/tape_roll)) //eww
 		return
 	else if(iscoil(W) && buildstage == 1)
@@ -173,6 +169,11 @@
 		return 1
 	else
 		return ..()
+
+/obj/item/radio/intercom/AltClick(mob/user)
+	. = ..()
+	if(broadcasting)
+		investigate_log("had its hotmic toggled on via hotkey by [key_name(user)].", INVESTIGATE_HOTMIC) ///Allows us to track who spams all these on if they do.
 
 /obj/item/radio/intercom/crowbar_act(mob/user, obj/item/I)
 	if(buildstage != 1)
@@ -245,9 +246,9 @@
 		underlays += emissive_appearance(icon, "intercom_lightmask")
 
 /obj/item/radio/intercom/proc/update_operating_status(on = TRUE)
-	var/area/current_area = get_area(src)
-	if(!current_area)
+	if(!loc) // We init a few radios in nullspace to prevent them from needing power.
 		return
+	var/area/current_area = get_area(src)
 	if(on)
 		RegisterSignal(current_area.powernet, COMSIG_POWERNET_POWER_CHANGE, PROC_REF(local_powernet_check))
 	else
@@ -279,7 +280,6 @@
 	w_class = WEIGHT_CLASS_SMALL
 	materials = list(MAT_METAL = 100, MAT_GLASS = 100)
 	origin_tech = "engineering=2;programming=1"
-	toolspeed = 1
 	usesound = 'sound/items/deconstruct.ogg'
 
 /obj/item/radio/intercom/locked
@@ -295,8 +295,8 @@
 	frequency = 1480
 
 /obj/item/radio/intercom/locked/prison
-	name = "\improper prison intercom"
-	desc = "Talk through this. It looks like it has been modified to not broadcast."
+	name = "prison intercom"
+	desc = "A reliable form of communication even during local communication blackouts. It looks like it has been modified to not broadcast. Not so reliable, I guess..."
 
 /obj/item/radio/intercom/locked/prison/New()
 	..()

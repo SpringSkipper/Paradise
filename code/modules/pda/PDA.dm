@@ -6,44 +6,44 @@
 /// Global list of all PDAs in the world
 GLOBAL_LIST_EMPTY(PDAs)
 
-
 /obj/item/pda
 	name = "\improper PDA"
 	desc = "A portable microcomputer by Thinktronic Systems, LTD. Functionality determined by a preprogrammed ROM cartridge."
 	icon = 'icons/obj/pda.dmi'
 	icon_state = "pda"
-	item_state = "electronic"
+	inhand_icon_state = "electronic"
 	w_class = WEIGHT_CLASS_TINY
-	slot_flags = SLOT_FLAG_ID | SLOT_FLAG_BELT | SLOT_FLAG_PDA
+	slot_flags = ITEM_SLOT_ID | ITEM_SLOT_BELT | ITEM_SLOT_PDA
 	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, RAD = 0, FIRE = 100, ACID = 100)
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	origin_tech = "programming=2"
-
-	//Main variables
+	/// Is this a silicon's internal PDA?
+	var/silicon_pda = FALSE
+	/// Name on the registered owner's ID card.
 	var/owner = null
-	var/default_cartridge = 0 // Access level defined by cartridge
-	var/obj/item/cartridge/cartridge = null //current cartridge
+	/// Typepath of the ROM cartridge that spawns with this PDA, if any. Gives extra functionality to the PDA.
+	var/default_cartridge = 0
+	/// The ROM cartridge currently inside this PDA.
+	var/obj/item/cartridge/cartridge = null
+	/// The program currently loaded in the PDA (e.g. crew manifest, messanger, main menu).
 	var/datum/data/pda/app/current_app = null
-	var/datum/data/pda/app/lastapp = null
-
-	//Secondary variables
+	/// Stated by some programs, not visible on examination.
 	var/model_name = "Thinktronic 5230 Personal Data Assistant"
+	/// Some PDA programs turn the PDA into scanning tool (e.g. gas scaner, medical analyzer).
 	var/datum/data/pda/utility/scanmode/scanmode = null
-
-	var/lock_code = "" // Lockcode to unlock uplink
-	var/silent = FALSE //To beep or not to beep, that is the question
-	var/honkamt = 0 //How many honks left when infected with honk.exe
-	var/mimeamt = 0 //How many silence left when infected with mime.exe
-	var/detonate = TRUE // Can the PDA be blown up?
-	var/ttone = "beep" //The ringtone!
-	var/list/ttone_sound = list("beep" = 'sound/machines/twobeep.ogg',
-								"boom" = 'sound/effects/explosionfar.ogg',
-								"slip" = 'sound/misc/slip.ogg',
-								"honk" = 'sound/items/bikehorn.ogg',
-								"SKREE" = 'sound/voice/shriek1.ogg',
-								"holy" = 'sound/items/PDA/ambicha4-short.ogg',
-								"xeno" = 'sound/voice/hiss1.ogg')
-
+	/// Code to unlock the Syndicate uplink.
+	var/lock_code = ""
+	/// Is the PDA muted?
+	var/silent = FALSE
+	/// How many sounds will be replaced with HONKs (when infected with honk.exe)?
+	var/honkamt = 0
+	/// How many sounds will be muted (when infected with mime.exe)?
+	var/mimeamt = 0
+	/// Can this PDA be blown up?
+	var/detonate = TRUE
+	/// This PDA's ringtone.
+	var/ttone = "beep"
+	/// Core programs that come with this PDA.
 	var/list/programs = list(
 		new/datum/data/pda/app/main_menu,
 		new/datum/data/pda/app/notekeeper,
@@ -51,20 +51,27 @@ GLOBAL_LIST_EMPTY(PDAs)
 		new/datum/data/pda/app/manifest,
 		new/datum/data/pda/app/nanobank,
 		new/datum/data/pda/app/atmos_scanner,
-		new/datum/data/pda/utility/flashlight)
+		new/datum/data/pda/utility/flashlight,
+		new/datum/data/pda/app/games,
+		// Here our games go
+		new/datum/data/pda/app/game/minesweeper)
 	var/list/shortcut_cache = list()
 	var/list/shortcut_cat_order = list()
 	var/list/notifying_programs = list()
 
-	var/obj/item/card/id/id = null //Making it possible to slot an ID card into the PDA so it can function as both.
+	/// ID card currently slotted into the PDA.
+	var/obj/item/card/id/id = null
+	/// Job on the current ID card.
 	var/ownjob = null //related to above
+	/// Rank of the current ID card.
 	var/ownrank = null // this one is rank, never alt title
-
-	var/obj/item/paicard/pai = null	// A slot for a personal AI device
-	// The slot where you can store a pen
+	/// PDA slot for a pAI.
+	var/obj/item/paicard/pai = null
+	/// PDA slot for a pen.
 	var/obj/item/held_pen
+	/// Type of pen this PDA spawns with.
+	var/obj/item/pen/default_pen = /obj/item/pen
 	var/retro_mode = 0
-
 
 /*
  *	The Actual PDA
@@ -78,9 +85,16 @@ GLOBAL_LIST_EMPTY(PDAs)
 	if(default_cartridge)
 		cartridge = new default_cartridge(src)
 		cartridge.update_programs(src)
-	add_pen(new /obj/item/pen(src))
+	add_pen(new default_pen(src))
+	update_icon(UPDATE_OVERLAYS)
 	start_program(find_program(/datum/data/pda/app/main_menu))
 	silent = initial(silent)
+
+/obj/item/pda/examine(mob/user)
+	. = ..()
+	. += "<span class='notice'><b>Alt-Click</b> [src] to remove its ID card.</span>"
+	. += "<span class='notice'><b>Ctrl-Click</b> [src] to remove its pen.</span>"
+	. += "<span class='notice'>Use a screwdriver on [src] to reset it.</span>"
 
 /obj/item/pda/proc/can_use()
 	if(!ismob(loc))
@@ -89,7 +103,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 	var/mob/M = loc
 	if(M.incapacitated())
 		return 0
-	if((src in M.contents) || ( isturf(loc) && in_range(src, M) ))
+	if((src in M.contents) || (isturf(loc) && in_range(src, M)))
 		return 1
 	else
 		return 0
@@ -105,10 +119,10 @@ GLOBAL_LIST_EMPTY(PDAs)
 
 /obj/item/pda/MouseDrop(obj/over_object as obj, src_location, over_location)
 	var/mob/M = usr
-	if((!istype(over_object, /obj/screen)) && can_use())
-		return attack_self(M)
+	if((!is_screen_atom(over_object)) && can_use())
+		return attack_self__legacy__attackchain(M)
 
-/obj/item/pda/attack_self(mob/user as mob)
+/obj/item/pda/attack_self__legacy__attackchain(mob/user as mob)
 	if(active_uplink_check(user))
 		return
 	ui_interact(user)
@@ -139,41 +153,68 @@ GLOBAL_LIST_EMPTY(PDAs)
 
 /obj/item/pda/update_overlays()
 	. = ..()
+	var/datum/data/pda/utility/flashlight/flash = find_program(/datum/data/pda/utility/flashlight)
+	if(flash?.fon)
+		switch(icon_state)
+			if("pda-library")
+				. += image('icons/obj/pda.dmi', "pda-light-library")
+			if("pda-syndi")
+				. += image('icons/obj/pda.dmi', "pda-light-syndi")
+			else
+				. += image('icons/obj/pda.dmi', "pda-light")
+
 	if(id)
-		. += image('icons/goonstation/objects/pda_overlay.dmi', id.icon_state)
+		switch(icon_state)
+			if("pda-library")
+				. += image('icons/obj/pda.dmi', "pda-id-library")
+			if("pda-syndi")
+				. += image('icons/obj/pda.dmi', "pda-id-syndi")
+			else
+				. += image('icons/obj/pda.dmi', "pda-id")
+
+	if(held_pen)
+		if(icon_state != "pda-syndi")
+			if(icon_state == "pda-library")
+				. += image('icons/obj/pda.dmi', "pda-pen-library")
+			else
+				. += image('icons/obj/pda.dmi', "pda-pen")
+
 	if(length(notifying_programs))
-		. += image('icons/obj/pda.dmi', "pda-r")
+		switch(icon_state)
+			if("pda-library")
+				. += image('icons/obj/pda.dmi', "pda-dm-library")
+			if("pda-syndi")
+				. += image('icons/obj/pda.dmi', "pda-dm-syndi")
+			else
+				. += image('icons/obj/pda.dmi', "pda-dm")
 
 /obj/item/pda/proc/close(mob/user)
 	SStgui.close_uis(src)
 
-/obj/item/pda/verb/verb_reset_pda()
-	set category = "Object"
-	set name = "Reset PDA"
-	set src in usr
-
-	if(issilicon(usr))
+/obj/item/pda/screwdriver_act(mob/living/user, obj/item/I)
+	if(!I.use_tool(src, user, 0, volume = I.tool_volume))
 		return
 
-	if(can_use(usr))
-		start_program(find_program(/datum/data/pda/app/main_menu))
-		notifying_programs.Cut()
-		update_icon(UPDATE_OVERLAYS)
-		to_chat(usr, "<span class='notice'>You press the reset button on \the [src].</span>")
-		SStgui.update_uis(src)
-	else
-		to_chat(usr, "<span class='notice'>You cannot do this while restrained.</span>")
+	start_program(find_program(/datum/data/pda/app/main_menu))
+	notifying_programs.Cut()
+	update_icon(UPDATE_OVERLAYS)
+	to_chat(user, "<span class='notice'>You press the reset button on \the [src].</span>")
+	SStgui.update_uis(src)
 
 /obj/item/pda/AltClick(mob/user)
-	..()
+	if(HAS_TRAIT(user, TRAIT_HANDS_BLOCKED))
+		return
+
+	if(!Adjacent(user) && !(loc == user))
+		return
+
 	if(issilicon(user))
 		return
 
-	if(can_use(user))
-		if(id)
-			remove_id(user)
-		else
-			to_chat(user, "<span class='warning'>This PDA does not have an ID in it!</span>")
+	if(id)
+		remove_id(user)
+	else
+		to_chat(user, "<span class='warning'>This PDA does not have an ID in it!</span>")
 
 /obj/item/pda/CtrlClick(mob/user)
 	..()
@@ -201,30 +242,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 		if(wearing_human.wear_id == src)
 			wearing_human.sec_hud_set_ID()
 
-/obj/item/pda/verb/verb_remove_id()
-	set category = "Object"
-	set name = "Remove id"
-	set src in usr
-
-	if(issilicon(usr))
-		return
-
-	if( can_use(usr) )
-		if(id)
-			remove_id(usr)
-		else
-			to_chat(usr, "<span class='notice'>This PDA does not have an ID in it.</span>")
-	else
-		to_chat(usr, "<span class='notice'>You cannot do this while restrained.</span>")
-
-/obj/item/pda/verb/verb_remove_pen()
-	set category = "Object"
-	set name = "Remove pen"
-	set src in usr
-	remove_pen(usr)
-
 /obj/item/pda/proc/remove_pen(mob/user)
-
 	if(issilicon(user))
 		return
 
@@ -234,6 +252,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 			playsound(src, 'sound/machines/pda_button2.ogg', 50, TRUE)
 			user.put_in_hands(held_pen)
 			clear_pen()
+			update_icon(UPDATE_OVERLAYS)
 		else
 			to_chat(user, "<span class='warning'>This PDA does not have a pen in it.</span>")
 	else
@@ -264,7 +283,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 		if(wearing_human.wear_id == src)
 			wearing_human.sec_hud_set_ID()
 
-/obj/item/pda/attackby(obj/item/C, mob/user, params)
+/obj/item/pda/attackby__legacy__attackchain(obj/item/C, mob/user, params)
 	..()
 	if(istype(C, /obj/item/cartridge) && !cartridge)
 		cartridge = C
@@ -298,12 +317,11 @@ GLOBAL_LIST_EMPTY(PDAs)
 				playsound(src, 'sound/machines/terminal_success.ogg', 50, TRUE)
 		else
 			//Basic safety check. If either both objects are held by user or PDA is on ground and card is in hand.
-			if(((src in user.contents) && (C in user.contents)) || (isturf(loc) && in_range(src, user) && (C in user.contents)) )
-				if( can_use(user) )//If they can still act.
-					id_check(user, 2)
-					to_chat(user, "<span class='notice'>You put the ID into \the [src]'s slot.<br>You can remove it with ALT click.</span>")
-					update_icon(UPDATE_OVERLAYS)
-					SStgui.update_uis(src)
+			if(!HAS_TRAIT(user, TRAIT_HANDS_BLOCKED) && ((src in user) || (isturf(loc) && in_range(src, user))))
+				id_check(user, 2)
+				to_chat(user, "<span class='notice'>You put the ID into \the [src]'s slot.<br>You can remove it with ALT click.</span>")
+				update_icon(UPDATE_OVERLAYS)
+				SStgui.update_uis(src)
 
 	else if(istype(C, /obj/item/paicard) && !src.pai)
 		user.drop_item()
@@ -320,24 +338,23 @@ GLOBAL_LIST_EMPTY(PDAs)
 			add_pen(C)
 			to_chat(user, "<span class='notice'>You slide \the [C] into \the [src].</span>")
 			playsound(src, 'sound/machines/pda_button1.ogg', 50, TRUE)
-	else if(istype(C, /obj/item/nanomob_card))
-		if(cartridge && istype(cartridge, /obj/item/cartridge/mob_hunt_game))
-			cartridge.attackby(C, user, params)
 
 /obj/item/pda/proc/add_pen(obj/item/P)
 	P.forceMove(src)
 	held_pen = P
 	RegisterSignal(held_pen, COMSIG_PARENT_QDELETING, PROC_REF(clear_pen))
+	update_icon(UPDATE_OVERLAYS)
 
 /obj/item/pda/proc/clear_pen()
 	UnregisterSignal(held_pen, COMSIG_PARENT_QDELETING)
 	held_pen = null
+	update_icon(UPDATE_OVERLAYS)
 
-/obj/item/pda/attack(mob/living/C as mob, mob/living/user as mob)
+/obj/item/pda/attack__legacy__attackchain(mob/living/C as mob, mob/living/user as mob)
 	if(iscarbon(C) && scanmode)
 		scanmode.scan_mob(C, user)
 
-/obj/item/pda/afterattack(atom/A as mob|obj|turf|area, mob/user as mob, proximity)
+/obj/item/pda/afterattack__legacy__attackchain(atom/A as mob|obj|turf|area, mob/user as mob, proximity)
 	if(proximity && scanmode)
 		scanmode.scan_atom(A, user)
 
@@ -353,7 +370,7 @@ GLOBAL_LIST_EMPTY(PDAs)
 	if(T)
 		T.hotspot_expose(700,125)
 
-		explosion(T, -1, -1, 2, 3)
+		explosion(T, -1, -1, 2, 3, cause = "Exploding PDA")
 	qdel(src)
 	return
 
@@ -378,29 +395,34 @@ GLOBAL_LIST_EMPTY(PDAs)
 
 /obj/item/pda/proc/play_ringtone()
 	var/S
-
-	if(ttone in ttone_sound)
-		S = ttone_sound[ttone]
+	if(HAS_TRAIT(SSstation, STATION_TRAIT_PDA_GLITCHED))
+		playsound(src, pick('sound/machines/twobeep_voice1.ogg', 'sound/machines/twobeep_voice2.ogg'), 50, TRUE)
 	else
-		S = 'sound/machines/twobeep_high.ogg'
-	playsound(loc, S, 50, 1)
+		if(ttone in GLOB.pda_ringtone_choices)
+			S = GLOB.pda_ringtone_choices[ttone]
+		else
+			S = 'sound/machines/twobeep_high.ogg'
+		playsound(loc, S, 50, TRUE)
 	for(var/mob/O in hearers(3, loc))
 		O.show_message(text("[bicon(src)] *[ttone]*"))
 
-/obj/item/pda/proc/set_ringtone()
-	var/t = input("Please enter new ringtone", name, ttone) as text
-	if(in_range(src, usr) && loc == usr)
-		if(t)
-			if(hidden_uplink && hidden_uplink.check_trigger(usr, lowertext(t), lowertext(lock_code)))
-				to_chat(usr, "The PDA softly beeps.")
-				close(usr)
-			else
-				t = sanitize(copytext(t, 1, 20))
-				ttone = t
-			return 1
-	else
-		close(usr)
-	return 0
+/obj/item/pda/proc/set_ringtone(mob/user)
+	var/new_tone = tgui_input_text(user, "Please enter new ringtone", name, ttone, max_length = 20, encode = FALSE)
+	new_tone = trim(new_tone)
+
+	if(!in_range(src, user) || loc != user)
+		close(user)
+		return FALSE
+
+	if(!new_tone)
+		return FALSE
+
+	if(hidden_uplink && hidden_uplink.check_trigger(user, lowertext(new_tone), lowertext(lock_code)))
+		to_chat(user, "The PDA softly beeps.")
+		close(user)
+		return TRUE
+	ttone = new_tone
+	return TRUE
 
 /obj/item/pda/process()
 	if(current_app)

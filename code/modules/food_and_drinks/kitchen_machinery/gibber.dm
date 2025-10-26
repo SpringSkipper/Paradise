@@ -1,6 +1,6 @@
 #define GIBBER_ANIMATION_DELAY 16
 /obj/machinery/gibber
-	name = "Gibber"
+	name = "\improper Gibber"
 	desc = "The name isn't descriptive enough?"
 	icon = 'icons/obj/kitchen.dmi'
 	icon_state = "grinder"
@@ -38,10 +38,14 @@
 	occupant = null
 	return ..()
 
+/obj/machinery/gibber/examine(mob/user)
+	. = ..()
+	. += "<span class='notice'>You can <b>Alt-Click</b> [src] to empty it.</span>"
+
 /obj/machinery/gibber/suicide_act(mob/living/user)
 	if(occupant || locked)
 		return FALSE
-	user.visible_message("<span class='danger'>[user] climbs into [src] and turns it on!</b></span>")
+	user.visible_message("<span class='danger'><b>[user] climbs into [src] and turns it on!</b></span>")
 	user.Stun(20 SECONDS)
 	user.forceMove(src)
 	occupant = user
@@ -89,27 +93,25 @@
 
 	startgibbing(user)
 
-/obj/machinery/gibber/attackby(obj/item/P, mob/user, params)
-	if(istype(P, /obj/item/grab))
-		var/obj/item/grab/G = P
+/obj/machinery/gibber/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(istype(used, /obj/item/grab))
+		var/obj/item/grab/G = used
 		if(G.state < 2)
 			to_chat(user, "<span class='danger'>You need a better grip to do that!</span>")
-			return
+			return ITEM_INTERACT_COMPLETE
 		move_into_gibber(user,G.affecting)
 		qdel(G)
-		return
+		return ITEM_INTERACT_COMPLETE
 
-	if(default_deconstruction_screwdriver(user, "grinder_open", "grinder", P))
-		return
+	if(default_deconstruction_screwdriver(user, "grinder_open", "grinder", used))
+		return ITEM_INTERACT_COMPLETE
 
-	if(exchange_parts(user, P))
-		return
+	if(default_unfasten_wrench(user, used, time = 4 SECONDS))
+		return ITEM_INTERACT_COMPLETE
 
-	if(default_unfasten_wrench(user, P, time = 4 SECONDS))
-		return
+	if(default_deconstruction_crowbar(user, used))
+		return ITEM_INTERACT_COMPLETE
 
-	if(default_deconstruction_crowbar(user, P))
-		return
 	return ..()
 
 /obj/machinery/gibber/MouseDrop_T(mob/target, mob/user)
@@ -153,6 +155,7 @@
 		user.visible_message("<span class='danger'>[user] stuffs [victim] into [src]!</span>")
 	else
 		return
+	QDEL_LIST_CONTENTS(victim.grabbed_by)
 	victim.forceMove(src)
 	occupant = victim
 
@@ -160,16 +163,12 @@
 	INVOKE_ASYNC(src, PROC_REF(feedinTopanim))
 
 
-/obj/machinery/gibber/verb/eject()
-	set category = "Object"
-	set name = "Empty Gibber"
-	set src in oview(1)
-
-	if(usr.incapacitated())
+/obj/machinery/gibber/AltClick(mob/user)
+	if(user.stat || HAS_TRAIT(user, TRAIT_HANDS_BLOCKED) || !Adjacent(user))
 		return
 
 	go_out()
-	add_fingerprint(usr)
+	add_fingerprint(user)
 
 /obj/machinery/gibber/proc/go_out()
 	if(operating || !occupant) //no going out if operating, just in case they manage to trigger go_out before being dead
@@ -179,65 +178,46 @@
 		return
 
 	for(var/obj/O in src)
-		O.loc = loc
+		O.forceMove(get_turf(src))
 
 	occupant.forceMove(get_turf(src))
 	occupant = null
 
 	update_icon(UPDATE_OVERLAYS | UPDATE_ICON_STATE)
 
-	return
-
 /obj/machinery/gibber/proc/feedinTopanim()
 	if(!occupant)
 		return
 
 	locked = TRUE //lock gibber
+	occupant.dir = SOUTH
 
-	var/image/gibberoverlay = new //used to simulate 3D effects
-	gibberoverlay.icon = icon
-	gibberoverlay.icon_state = "grinder_overlay"
-	gibberoverlay.overlays += image('icons/obj/kitchen.dmi', "grinder_idle")
-	icon_state = "grinder_on"
-
-	var/image/feedee = new
-	occupant.dir = 2
-	feedee.icon = getFlatIcon(occupant, 2) //makes the image a copy of the occupant
-
-	var/atom/movable/holder = new //holder for occupant image
-	holder.name = null //make unclickable
-	holder.overlays += feedee //add occupant to holder overlays
-	holder.pixel_y = 25 //above the gibber
-	holder.loc = get_turf(src)
-	holder.layer = MOB_LAYER //simulate mob-like layering
-	holder.anchored = TRUE
-
-	var/atom/movable/holder2 = new //holder for gibber overlay, used to simulate 3D effect
-	holder2.name = null
-	holder2.overlays += gibberoverlay
-	holder2.loc = get_turf(src)
-	holder2.layer = MOB_LAYER + 0.1 //3D, it's above the mob, rest of the gibber is behind
-	holder2.anchored = TRUE
-
-	animate(holder, pixel_y = 16, time = animation_delay) //animate going down
-
+	var/image/victim = image(icon = getFlatIcon(occupant, SOUTH), loc = src, layer = MOB_LAYER, pixel_y = 25) // Copies the look of the victim and places them above the gibber, can't grab the exact icon because it needs to be considered as static to mask the feet later on
+	var/image/grinder_overlay = image(icon = 'icons/obj/kitchen.dmi', loc = src, icon_state = "grinder_overlay")
+	if(dirty)
+		grinder_overlay.overlays += image(icon = 'icons/obj/kitchen.dmi', icon_state = "grinder_bloody")
+	/// Here's the part where I do something silly
+	var/list/gibber_viewers = list()
+	for(var/mob/viewer as anything in viewers(src))
+		gibber_viewers += viewer.client
+	for(var/client/viewer in gibber_viewers)
+		viewer.images += victim
+	flick_overlay(grinder_overlay, gibber_viewers, animation_delay * 2)
+	animate(victim, pixel_y = 16, time = animation_delay)
 	sleep(animation_delay)
-
-	holder.overlays -= feedee //reset static icon
-	feedee.icon += icon('icons/obj/kitchen.dmi', "footicon") //this is some byond magic; += to the icon var with a black and white image will mask it
-	holder.overlays += feedee
-	animate(holder, pixel_y = -3, time = animation_delay) //animate going down further
-
-	sleep(animation_delay) //time everything right, animate doesn't prevent proc from continuing
-
-	qdel(holder) //get rid of holder object
-	qdel(holder2) //get rid of holder object
+	victim.icon += icon('icons/obj/kitchen.dmi', "footicon") //this is some byond magic; += to the icon var with a black and white image will mask it
+	animate(victim, pixel_y = -3, time = animation_delay) // Animate going down further
+	sleep(animation_delay)
+	for(var/client/viewer in gibber_viewers)
+		viewer.images -= victim
+	qdel(victim)
+	qdel(grinder_overlay)
 	locked = FALSE //unlock
 	dirty = TRUE //dirty gibber
 
 /obj/machinery/gibber/proc/startgibbing(mob/user, UserOverride=0)
 	if(!istype(user) && !UserOverride)
-		log_debug("Some shit just went down with the gibber at X[x], Y[y], Z[z] with an invalid user. (<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)")
+		log_debug("Some shit just went down with the gibber at X[x], Y[y], Z[z] with an invalid user. (<A href='byond://?_src_=holder;adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>JMP</a>)")
 		return
 
 	if(UserOverride)
@@ -251,6 +231,10 @@
 		visible_message("<span class='danger'>You hear a loud metallic grinding sound.</span>")
 		return
 
+	if(HAS_TRAIT(occupant, TRAIT_CLING_BURSTING))
+		visible_message("<span class='warning'>[src] jams up as [occupant]'s corpse rapidly grows in size...</span>")
+		return
+
 	use_power(1000)
 	visible_message("<span class='danger'>You hear a loud squelchy grinding sound.</span>")
 
@@ -260,26 +244,23 @@
 	animate(src, pixel_x = pixel_x + offset, time = 0.2, loop = gibtime * 5) //start shaking
 
 	var/slab_name = occupant.name
-	var/slab_count = 3
-	var/slab_type = /obj/item/reagent_containers/food/snacks/meat/human //gibber can only gib humans on paracode, no need to check meat type
+	var/slab_count = 6
 	var/slab_nutrition = occupant.nutrition / 15
 
 	slab_nutrition /= slab_count
-
-	for(var/i=1 to slab_count)
-		var/obj/item/reagent_containers/food/snacks/meat/new_meat = new slab_type(src)
-		new_meat.name = "[slab_name] [new_meat.name]"
-		new_meat.reagents.add_reagent("nutriment", slab_nutrition)
-
-
-		if(occupant.reagents)
-			occupant.reagents.trans_to(new_meat, round(occupant.reagents.total_volume/slab_count, 1))
 
 	if(ishuman(occupant))
 		var/mob/living/carbon/human/H = occupant
 		var/skinned = H.dna.species.skinned_type
 		if(skinned)
 			new skinned(src)
+		var/slab_type = H.dna.species.meat_type
+		for(var/i in 1 to slab_count)
+			var/obj/item/food/meat/new_meat = new slab_type(src)
+			new_meat.name = "[slab_name] [new_meat.name]"
+			new_meat.reagents.add_reagent("nutriment", slab_nutrition)
+			if(occupant.reagents)
+				occupant.reagents.trans_to(new_meat, round(occupant.reagents.total_volume/slab_count, 1))
 	new /obj/effect/decal/cleanable/blood/gibs(src)
 
 	if(!UserOverride)
@@ -297,18 +278,18 @@
 		for(var/obj/item/I in H.get_contents())
 			if(I.resistance_flags & INDESTRUCTIBLE)
 				I.forceMove(get_turf(src))
-		if(H.get_item_by_slot(SLOT_HUD_SUIT_STORE))
-			var/obj/item/ws = H.get_item_by_slot(SLOT_HUD_SUIT_STORE)
+		if(H.get_item_by_slot(ITEM_SLOT_SUIT_STORE))
+			var/obj/item/ws = H.get_item_by_slot(ITEM_SLOT_SUIT_STORE)
 			if(ws.resistance_flags & INDESTRUCTIBLE)
 				ws.forceMove(get_turf(src))
 				H.s_store = null
-		if(H.get_item_by_slot(SLOT_HUD_LEFT_STORE))
-			var/obj/item/ls = H.get_item_by_slot(SLOT_HUD_LEFT_STORE)
+		if(H.get_item_by_slot(ITEM_SLOT_LEFT_POCKET))
+			var/obj/item/ls = H.get_item_by_slot(ITEM_SLOT_LEFT_POCKET)
 			if(ls.resistance_flags & INDESTRUCTIBLE)
 				ls.forceMove(get_turf(src))
 				H.l_store = null
-		if(H.get_item_by_slot(SLOT_HUD_RIGHT_STORE))
-			var/obj/item/rs = H.get_item_by_slot(SLOT_HUD_RIGHT_STORE)
+		if(H.get_item_by_slot(ITEM_SLOT_RIGHT_POCKET))
+			var/obj/item/rs = H.get_item_by_slot(ITEM_SLOT_RIGHT_POCKET)
 			if(rs.resistance_flags & INDESTRUCTIBLE)
 				rs.forceMove(get_turf(src))
 				H.r_store = null
@@ -339,7 +320,8 @@
 		operating = FALSE
 		update_icon(UPDATE_OVERLAYS | UPDATE_ICON_STATE)
 
-
+/obj/machinery/gibber/force_eject_occupant(mob/target)
+	go_out()
 
 /* AUTOGIBBER */
 
@@ -367,7 +349,7 @@
 	RefreshParts()
 
 /obj/machinery/gibber/autogibber/process()
-	if(!lturf || occupant || locked || operating || victim_targets.len)
+	if(!lturf || occupant || locked || operating || length(victim_targets))
 		return
 
 	if(acceptdir != lastacceptdir)
@@ -380,7 +362,7 @@
 	for(var/mob/living/carbon/human/H in lturf)
 		victim_targets += H
 
-	if(victim_targets.len)
+	if(length(victim_targets))
 		visible_message({"<span class='danger'>\The [src] states, "Food detected!"</span>"})
 		sleep(consumption_delay)
 		for(var/mob/living/carbon/H in victim_targets)
@@ -411,22 +393,20 @@
 	for(var/obj/O in H)
 		if(isclothing(O)) //clothing gets skipped to avoid cleaning out shit
 			continue
-		if(istype(O,/obj/item/implant))
-			var/obj/item/implant/I = O
+		if(istype(O,/obj/item/bio_chip))
+			var/obj/item/bio_chip/I = O
 			if(I.implanted)
 				continue
 		if(O.flags & NODROP || stealthmode)
 			qdel(O) //they are already dead by now
-		H.unEquip(O)
-		O.loc = loc
+		H.transfer_item_to(O, loc)
 		O.throw_at(get_edge_target_turf(src, gib_throw_dir), rand(1, 5), 15)
 		sleep(1)
 
 	for(var/obj/item/clothing/C in H)
 		if(C.flags & NODROP || stealthmode)
 			qdel(C)
-		H.unEquip(C)
-		C.loc = loc
+		H.transfer_item_to(C, loc)
 		C.throw_at(get_edge_target_turf(src, gib_throw_dir), rand(1, 5), 15)
 		sleep(1)
 
@@ -444,3 +424,5 @@
 			sleep(1)
 	if(spats)
 		visible_message("<span class='warning'>\The [src] spits out more possessions!</span>")
+
+#undef GIBBER_ANIMATION_DELAY

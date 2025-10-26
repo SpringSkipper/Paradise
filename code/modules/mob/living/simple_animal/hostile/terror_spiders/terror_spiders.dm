@@ -1,6 +1,6 @@
+
 GLOBAL_LIST_EMPTY(ts_ckey_blacklist)
 GLOBAL_VAR_INIT(ts_count_dead, 0)
-GLOBAL_VAR_INIT(ts_count_alive_awaymission, 0)
 GLOBAL_VAR_INIT(ts_count_alive_station, 0)
 GLOBAL_VAR_INIT(ts_death_last, 0)
 GLOBAL_VAR_INIT(ts_death_window, 9000) // 15 minutes
@@ -8,7 +8,7 @@ GLOBAL_LIST_EMPTY(ts_spiderlist)
 GLOBAL_LIST_EMPTY(ts_egg_list)
 GLOBAL_LIST_EMPTY(ts_spiderling_list)
 GLOBAL_LIST_EMPTY(ts_infected_list)
-
+#define DECOMPOSE_TIMER 5 MINUTES
 // --------------------------------------------------------------------------------
 // --------------------- TERROR SPIDERS: DEFAULTS ---------------------------------
 // --------------------------------------------------------------------------------
@@ -19,6 +19,8 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 	name = "terror spider"
 	desc = "The generic parent of all other terror spider types. If you see this in-game, it is a bug."
 	gender = FEMALE
+	contains_xeno_organ = TRUE
+	surgery_container = /datum/xenobiology_surgery_container/terror_spider
 
 	// Icons
 	icon = 'icons/mob/terrorspider.dmi'
@@ -42,6 +44,7 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 	// Movement
 	pass_flags = PASSTABLE
 	move_resist = MOVE_FORCE_STRONG // no more pushing a several hundred if not thousand pound spider
+	status_flags = 0 // also no more grabbing
 	turns_per_move = 3 // number of turns before AI-controlled spiders wander around. No effect on actual player or AI movement speed!
 	move_to_delay = 6
 	// AI spider speed at chasing down targets. Higher numbers mean slower speed. Divide 20 (server tick rate / second) by this to get tiles/sec.
@@ -55,7 +58,7 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 	// '2' converts to 4.5, or 2.2 tiles/sec.
 
 	// Ventcrawling
-	ventcrawler = 1 // allows player ventcrawling
+	ventcrawler = VENTCRAWLER_NUDE // allows player ventcrawling
 	var/ai_ventcrawls = TRUE
 	var/idle_ventcrawl_chance = 15
 	var/freq_ventcrawl_combat = 1800 // 3 minutes
@@ -68,7 +71,6 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 	var/spider_max_steps = 15 // after we take X turns trying to do something, give up!
 
 	// Speech
-	speak_chance = 0 // quiet but deadly
 	speak_emote = list("hisses")
 	emote_hear = list("hisses")
 
@@ -293,7 +295,7 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 		notify_ghosts("[src] (player controlled) has appeared in [get_area(src)].")
 	else if(ai_playercontrol_allowtype)
 		var/image/alert_overlay = image('icons/mob/terrorspider.dmi', icon_state)
-		notify_ghosts("[src] has appeared in [get_area(src)].", enter_link = "<a href=?src=[UID()];activate=1>(Click to control)</a>", source = src, alert_overlay = alert_overlay, action = NOTIFY_ATTACK)
+		notify_ghosts("[src] has appeared in [get_area(src)].", enter_link = "<a href=byond://?src=[UID()];activate=1>(Click to control)</a>", source = src, alert_overlay = alert_overlay, action = NOTIFY_ATTACK)
 
 /mob/living/simple_animal/hostile/poison/terror_spider/Destroy()
 	GLOB.ts_spiderlist -= src
@@ -313,26 +315,22 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 
 /mob/living/simple_animal/hostile/poison/terror_spider/Life(seconds, times_fired)
 	. = ..()
-	if(stat == DEAD) // Can't use if(.) for this due to the fact it can sometimes return FALSE even when mob is alive.
-		if(prob(2))
-			// 2% chance every cycle to decompose
-			visible_message("<span class='notice'>The dead body of [src] decomposes!</span>")
-			gib()
-	else
-		if(degenerate)
-			adjustToxLoss(rand(1, 10))
-		if(regen_points < regen_points_max)
-			regen_points += regen_points_per_tick
-		if(getBruteLoss() || getFireLoss())
-			if(regen_points > regen_points_per_hp)
-				if(getBruteLoss())
-					adjustBruteLoss(-1)
-					regen_points -= regen_points_per_hp
-				else if(getFireLoss())
-					adjustFireLoss(-1)
-					regen_points -= regen_points_per_hp
-		if(prob(5)) // AA 2022-08-11 - This gives me prob(80) vibes. Should probably be refactored.
-			CheckFaction()
+	if(stat == DEAD)
+		return
+	if(degenerate)
+		adjustToxLoss(rand(1, 10))
+	if(regen_points < regen_points_max)
+		regen_points += regen_points_per_tick
+	if(getBruteLoss() || getFireLoss())
+		if(regen_points > regen_points_per_hp)
+			if(getBruteLoss())
+				adjustBruteLoss(-1)
+				regen_points -= regen_points_per_hp
+			else if(getFireLoss())
+				adjustFireLoss(-1)
+				regen_points -= regen_points_per_hp
+	if(prob(5)) // AA 2022-08-11 - This gives me prob(80) vibes. Should probably be refactored.
+		CheckFaction()
 
 /mob/living/simple_animal/hostile/poison/terror_spider/proc/handle_dying()
 	if(!hasdied)
@@ -352,8 +350,13 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 	if(can_die())
 		if(!gibbed)
 			msg_terrorspiders("[src] has died in [get_area(src)].")
+			addtimer(CALLBACK(src, PROC_REF(decompose_now)), DECOMPOSE_TIMER)
 		handle_dying()
 	return ..()
+
+/mob/living/simple_animal/hostile/poison/terror_spider/proc/decompose_now()
+	visible_message("<span class='notice'>The dead body of [src] decomposes!</span>")
+	gib()
 
 /mob/living/simple_animal/hostile/poison/terror_spider/proc/spider_special_action()
 	return
@@ -377,7 +380,7 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 			to_chat(T, "<span class='terrorspider'>TerrorSense: [msgtext]</span>")
 
 /mob/living/simple_animal/hostile/poison/terror_spider/proc/CheckFaction()
-	if(faction.len != 2 || (!("terrorspiders" in faction)) || master_commander != null)
+	if(length(faction) != 2 || (!("terrorspiders" in faction)) || master_commander != null)
 		to_chat(src, "<span class='userdanger'>Your connection to the hive mind has been severed!</span>")
 		stack_trace("Terror spider with incorrect faction list at: [atom_loc_line(src)]")
 		gib()
@@ -416,13 +419,14 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 		for(var/obj/structure/spider/S in range(1, get_turf(src)))
 			return S
 
-/mob/living/simple_animal/hostile/poison/terror_spider/Stat()
-	..()
+/mob/living/simple_animal/hostile/poison/terror_spider/get_status_tab_items()
+	var/list/status_tab_data = ..()
+	. = status_tab_data
 	// Determines what shows in the "Status" tab for player-controlled spiders. Used to help players understand spider health regeneration mechanics.
 	// Uses <font color='#X'> because the status panel does NOT accept <span class='X'>.
-	if(statpanel("Status") && ckey && stat == CONSCIOUS)
+	if(ckey && stat == CONSCIOUS)
 		if(degenerate)
-			stat(null, "<font color='#eb4034'>Hivemind Connection Severed! Dying...</font>") // color=red
+			status_tab_data[++status_tab_data.len] = list("Hivemind Connection Severed!", "<font color='#eb4034'>Dying...</font>") // color=red
 			return
 		if(health != maxHealth)
 			var/hp_points_per_second = 0
@@ -440,7 +444,7 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 				hp_points_per_second = 1 / secs_per_tick
 			if(hp_points_per_second > 0)
 				var/pc_of_max_per_second = round(((hp_points_per_second / maxHealth) * 100), 0.1)
-				stat(null, "Regeneration: [ltext]: <font color='[lcolor]'>[num2text(pc_of_max_per_second)]% of health per second</font>")
+				status_tab_data[++status_tab_data.len] = list("Regeneration:", "[ltext]: <font color='[lcolor]'>[num2text(pc_of_max_per_second)]% of health per second</font>")
 
 /mob/living/simple_animal/hostile/poison/terror_spider/proc/DoRemoteView()
 	if(!isturf(loc))
@@ -460,7 +464,7 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 		if(T.stat == DEAD)
 			continue
 		targets |= T // we use |= instead of += to avoid adding src to the list twice
-	var/mob/living/L = input("Choose a terror to watch.", "Selection") in targets
+	var/mob/living/L = tgui_input_list(src, "Choose a terror to watch.", "Brood Viewing", targets)
 	if(istype(L))
 		reset_perspective(L)
 
@@ -474,3 +478,5 @@ GLOBAL_LIST_EMPTY(ts_infected_list)
 	. = ..()
 	if(pulling && !ismob(pulling) && pulling.density)
 		. += 6 // Drastic move speed penalty for dragging anything that is not a mob or a non dense object
+
+#undef DECOMPOSE_TIMER

@@ -1,7 +1,7 @@
+RESTRICT_TYPE(/datum/antagonist/rev/head)
 
 /datum/antagonist/rev/head
 	name = "Head Revolutionary"
-	roundend_category = "revs"
 	antag_hud_name = "hudheadrevolutionary"
 	converted = FALSE
 	var/should_equip = TRUE
@@ -16,7 +16,7 @@
 	INVOKE_ASYNC(revolting, TYPE_PROC_REF(/datum/team/revolution, process_promotion), REVOLUTION_PROMOTION_AT_LEAST_ONE)
 
 /datum/antagonist/rev/head/greet()
-	to_chat(owner.current, "<span class='userdanger'>You are a member of the revolutionaries' leadership! Mutiny against the station's command and take control!</span>")
+	return "<span class='userdanger'>You are a member of the revolutionaries' leadership! Mutiny against the station's command and take control!</span>"
 
 /datum/antagonist/rev/head/add_owner_to_gamemode()
 	SSticker.mode.head_revolutionaries |= owner
@@ -31,11 +31,11 @@
 		return
 
 	var/list/slots = list(
-		"backpack" = SLOT_HUD_IN_BACKPACK,
-		"left pocket" = SLOT_HUD_LEFT_STORE,
-		"right pocket" = SLOT_HUD_RIGHT_STORE,
-		"left hand" = SLOT_HUD_LEFT_HAND,
-		"right hand" = SLOT_HUD_RIGHT_HAND,
+		"backpack" = ITEM_SLOT_IN_BACKPACK,
+		"left pocket" = ITEM_SLOT_LEFT_POCKET,
+		"right pocket" = ITEM_SLOT_RIGHT_POCKET,
+		"left hand" = ITEM_SLOT_LEFT_HAND,
+		"right hand" = ITEM_SLOT_RIGHT_HAND,
 	)
 
 	var/flashloc_name
@@ -45,9 +45,9 @@
 		to_chat(revolutionary, "The flash in your [flashloc_name] will help you to persuade the crew to join your cause.")
 
 	if(give_hud)
-		var/obj/item/clothing/glasses/hud/security/chameleon/C = new(get_turf(revolutionary))
-		var/hudloc_name = revolutionary.equip_in_one_of_slots(C, slots)
-		to_chat(revolutionary, "The chameleon security HUD in your [hudloc_name] will help you keep track of who is mindshield-implanted, and unable to be recruited.")
+		var/obj/item/organ/internal/cyberimp/eyes/hud/security/hidden/O = new /obj/item/organ/internal/cyberimp/eyes/hud/security/hidden
+		O.insert(revolutionary)
+		to_chat(revolutionary, "The security HUD implant in your head will help you keep track of who is mindshield-implanted, and unable to be recruited.")
 
 	revolutionary.update_icons()
 	return flashloc_name
@@ -57,8 +57,7 @@
 
 /datum/antagonist/rev/head/proc/demote()
 	var/datum/mind/old_owner = owner
-	silent = TRUE
-	owner.remove_antag_datum(/datum/antagonist/rev/head)
+	owner.remove_antag_datum(/datum/antagonist/rev/head, silent_removal = TRUE)
 
 	var/datum/antagonist/rev/demoted = new()
 	demoted.silent = TRUE

@@ -17,7 +17,6 @@
 	Specialized egg types have a limit on how many can be laid, and you need to remain alive for some time before you can lay the strongest eggs. \
 	You have high health and are armored, with weaker attacks being unable to harm you. While your melee attacks only deal moderate damage, you additionally have access to a powerful ranged acid attack. \
 	You can also open both powered doors and welded vents, and your webs are airtight - being capable of blocking off exposure to space."
-	ai_target_method = TS_DAMAGE_SIMPLE
 	icon_state = "terror_queen"
 	icon_living = "terror_queen"
 	icon_dead = "terror_queen_dead"
@@ -25,8 +24,6 @@
 	health = 200
 	regen_points_per_tick = 3
 	melee_damage_lower = 10
-	melee_damage_upper = 20
-	ventcrawler = 1
 	ai_break_lights = FALSE
 	ai_spins_webs = FALSE
 	ai_ventcrawls = FALSE
@@ -136,7 +133,7 @@
 
 
 /mob/living/simple_animal/hostile/poison/terror_spider/queen/spider_special_action()
-	if(!stat && !ckey)
+	if(stat == CONSCIOUS && !ckey)
 		switch(neststep)
 			if(0)
 				// No nest. If current location is eligible for nesting, advance to step 1.
@@ -224,7 +221,7 @@
 
 
 /mob/living/simple_animal/hostile/poison/terror_spider/queen/proc/NestPrompt()
-	var/confirm = alert(src, "Are you sure you want to nest? You will be able to lay eggs, and smash walls, but not ventcrawl.","Nest?","Yes","No")
+	var/confirm = tgui_alert(src, "Are you sure you want to nest? You will be able to lay eggs, and smash walls, but not ventcrawl.", "Nest?", list("Yes","No"))
 	if(confirm == "Yes")
 		NestMode()
 
@@ -236,7 +233,7 @@
 	queensense_action.Grant(src)
 	queennest_action.Remove(src)
 	hasnested = TRUE
-	ventcrawler = 0
+	ventcrawler = VENTCRAWLER_NONE
 	ai_ventcrawls = FALSE
 	environment_smash = ENVIRONMENT_SMASH_RWALLS
 	DoQueenScreech(8, 100, 8, 100)
@@ -255,14 +252,14 @@
 	var/list/eggtypes = ListAvailableEggTypes()
 	var/list/eggtypes_uncapped = list(TS_DESC_RED, TS_DESC_GRAY, TS_DESC_GREEN)
 
-	var/eggtype = input("What kind of eggs?") as null|anything in eggtypes
+	var/eggtype = tgui_input_list(src, "What kind of eggs?", "Laying Eggs", eggtypes)
 	if(canlay < 1)
 		// this was checked before input() but we have to check again to prevent them spam-clicking the popup.
 		to_chat(src, "<span class='danger'>Too soon to lay another egg.</span>")
 		return
 	if(!(eggtype in eggtypes))
 		to_chat(src, "<span class='danger'>Unrecognized egg type.</span>")
-		return 0
+		return FALSE
 
 	// Multiple of eggtypes_uncapped can be laid at once. Other types must be laid one at a time (to prevent exploits)
 	var/numlings = 1
@@ -366,12 +363,12 @@
 
 /obj/structure/spider/terrorweb/queen/Initialize(mapload)
 	. = ..()
-	air_update_turf(TRUE)
+	recalculate_atmos_connectivity()
 
-/obj/structure/spider/terrorweb/queen/CanAtmosPass(turf/T)
+/obj/structure/spider/terrorweb/queen/CanAtmosPass(direction)
 	return FALSE
 
 /obj/structure/spider/terrorweb/queen/Destroy()
 	var/turf/T = get_turf(src)
 	. = ..()
-	T.air_update_turf(TRUE)
+	T.recalculate_atmos_connectivity()

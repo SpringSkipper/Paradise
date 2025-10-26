@@ -1,15 +1,12 @@
 //MAP CONVERTED BY dmm2tgm.py THIS HEADER COMMENT PREVENTS RECONVERSION, DO NOT REMOVE
 "ae" = (
 /obj/machinery/light/small,
-/obj/structure/closet/walllocker/emerglocker{
-	dir = 8;
-	pixel_x = -32
-	},
+/obj/structure/closet/walllocker/emerglocker/directional/west,
 /obj/effect/decal/cleanable/dirt,
 /turf/simulated/floor/pod/light,
 /area/ruin/space/wreck_cargoship)
 "ah" = (
-/obj/effect/decal/warning_stripes/yellow,
+/obj/effect/turf_decal/delivery,
 /obj/machinery/door/poddoor/shutters{
 	id_tag = "cargoshipblastdoor2"
 	},
@@ -20,7 +17,7 @@
 /area/ruin/space/wreck_cargoship)
 "aW" = (
 /obj/structure/fans/tiny,
-/obj/effect/decal/warning_stripes/yellow,
+/obj/effect/turf_decal/delivery,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "bf" = (
@@ -31,21 +28,24 @@
 	dir = 8
 	},
 /turf/template_noop,
-/area/template_noop)
+/area/space/nearstation)
 "ca" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/item/kirbyplants,
-/turf/simulated/floor/plasteel{
-	dir = 8;
-	icon_state = "caution"
+/obj/item/kirbyplants/large,
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 8
+	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "cx" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plasteel{
-	icon_state = "yellowcornersiding";
+/obj/effect/turf_decal/yellow_siding/corner{
 	dir = 4
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "cT" = (
 /turf/simulated/floor/plasteel{
@@ -57,17 +57,17 @@
 /obj/machinery/light/small{
 	dir = 4
 	},
-/obj/effect/decal/warning_stripes/southeastcorner,
+/obj/effect/turf_decal/stripes/corner,
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/cobweb2,
 /obj/structure/rack,
 /obj/item/beach_ball/holoball,
 /obj/item/beach_ball/holoball,
 /obj/item/beach_ball/holoball,
-/turf/simulated/floor/plasteel{
-	dir = 8;
-	icon_state = "blackcorner"
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 8
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "dx" = (
 /obj/machinery/suit_storage_unit/standard_unit,
@@ -85,20 +85,21 @@
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "dQ" = (
-/turf/simulated/floor/plasteel{
-	icon_state = "yellowsiding";
+/obj/effect/turf_decal/yellow_siding{
 	dir = 4
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "ea" = (
 /turf/template_noop,
 /area/template_noop)
 "eC" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plasteel{
-	dir = 4;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 4
 	},
+/obj/effect/turf_decal/tiles/dark/corner,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "eQ" = (
 /obj/machinery/door/airlock/hatch,
@@ -106,30 +107,35 @@
 /area/ruin/space/wreck_cargoship)
 "eV" = (
 /obj/structure/railing,
-/turf/simulated/floor/plasteel{
-	dir = 4;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 4
 	},
+/obj/effect/turf_decal/tiles/dark/corner,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "fm" = (
-/obj/effect/decal/warning_stripes/west,
-/obj/effect/decal/warning_stripes/west,
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
 /turf/simulated/floor/plasteel/stairs{
 	dir = 4
 	},
 /area/ruin/space/wreck_cargoship)
 "gi" = (
-/turf/simulated/floor/plasteel{
-	dir = 4;
-	icon_state = "blackcorner"
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 4
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "gp" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/closet,
-/obj/item/clothing/suit/jacket/cargobomber,
-/obj/item/clothing/suit/jacket/cargobomber,
-/obj/item/clothing/suit/jacket/cargobomber,
+/obj/item/clothing/suit/jacket/bomber/cargo,
+/obj/item/clothing/suit/jacket/bomber/cargo,
+/obj/item/clothing/suit/jacket/bomber/cargo,
 /obj/item/clothing/under/rank/cargo/tech,
 /obj/item/clothing/under/rank/cargo/tech,
 /obj/item/clothing/under/rank/cargo/tech,
@@ -142,9 +148,8 @@
 /obj/structure/chair/comfy/shuttle{
 	dir = 4
 	},
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/mob/living/basic/pirate/ranged,
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "gE" = (
 /turf/simulated/wall/mineral/plastitanium,
@@ -161,7 +166,7 @@
 /area/ruin/space/wreck_cargoship)
 "hn" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/structure/chair/office{
+/obj/structure/chair{
 	dir = 8
 	},
 /turf/simulated/floor/plating,
@@ -178,6 +183,7 @@
 /obj/structure/chair/comfy/corp{
 	dir = 8
 	},
+/mob/living/basic/pirate,
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "hO" = (
@@ -188,28 +194,25 @@
 /area/ruin/space/wreck_cargoship)
 "if" = (
 /obj/structure/largecrate,
-/turf/simulated/floor/plasteel{
-	icon_state = "yellowsiding";
+/obj/effect/turf_decal/yellow_siding{
 	dir = 1
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "it" = (
 /obj/structure/railing{
 	dir = 8
 	},
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "iU" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plasteel{
-	icon_state = "yellowsiding";
+/obj/effect/turf_decal/yellow_siding{
 	dir = 4
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "jb" = (
-/obj/structure/table,
 /obj/structure/table,
 /obj/item/paper{
 	name = "management's directive";
@@ -219,8 +222,8 @@
 /area/ruin/space/wreck_cargoship)
 "jm" = (
 /obj/item/toy/plushie/ipcplushie,
-/obj/item/reagent_containers/food/snacks/breadslice,
-/obj/item/reagent_containers/food/snacks/breadslice,
+/obj/item/food/sliced/bread,
+/obj/item/food/sliced/bread,
 /obj/item/paper/crumpled{
 	name = "unintelligible scribbles";
 	info = "toast... i must... the plushie..."
@@ -229,7 +232,7 @@
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "jN" = (
-/obj/effect/decal/warning_stripes/yellow,
+/obj/effect/turf_decal/delivery,
 /obj/effect/decal/cleanable/glass,
 /obj/effect/decal/cleanable/shreds{
 	layer = 2
@@ -250,7 +253,9 @@
 /obj/structure/railing{
 	dir = 4
 	},
-/obj/effect/decal/warning_stripes/east,
+/obj/effect/turf_decal/stripes/line{
+	dir = 4
+	},
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium_dam5";
 	dir = 4
@@ -258,7 +263,7 @@
 /area/ruin/space/wreck_cargoship)
 "kt" = (
 /obj/structure/railing/corner,
-/obj/effect/decal/warning_stripes/white/partial{
+/obj/effect/turf_decal/delivery/white/partial{
 	dir = 1
 	},
 /turf/simulated/floor/plasteel,
@@ -267,6 +272,7 @@
 /obj/effect/decal/cleanable/cobweb,
 /obj/structure/rack,
 /obj/item/stack/rods/fifty,
+/obj/effect/spawner/random/pool/spaceloot/syndicate/mixed,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
@@ -288,10 +294,10 @@
 /area/ruin/space/wreck_cargoship)
 "kU" = (
 /obj/structure/table,
-/obj/effect/decal/warning_stripes/west,
-/obj/structure/sign/poster/contraband/tools{
-	pixel_y = 32
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
 	},
+/obj/structure/sign/poster/contraband/tools/directional/north,
 /obj/item/storage/toolbox/mechanical,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
@@ -309,15 +315,15 @@
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "lQ" = (
-/obj/effect/decal/warning_stripes/west,
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "lW" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/molten_object,
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "mm" = (
 /turf/simulated/floor/plasteel,
@@ -354,15 +360,17 @@
 /obj/machinery/light/small{
 	dir = 8
 	},
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/structure/largecrate,
-/turf/simulated/floor/plasteel{
-	dir = 4;
-	icon_state = "black"
+/obj/effect/turf_decal/tiles/dark/side{
+	dir = 4
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "nr" = (
-/obj/effect/decal/warning_stripes/west,
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
 /obj/effect/decal/cleanable/dirt,
 /obj/structure/grille/broken,
 /obj/machinery/door_control{
@@ -375,31 +383,30 @@
 "nx" = (
 /obj/structure/railing,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "ny" = (
 /turf/simulated/wall/mineral/plastitanium/nodiagonal,
 /area/ruin/space/wreck_cargoship)
 "nB" = (
-/obj/effect/decal/warning_stripes/white/partial{
+/obj/effect/turf_decal/delivery/white/partial{
 	dir = 1
 	},
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "nG" = (
 /obj/structure/table_frame,
-/turf/simulated/floor/plasteel{
-	dir = 10;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 8
+	},
+/obj/effect/turf_decal/tiles/dark/corner,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "nH" = (
-/obj/machinery/light/small,
-/obj/machinery/power/apc/off_station/empty_charge{
-	pixel_y = -24
-	},
+/obj/machinery/power/apc/off_station/empty_charge/directional/south,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "oE" = (
@@ -421,21 +428,23 @@
 /obj/machinery/door/firedoor/border_only/closed{
 	dir = 1
 	},
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "py" = (
 /obj/structure/railing{
 	dir = 1
 	},
-/obj/effect/decal/warning_stripes/north,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
 	},
 /area/ruin/space/wreck_cargoship)
 "pz" = (
-/obj/effect/decal/warning_stripes/yellow,
+/obj/effect/turf_decal/delivery,
 /obj/structure/barricade/wooden/crude{
 	layer = 4
 	},
@@ -443,16 +452,23 @@
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "pD" = (
-/obj/structure/closet/walllocker/emerglocker{
-	pixel_y = 32
+/obj/structure/closet/walllocker/emerglocker/directional/north,
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
-/turf/simulated/floor/plasteel{
-	dir = 9;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 8
 	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 4
+	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "pL" = (
-/obj/effect/decal/warning_stripes/northwestcorner,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 1
+	},
+/mob/living/simple_animal/parrot,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
@@ -468,16 +484,19 @@
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "pW" = (
-/turf/simulated/floor/plasteel{
-	dir = 1;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 4
+	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "qg" = (
 /obj/structure/lattice/catwalk,
 /obj/structure/marker_beacon/dock_marker/collision,
 /turf/template_noop,
-/area/template_noop)
+/area/space/nearstation)
 "qr" = (
 /obj/structure/largecrate,
 /obj/effect/decal/cleanable/dirt,
@@ -504,13 +523,14 @@
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "rA" = (
-/obj/effect/decal/warning_stripes/northwestcorner,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 1
+	},
 /obj/structure/closet/crate,
 /obj/item/clothing/under/syndicate,
 /obj/item/clothing/under/syndicate,
-/turf/simulated/floor/plasteel{
-	icon_state = "black"
-	},
+/obj/effect/turf_decal/tiles/dark/side,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "sd" = (
 /turf/simulated/floor/plasteel/stairs{
@@ -518,10 +538,13 @@
 	},
 /area/ruin/space/wreck_cargoship)
 "sL" = (
-/turf/simulated/floor/plasteel{
-	dir = 8;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 8
+	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "tk" = (
 /obj/structure/largecrate,
@@ -531,13 +554,11 @@
 	},
 /area/ruin/space/wreck_cargoship)
 "tm" = (
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/obj/effect/mapping_helpers/turfs/damage,
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "tn" = (
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/machinery/door/poddoor/shutters{
 	dir = 8;
 	id_tag = "cargoshipblastdoor4"
@@ -547,9 +568,7 @@
 "tA" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/molten_object/large,
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "tD" = (
 /obj/effect/decal/cleanable/cobweb,
@@ -557,37 +576,36 @@
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "un" = (
-/obj/structure/chair/office{
+/obj/structure/chair{
 	dir = 1
 	},
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "uH" = (
 /obj/structure/fans/tiny,
-/obj/effect/decal/warning_stripes/yellow,
-/obj/machinery/door/poddoor/multi_tile/impassable/three_tile_hor{
+/obj/effect/turf_decal/delivery,
+/obj/machinery/door/poddoor/multi_tile/impassable/triple{
 	id_tag = "cargoshipblastdoor1"
 	},
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "uV" = (
-/obj/structure/closet/crate/secure/loot,
+/obj/effect/spawner/random/loot_crate,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
 	},
 /area/ruin/space/wreck_cargoship)
 "vq" = (
-/turf/simulated/floor/plasteel{
-	dir = 1;
-	icon_state = "black"
+/obj/structure/reagent_dispensers/fueltank,
+/obj/effect/turf_decal/tiles/dark/side{
+	dir = 1
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "wf" = (
-/obj/effect/landmark/burnturf,
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/obj/effect/mapping_helpers/turfs/burn,
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "wp" = (
 /obj/effect/decal/cleanable/dirt,
@@ -603,10 +621,7 @@
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "yF" = (
-/obj/structure/closet/walllocker/emerglocker{
-	dir = 4;
-	pixel_x = 32
-	},
+/obj/structure/closet/walllocker/emerglocker/directional/east,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
@@ -614,7 +629,7 @@
 /area/ruin/space/wreck_cargoship)
 "yG" = (
 /obj/effect/decal/cleanable/dirt,
-/mob/living/simple_animal/hostile/retaliate/poison/snake{
+/mob/living/basic/snake{
 	name = "Rattlesnake Hardie";
 	desc = "A relatively menacing looking snake. Despite their intimidating look, they have cute collar attached to their neck. You can't help but think that name sounds familiar from somewhere."
 	},
@@ -623,7 +638,9 @@
 /area/ruin/space/wreck_cargoship)
 "zm" = (
 /obj/effect/decal/cleanable/dirt,
-/obj/effect/decal/warning_stripes/east,
+/obj/effect/turf_decal/stripes/line{
+	dir = 4
+	},
 /obj/structure/railing/corner,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
@@ -644,32 +661,30 @@
 /obj/machinery/light/small{
 	dir = 1
 	},
-/obj/structure/closet/crate/secure/loot,
+/obj/effect/spawner/random/loot_crate,
+/obj/effect/spawner/random/pool/spaceloot/syndicate/mixed,
 /turf/simulated/floor/pod/light,
 /area/ruin/space/wreck_cargoship)
 "AN" = (
 /obj/effect/decal/remains/human,
 /obj/structure/grille/broken,
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "AP" = (
 /obj/structure/rack,
-/obj/structure/sign/poster/contraband/smoke{
-	pixel_x = -32
+/obj/structure/sign/poster/contraband/smoke/directional/west,
+/obj/effect/spawner/random/maintenance,
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
-/obj/effect/spawner/lootdrop/maintenance/two,
-/turf/simulated/floor/plasteel{
-	dir = 8;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 8
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "AR" = (
 /obj/effect/decal/cleanable/blood/oil,
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "Bt" = (
 /obj/structure/rack,
@@ -681,19 +696,21 @@
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Bx" = (
-/obj/effect/decal/warning_stripes/southwestcorner,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 8
+	},
 /obj/structure/rack,
 /obj/structure/sign/cargo{
 	pixel_x = -32
 	},
-/obj/effect/spawner/lootdrop/maintenance/two,
+/obj/effect/spawner/random/maintenance,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
 	},
 /area/ruin/space/wreck_cargoship)
 "BA" = (
-/obj/effect/decal/cleanable/blood/tracks,
+/obj/effect/decal/cleanable/blood/tracks/mapped,
 /obj/structure/railing/corner{
 	dir = 8
 	},
@@ -708,7 +725,7 @@
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "CB" = (
-/obj/effect/decal/cleanable/blood/tracks,
+/obj/effect/decal/cleanable/blood/tracks/mapped,
 /obj/structure/railing/corner{
 	dir = 1
 	},
@@ -718,7 +735,9 @@
 /obj/structure/railing{
 	dir = 4
 	},
-/obj/effect/decal/warning_stripes/east,
+/obj/effect/turf_decal/stripes/line{
+	dir = 4
+	},
 /obj/structure/largecrate,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
@@ -732,7 +751,7 @@
 "DY" = (
 /obj/structure/lattice,
 /turf/template_noop,
-/area/template_noop)
+/area/space/nearstation)
 "Ei" = (
 /obj/effect/decal/cleanable/blood/old,
 /obj/structure/railing,
@@ -745,11 +764,15 @@
 	dir = 4
 	},
 /obj/effect/decal/cleanable/cobweb2,
-/obj/item/kirbyplants,
-/turf/simulated/floor/plasteel{
-	dir = 5;
-	icon_state = "caution"
+/obj/item/kirbyplants/large,
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 4
+	},
+/obj/effect/turf_decal/tiles/dark/corner,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "ET" = (
 /obj/effect/decal/cleanable/dirt,
@@ -758,10 +781,11 @@
 "Fk" = (
 /obj/structure/closet/crate,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plasteel{
-	icon_state = "yellowsiding";
+/obj/effect/spawner/random/pool/spaceloot/syndicate/mixed,
+/obj/effect/turf_decal/yellow_siding{
 	dir = 1
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Ge" = (
 /obj/structure/railing,
@@ -774,11 +798,12 @@
 	},
 /area/ruin/space/wreck_cargoship)
 "GR" = (
-/obj/effect/decal/warning_stripes/north,
-/obj/effect/landmark/damageturf,
-/turf/simulated/floor/plasteel{
-	icon_state = "black"
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
 	},
+/obj/effect/mapping_helpers/turfs/damage,
+/obj/effect/turf_decal/tiles/dark/side,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Ho" = (
 /obj/structure/rack,
@@ -793,7 +818,7 @@
 /obj/structure/railing{
 	dir = 9
 	},
-/obj/item/kirbyplants,
+/obj/item/kirbyplants/large,
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Ih" = (
@@ -819,9 +844,7 @@
 /obj/item/toy/figure/crew/cargotech{
 	pixel_y = 3
 	},
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "JR" = (
 /obj/effect/decal/cleanable/dirt,
@@ -838,7 +861,9 @@
 /obj/structure/railing/corner{
 	dir = 4
 	},
-/obj/effect/decal/warning_stripes/northeastcorner,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 4
+	},
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
@@ -855,7 +880,9 @@
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "Kw" = (
-/obj/effect/decal/warning_stripes/west,
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
 /turf/simulated/floor/plasteel/stairs{
 	dir = 4
 	},
@@ -863,46 +890,57 @@
 "KJ" = (
 /obj/structure/table,
 /obj/machinery/recharger,
-/turf/simulated/floor/plasteel{
-	dir = 8;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 8
+	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "KZ" = (
-/obj/effect/decal/warning_stripes/northeastcorner,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 4
+	},
 /obj/effect/decal/cleanable/dirt,
 /obj/effect/decal/cleanable/cobweb,
 /obj/structure/largecrate,
-/turf/simulated/floor/plasteel{
-	icon_state = "blackcorner"
-	},
+/obj/effect/turf_decal/tiles/dark/corner,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Ll" = (
 /obj/effect/decal/cleanable/blood/old,
-/turf/simulated/floor/plasteel{
-	dir = 1;
-	icon_state = "black"
+/obj/item/salvage/ruin/pirate,
+/obj/effect/turf_decal/tiles/dark/side{
+	dir = 1
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Lt" = (
 /obj/structure/sign/nosmoking_2{
 	pixel_x = 32
 	},
-/turf/simulated/floor/plasteel{
-	dir = 5;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 4
+	},
+/obj/effect/turf_decal/tiles/dark/corner,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "LF" = (
-/obj/effect/decal/warning_stripes/east,
-/obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plasteel{
-	dir = 8;
-	icon_state = "black"
+/obj/effect/turf_decal/stripes/line{
+	dir = 4
 	},
+/obj/effect/decal/cleanable/dirt,
+/obj/effect/turf_decal/tiles/dark/side{
+	dir = 8
+	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Mc" = (
-/obj/effect/landmark/damageturf,
+/obj/effect/mapping_helpers/turfs/damage,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "Mt" = (
@@ -913,16 +951,18 @@
 /obj/item/toy/plushie/grey_cat,
 /obj/item/toy/plushie/shark,
 /obj/item/toy/plushie/abductor/agent,
-/turf/simulated/floor/plasteel{
-	dir = 4;
-	icon_state = "black"
+/obj/effect/turf_decal/tiles/dark/side{
+	dir = 4
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Mx" = (
 /obj/structure/railing{
 	dir = 1
 	},
-/obj/effect/decal/warning_stripes/northeast,
+/obj/effect/turf_decal/stripes/line{
+	dir = 5
+	},
 /obj/effect/decal/remains/human,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
@@ -935,10 +975,10 @@
 /area/ruin/space/wreck_cargoship)
 "MS" = (
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plasteel{
-	dir = 1;
-	icon_state = "black"
+/obj/effect/turf_decal/tiles/dark/side{
+	dir = 1
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "MY" = (
 /obj/machinery/light/small,
@@ -970,7 +1010,7 @@
 	id_tag = "cargoshipblastdoor3";
 	name = "auxiliary equipment storage shutters"
 	},
-/obj/effect/decal/warning_stripes/yellow,
+/obj/effect/turf_decal/delivery,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "NR" = (
@@ -987,7 +1027,9 @@
 /obj/structure/railing/corner{
 	dir = 1
 	},
-/obj/effect/decal/warning_stripes/west,
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
@@ -1014,9 +1056,17 @@
 /obj/item/clothing/head/kitty,
 /obj/item/clothing/head/kitty,
 /obj/item/clothing/head/kitty,
+/obj/effect/turf_decal/tiles/dark/side{
+	dir = 1
+	},
+/turf/simulated/floor/plasteel,
+/area/ruin/space/wreck_cargoship)
+"RM" = (
+/obj/effect/decal/cleanable/dirt,
+/mob/living/basic/pirate,
 /turf/simulated/floor/plasteel{
-	dir = 1;
-	icon_state = "black"
+	icon_state = "titanium";
+	dir = 4
 	},
 /area/ruin/space/wreck_cargoship)
 "RZ" = (
@@ -1028,33 +1078,36 @@
 	},
 /area/ruin/space/wreck_cargoship)
 "Se" = (
-/obj/effect/decal/warning_stripes/east,
-/obj/effect/landmark/damageturf,
+/obj/effect/turf_decal/stripes/line{
+	dir = 4
+	},
+/obj/effect/mapping_helpers/turfs/damage,
 /obj/machinery/button/windowtint{
 	pixel_y = -32
 	},
-/obj/structure/closet/crate/secure/loot,
-/turf/simulated/floor/plasteel{
-	dir = 1;
-	icon_state = "blackcorner"
+/obj/effect/spawner/random/loot_crate,
+/obj/effect/spawner/random/pool/spaceloot/syndicate/mixed,
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Sj" = (
 /obj/effect/decal/cleanable/dirt,
 /obj/machinery/atmospherics/portable/canister/oxygen,
+/obj/machinery/light/small,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "SI" = (
-/obj/effect/decal/warning_stripes/north,
-/obj/effect/landmark/burnturf,
-/turf/simulated/floor/plasteel{
-	icon_state = "black"
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
 	},
+/obj/effect/mapping_helpers/turfs/burn,
+/obj/effect/turf_decal/tiles/dark/side,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "SJ" = (
-/obj/structure/sign/poster/official/here_for_your_safety{
-	pixel_y = -32
-	},
+/obj/structure/sign/poster/official/here_for_your_safety/directional/south,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
@@ -1065,20 +1118,18 @@
 	id_tag = "cargoshipblastdoor3";
 	name = "auxiliary equipment storage shutters"
 	},
-/obj/effect/decal/warning_stripes/yellow,
+/obj/effect/turf_decal/delivery,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "TS" = (
 /obj/machinery/light{
 	dir = 4
 	},
-/obj/machinery/computer{
+/obj/machinery/computer/nonfunctional{
 	dir = 8
 	},
 /obj/structure/railing,
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "Ub" = (
 /obj/machinery/light{
@@ -1087,7 +1138,9 @@
 /obj/structure/railing{
 	dir = 4
 	},
-/obj/effect/decal/warning_stripes/east,
+/obj/effect/turf_decal/stripes/line{
+	dir = 4
+	},
 /obj/effect/decal/cleanable/cobweb2,
 /obj/structure/reagent_dispensers/watertank,
 /turf/simulated/floor/plasteel{
@@ -1104,7 +1157,7 @@
 /area/ruin/space/wreck_cargoship)
 "UE" = (
 /obj/machinery/door/airlock/maintenance_hatch,
-/obj/effect/decal/warning_stripes/yellow,
+/obj/effect/turf_decal/delivery,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "UN" = (
@@ -1115,17 +1168,21 @@
 /turf/simulated/wall/mineral/plastitanium,
 /area/ruin/space/wreck_cargoship)
 "UQ" = (
-/obj/effect/decal/warning_stripes/east,
-/turf/simulated/floor/plasteel{
-	dir = 8;
-	icon_state = "black"
+/obj/effect/turf_decal/stripes/line{
+	dir = 4
 	},
+/obj/effect/turf_decal/tiles/dark/side{
+	dir = 8
+	},
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Vb" = (
 /obj/structure/railing{
 	dir = 1
 	},
-/obj/effect/decal/warning_stripes/north,
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
+	},
 /obj/effect/decal/cleanable/dirt,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium_dam3";
@@ -1135,20 +1192,32 @@
 "Vc" = (
 /obj/effect/decal/cleanable/cobweb,
 /obj/effect/decal/cleanable/dirt,
-/turf/simulated/floor/plasteel{
-	dir = 9;
-	icon_state = "caution"
+/obj/effect/spawner/random/pool/spaceloot/syndicate/mixed,
+/obj/effect/turf_decal/tiles/dark/corner{
+	dir = 1
 	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 8
+	},
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 4
+	},
+/turf/simulated/floor/plasteel,
+/area/ruin/space/wreck_cargoship)
+"Vo" = (
+/mob/living/basic/pirate/ranged,
+/turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "Vs" = (
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "Vt" = (
-/obj/effect/decal/warning_stripes/north,
-/obj/effect/decal/cleanable/blood/old,
-/turf/simulated/floor/plasteel{
-	icon_state = "black"
+/obj/effect/turf_decal/stripes/line{
+	dir = 1
 	},
+/obj/effect/decal/cleanable/blood/old,
+/obj/effect/turf_decal/tiles/dark/side,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "Vw" = (
 /obj/effect/decal/cleanable/dirt,
@@ -1158,19 +1227,19 @@
 /turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "VF" = (
-/obj/machinery/computer{
+/obj/machinery/computer/nonfunctional{
 	dir = 8
 	},
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 "VR" = (
 /obj/machinery/light/small,
 /obj/structure/railing/corner{
 	dir = 4
 	},
-/obj/effect/decal/warning_stripes/northeastcorner,
+/obj/effect/turf_decal/stripes/corner{
+	dir = 4
+	},
 /obj/effect/decal/cleanable/dirt,
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
@@ -1182,16 +1251,18 @@
 	dir = 8
 	},
 /turf/template_noop,
-/area/template_noop)
+/area/space/nearstation)
 "VZ" = (
 /obj/structure/girder/displaced,
 /turf/template_noop,
-/area/template_noop)
+/area/space/nearstation)
 "Wj" = (
 /obj/structure/railing/corner{
 	dir = 8
 	},
-/obj/effect/decal/warning_stripes/west,
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
 /turf/simulated/floor/plasteel{
 	icon_state = "titanium";
 	dir = 4
@@ -1201,7 +1272,7 @@
 /obj/machinery/door/poddoor/shutters{
 	id_tag = "cargoshipblastdoor2"
 	},
-/obj/effect/decal/warning_stripes/yellow,
+/obj/effect/turf_decal/delivery,
 /obj/structure/barricade/wooden/crude{
 	layer = 4
 	},
@@ -1239,6 +1310,7 @@
 /obj/machinery/light/small{
 	dir = 1
 	},
+/obj/effect/spawner/random/pool/spaceloot/syndicate/mixed,
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "XX" = (
@@ -1266,17 +1338,20 @@
 /turf/simulated/floor/plating,
 /area/ruin/space/wreck_cargoship)
 "YV" = (
-/obj/effect/decal/warning_stripes/west,
+/obj/effect/turf_decal/stripes/line{
+	dir = 8
+	},
 /obj/effect/decal/cleanable/glass,
 /turf/simulated/floor/plasteel/stairs{
 	dir = 4
 	},
 /area/ruin/space/wreck_cargoship)
 "Zc" = (
-/turf/simulated/floor/plasteel{
-	dir = 4;
-	icon_state = "caution"
+/obj/effect/turf_decal/tiles/department/engineering/corner{
+	dir = 4
 	},
+/obj/effect/turf_decal/tiles/dark/corner,
+/turf/simulated/floor/plasteel,
 /area/ruin/space/wreck_cargoship)
 "ZY" = (
 /obj/structure/railing{
@@ -1287,9 +1362,7 @@
 	pixel_x = 8;
 	pixel_y = 7
 	},
-/turf/simulated/floor/plasteel{
-	icon_state = "dark"
-	},
+/turf/simulated/floor/plasteel/dark,
 /area/ruin/space/wreck_cargoship)
 
 (1,1,1) = {"
@@ -1450,7 +1523,7 @@ ea
 qg
 gE
 Yz
-Vs
+Vo
 Sj
 gE
 qg
@@ -1682,7 +1755,7 @@ NI
 NM
 cT
 NM
-NM
+RM
 qY
 NM
 xX

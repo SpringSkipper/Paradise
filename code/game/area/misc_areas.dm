@@ -1,14 +1,9 @@
-
-/area/generic
-	name = "Unknown"
-	icon_state = "storage"
-
-/area/start            // will be unused once kurper gets his login interface patch done
+/// will be unused once kurper gets his login interface patch done
+/area/start
 	name = "start area"
 	icon_state = "start"
 	requires_power = FALSE
 	dynamic_lighting = DYNAMIC_LIGHTING_DISABLED
-	has_gravity = TRUE
 	ambientsounds = null // No ambient sounds in the lobby
 
 
@@ -26,6 +21,16 @@
 	icon_state = "space_near"
 	dynamic_lighting = DYNAMIC_LIGHTING_IFSTARLIGHT
 
+/area/space/nearstation/disposals
+	icon_state = "nearspace_disposals"
+
+/area/space/nearstation/centcom
+	icon_state = "space_near_cc"
+
+/area/space/nearstation/no_teleport
+	icon_state = "space_near_notp"
+	tele_proof = TRUE
+
 /area/space/atmosalert()
 	return
 
@@ -38,6 +43,14 @@
 /area/space/centcomm
 	icon_state = "space_cc"
 
+/area/space/no_teleport
+	icon_state = "space_notp"
+	tele_proof = TRUE
+
+/area/game_test
+	name = "Game Test Area"
+	requires_power = FALSE
+
 //SYNDICATES
 
 /area/syndicate_mothership
@@ -48,27 +61,13 @@
 	nad_allowed = TRUE
 	ambientsounds = HIGHSEC_SOUNDS
 
-/area/syndicate_mothership/control
-	name = "\improper Syndicate Control Room"
-	icon_state = "syndie-control"
-
-/area/syndicate_mothership/elite_squad
-	name = "\improper Syndicate Elite Squad"
-	icon_state = "syndie-elite"
-
-/area/syndicate_mothership/infteam
-	name = "\improper Syndicate Infiltrators"
-	icon_state = "syndie-elite"
-
 /area/syndicate_mothership/jail
 	name = "\improper Syndicate Jail"
 
-// idk what this area is
-/area/mint
-	name = "\improper Mint"
-	icon_state = "green"
-
-//GAYBAR
-/area/secret/gaybar
-	name = "\improper Dance Bar"
-	icon_state = "dancebar"
+/area/cordon
+	name = "CORDON"
+	icon_state = "cordon"
+	requires_power = FALSE
+	always_unpowered = TRUE
+	dynamic_lighting = DYNAMIC_LIGHTING_DISABLED
+	valid_territory = FALSE

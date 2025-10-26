@@ -7,14 +7,12 @@
 	icon_state = "synthesizer"
 	idle_power_consumption = 8 //5 with default parts
 	active_power_consumption = 13 //10 with default parts
-	anchored = FALSE
-	density = FALSE
 	pass_flags = PASSTABLE
 	var/static/list/collectable_items = list(/obj/item/trash/waffles,
 		/obj/item/trash/plate,
 		/obj/item/trash/tray,
 		/obj/item/trash/snack_bowl,
-		/obj/item/reagent_containers/food/drinks/drinkingglass,
+		/obj/item/reagent_containers/drinks/drinkingglass,
 		/obj/item/kitchen/utensil/fork,
 		/obj/item/shard,
 		/obj/item/broken_bottle)
@@ -91,6 +89,7 @@
 				LAZYADD(dish_drive_contents, I)
 				visible_message("<span class='notice'>[src] beams up [I]!</span>")
 				I.forceMove(src)
+				SEND_SIGNAL(src, COMSIG_ATOM_DISINFECTED)
 				playsound(src, 'sound/items/pshoom.ogg', 15, TRUE)
 				flick("synthesizer_beam", src)
 			else

@@ -17,14 +17,10 @@
 	You can also produce royal jelly for other spiders to consume for faster health regeneration. \
 	Both of these require you to expend your own regeneration, though you gain much more from webbing corpses than other spiders. \
 	While you can open powered doors and bust open vents like a brown spider, you have low health and deal low damage, so you should avoid fights wherever possible."
-	ai_target_method = TS_DAMAGE_SIMPLE
 	icon_state = "terror_mother"
 	icon_living = "terror_mother"
 	icon_dead = "terror_mother_dead"
-	maxHealth = 120 // same combat stats as an unboosted T1 gray. Very weak in combat.
-	health = 120
 	melee_damage_lower = 10
-	melee_damage_upper = 20
 	regen_points_per_tick = 2
 	regen_points_max = 400 // enough to lay 4 jellies, if fully charged
 	regen_points_per_kill = 200 // >2x normal, since they're food reprocessors
@@ -54,11 +50,12 @@
 	DropSpiderlings()
 	. = ..()
 
-/mob/living/simple_animal/hostile/poison/terror_spider/mother/Stat()
-	..()
+/mob/living/simple_animal/hostile/poison/terror_spider/mother/get_status_tab_items()
+	var/list/status_tab_data = ..()
+	. = status_tab_data
 	// Provides a status panel indicator, showing mothers how many regen points they have.
-	if(statpanel("Status") && ckey && stat == CONSCIOUS)
-		stat(null, "Regeneration Points: [regen_points]")
+	if(ckey && stat == CONSCIOUS)
+		status_tab_data[++status_tab_data.len] = list("Regeneration Points:", "[regen_points]")
 
 /mob/living/simple_animal/hostile/poison/terror_spider/mother/examine(mob/user)
 	. = ..()
@@ -138,7 +135,7 @@
 	name = "mother web"
 	desc = "This web is coated in pheromones which prevent spiderlings from passing it."
 
-/obj/structure/spider/terrorweb/mother/CanPass(atom/movable/mover, turf/target)
+/obj/structure/spider/terrorweb/mother/CanPass(atom/movable/mover, border_dir)
 	if(istype(mover, /obj/structure/spider/spiderling/terror_spiderling))
 		return FALSE
 	return ..()

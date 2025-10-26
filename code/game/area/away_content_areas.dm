@@ -9,11 +9,9 @@
 
 /area/awaymission/example
 	name = "\improper Strange Station"
-	icon_state = "away"
 
 /area/awaymission/desert
 	name = "Mars"
-	icon_state = "away"
 
 /area/awaymission/beach
 	name = "Beach"
@@ -66,14 +64,11 @@
 /area/awaycontent/a11
 	icon_state = "awaycontent11"
 
-/area/awaycontent/a11
+/area/awaycontent/a12
 	icon_state = "awaycontent12"
 
-/area/awaycontent/a12
-	icon_state = "awaycontent13"
-
 /area/awaycontent/a13
-	icon_state = "awaycontent14"
+	icon_state = "awaycontent13"
 
 /area/awaycontent/a14
 	icon_state = "awaycontent14"

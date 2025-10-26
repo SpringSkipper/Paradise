@@ -1,3 +1,5 @@
+GLOBAL_VAR(station_report) // Variable to save the station report
+
 #define PAPERWORK	1
 #define PHOTO		2
 
@@ -6,16 +8,16 @@
 	desc = "It looks like you're writing a letter. Want some help?"
 	icon = 'icons/obj/bureaucracy.dmi'
 	icon_state = "clipboard"
-	item_state = "clipboard"
+	inhand_icon_state = "clipboard"
 	w_class = WEIGHT_CLASS_SMALL
 	throw_speed = 3
 	var/obj/item/pen/containedpen
 	var/obj/item/toppaper
-	slot_flags = SLOT_FLAG_BELT
+	slot_flags = ITEM_SLOT_BELT
 	resistance_flags = FLAMMABLE
 
-/obj/item/clipboard/New()
-	..()
+/obj/item/clipboard/Initialize(mapload)
+	. = ..()
 	update_icon()
 
 /obj/item/clipboard/AltClick(mob/user)
@@ -27,9 +29,7 @@
 		return
 	. = ..()
 
-/obj/item/clipboard/verb/removePen(mob/user)
-	set category = "Object"
-	set name = "Remove clipboard pen"
+/obj/item/clipboard/proc/removePen(mob/user)
 	if(!ishuman(user) || user.incapacitated())
 		return
 	penPlacement(user, containedpen, FALSE)
@@ -42,6 +42,7 @@
 
 /obj/item/clipboard/examine(mob/user)
 	. = ..()
+	. += "<span class='notice'><b>Alt-Click</b> to remove its pen.</span>"
 	if(in_range(user, src) && toppaper)
 		. += toppaper.examine(user)
 
@@ -53,8 +54,7 @@
 		if(!is_pen(P))
 			return
 		to_chat(user, "<span class='notice'>You slide [P] into [src].</span>")
-		user.unEquip(P)
-		P.forceMove(src)
+		user.transfer_item_to(P, src)
 		containedpen = P
 	else
 		if(!containedpen)
@@ -67,14 +67,14 @@
 
 /obj/item/clipboard/proc/showClipboard(mob/user) //Show them what's on the clipboard
 	var/dat = "<title>[src]</title>"
-	dat += "<a href='?src=[UID()];doPenThings=[containedpen ? "Remove" : "Add"]'>[containedpen ? "Remove pen" : "Add pen"]</a><br><hr>"
+	dat += "<a href='byond://?src=[UID()];doPenThings=[containedpen ? "Remove" : "Add"]'>[containedpen ? "Remove pen" : "Add pen"]</a><br><hr>"
 	if(toppaper)
-		dat += "<a href='?src=[UID()];remove=\ref[toppaper]'>Remove</a><a href='?src=[UID()];viewOrWrite=\ref[toppaper]'>[toppaper.name]</a><br><hr>"
+		dat += "<a href='byond://?src=[UID()];remove=\ref[toppaper]'>Remove</a><a href='byond://?src=[UID()];viewOrWrite=\ref[toppaper]'>[toppaper.name]</a><br><hr>"
 	for(var/obj/item/P in src)
 		if(isPaperwork(P) == PAPERWORK && P != toppaper)
-			dat += "<a href='?src=[UID()];remove=\ref[P]'>Remove</a><a href='?src=[UID()];topPaper=\ref[P]'>Put on top</a><a href='?src=[UID()];viewOrWrite=\ref[P]'>[P.name]</a><br>"
+			dat += "<a href='byond://?src=[UID()];remove=\ref[P]'>Remove</a><a href='byond://?src=[UID()];topPaper=\ref[P]'>Put on top</a><a href='byond://?src=[UID()];viewOrWrite=\ref[P]'>[P.name]</a><br>"
 		if(isPaperwork(P) == PHOTO)
-			dat += "<a href='?src=[UID()];remove=\ref[P]'>Remove</a><a href='?src=[UID()];viewOrWrite=\ref[P]'>[P.name]</a><br>"
+			dat += "<a href='byond://?src=[UID()];remove=\ref[P]'>Remove</a><a href='byond://?src=[UID()];viewOrWrite=\ref[P]'>[P.name]</a><br>"
 	var/datum/browser/popup = new(user, "clipboard", "[src]", 400, 400)
 	popup.set_content(dat)
 	popup.open()
@@ -95,9 +95,9 @@
 			break
 	. += "clipboard_over"
 
-/obj/item/clipboard/attackby(obj/item/W, mob/user)
+/obj/item/clipboard/attackby__legacy__attackchain(obj/item/W, mob/user)
 	if(isPaperwork(W)) //If it's a photo, paper bundle, or piece of paper, place it on the clipboard.
-		user.unEquip(W)
+		user.unequip(W)
 		W.forceMove(src)
 		to_chat(user, "<span class='notice'>You clip [W] onto [src].</span>")
 		playsound(loc, "pageturn", 50, 1)
@@ -110,14 +110,14 @@
 			return
 		if(!Adjacent(user) || user.incapacitated())
 			return
-		toppaper.attackby(W, user)
+		toppaper.attackby__legacy__attackchain(W, user)
 	else if(istype(W, /obj/item/stamp) && toppaper) //We can stamp the topmost piece of paper
-		toppaper.attackby(W, user)
+		toppaper.attackby__legacy__attackchain(W, user)
 		update_icon()
 	else
 		return ..()
 
-/obj/item/clipboard/attack_self(mob/user)
+/obj/item/clipboard/attack_self__legacy__attackchain(mob/user)
 	showClipboard(user)
 
 /obj/item/clipboard/Topic(href, href_list)
@@ -143,7 +143,7 @@
 		if(!isPaperwork(P))
 			return
 		if(is_pen(I) && isPaperwork(P) != PHOTO) //Because you can't write on photos that aren't in your hand
-			P.attackby(I, usr)
+			P.attackby__legacy__attackchain(I, usr)
 		else if(isPaperwork(P) == PAPERWORK) //Why can't these be subtypes of paper
 			P.examine(usr)
 		else if(isPaperwork(P) == PHOTO)
@@ -158,6 +158,18 @@
 		toppaper = P
 	update_icon()
 	showClipboard(usr)
+
+/obj/item/clipboard/station_report
+	name = "station report clipboard"
+	desc = "An important clipboard used to make reports on the station status, deliverable to Nanotrasen at the end of the shift. The top paper is the one formally inspected."
+	icon_state = "clipboard_premium"
+
+/obj/item/clipboard/station_report/Initialize(mapload)
+	. = ..()
+	GLOB.station_report = src
+	var/start_paper = new /obj/item/paper(src)
+	toppaper = start_paper
+	update_icon()
 
 #undef PAPERWORK
 #undef PHOTO

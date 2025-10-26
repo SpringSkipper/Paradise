@@ -30,10 +30,19 @@
 	var/emp_proof = FALSE //is the organ immune to EMPs?
 	var/hidden_pain = FALSE //will it skip pain messages?
 	var/requires_robotic_bodypart = FALSE
-
+	/// When this variable is true, it can only be installed on the machine person species.
+	var/requires_machine_person = FALSE
+	/// When this variable is true, it can only be inserted on the golem species.
+	var/requires_golem_person = FALSE
 	///Should this organ be destroyed on removal?
 	var/destroy_on_removal = FALSE
 
+	/// What was the last pain message that was sent?
+	var/last_pain_message
+	/// When can we get the next pain message?
+	var/next_pain_time
+	/// What level of upgrades are needed to detect this. Level 0 is default. 1 is hidden from health analysers. 2 is hidden from cyborg analysers, and the body scanner at level 1. 4 is the highest level the body scanner can reach.
+	var/stealth_level = 0
 
 /obj/item/organ/Destroy()
 	STOP_PROCESSING(SSobj, src)
@@ -50,23 +59,20 @@
 	..(holder)
 	if(!max_damage)
 		max_damage = min_broken_damage * 2
-	if(istype(holder))
+	if(ishuman(holder))
 		if(holder.dna)
 			dna = holder.dna.Clone()
+			if(!blood_DNA)
+				blood_DNA = list()
+			blood_DNA[dna.unique_enzymes] = dna.blood_type
 		else
 			stack_trace("[holder] spawned without a proper DNA.")
-		var/mob/living/carbon/human/H = holder
-		if(istype(H))
-			if(dna)
-				if(!blood_DNA)
-					blood_DNA = list()
-				blood_DNA[dna.unique_enzymes] = dna.blood_type
 	else
 		dna = new /datum/dna(null)
 		if(species_override)
 			dna.species = new species_override
 
-/obj/item/organ/attackby(obj/item/I, mob/user, params)
+/obj/item/organ/attackby__legacy__attackchain(obj/item/I, mob/user, params)
 	if(is_robotic() && istype(I, /obj/item/stack/nanopaste))
 		var/obj/item/stack/nanopaste/nano = I
 		nano.use(1)
@@ -84,7 +90,7 @@
 			blood_DNA = list()
 		blood_DNA[dna.unique_enzymes] = dna.blood_type
 
-/obj/item/organ/proc/necrotize(update_sprite = TRUE)
+/obj/item/organ/proc/necrotize(update_sprite = TRUE, ignore_vital_death = FALSE)
 	damage = max_damage
 	status |= ORGAN_DEAD
 	STOP_PROCESSING(SSobj, src)
@@ -133,6 +139,8 @@
 	if(is_found_within(/obj/structure/closet/crate/freezer))
 		return TRUE
 	if(is_found_within(/obj/machinery/clonepod))
+		return TRUE
+	if(is_found_within(/obj/item/organ_extractor))
 		return TRUE
 	if(isturf(loc))
 		if(world.time - last_freezer_update_time > freezer_update_period)
@@ -214,12 +222,13 @@
 	if(tough)
 		return
 	damage = clamp(damage + amount, 0, max_damage)
+	damage = round_health(damage)
 
 	//only show this if the organ is not robotic
 	if(owner && parent_organ && amount > 0)
 		var/obj/item/organ/external/parent = owner.get_organ(parent_organ)
 		if(parent && !silent)
-			owner.custom_pain("Something inside your [parent.name] hurts a lot.")
+			custom_pain("Something inside your [parent.name] hurts a lot.")
 
 		//check if we've hit max_damage
 	if(damage >= max_damage)
@@ -254,7 +263,14 @@
 	var/obj/item/organ/external/affected = owner.get_organ(parent_organ)
 	if(affected) affected.internal_organs -= src
 
-	forceMove(get_turf(owner))
+	// In-game, organs will be moved to their parent turf.
+	// During ghost-mob creation, we toss the organs
+	// after we're done generating the sprite with them,
+	// so to nullspace they go.
+	if(get_turf(owner))
+		forceMove(get_turf(owner))
+	else
+		moveToNullspace()
 	START_PROCESSING(SSobj, src)
 
 	if(owner && vital && is_primary_organ()) // I'd do another check for species or whatever so that you couldn't "kill" an IPC by removing a human head from them, but it doesn't matter since they'll come right back from the dead
@@ -306,3 +322,16 @@ I use this so that this can be made better once the organ overhaul rolls out -- 
 			robotize()
 		status = data["status"]
 	..()
+
+// A proc to send a pain message to the owner.
+/obj/item/organ/proc/custom_pain(message)
+	if(!owner.can_feel_pain() || !message)
+		return
+
+	var/msg = "<span class='userdanger'>[message]</span>"
+
+	// Anti message spam checks
+	if(msg != last_pain_message || world.time >= next_pain_time)
+		last_pain_message = msg
+		to_chat(owner, msg)
+		next_pain_time = world.time + 10 SECONDS

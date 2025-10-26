@@ -1,6 +1,5 @@
 /datum/emote/living/carbon
 	mob_type_allowed_typecache = list(/mob/living/carbon)
-	mob_type_blacklist_typecache = list(/mob/living/carbon/brain)
 
 /datum/emote/living/carbon/blink
 	key = "blink"
@@ -30,7 +29,7 @@
 	key_third_person = "coughs"
 	message = "coughs!"
 	message_mime = "appears to cough!"
-	emote_type = EMOTE_SOUND | EMOTE_MOUTH
+	emote_type = EMOTE_AUDIBLE | EMOTE_MOUTH
 	vary = TRUE
 	age_based = TRUE
 	volume = 120
@@ -141,8 +140,6 @@
 	message = "signs."
 	message_param = "signs the number %t."
 	param_desc = "number(0-10)"
-	// Humans get their own proc since they have fingers
-	mob_type_blacklist_typecache = list(/mob/living/carbon/human)
 	hands_use_check = TRUE
 	target_behavior = EMOTE_TARGET_BHVR_NUM
 
@@ -155,7 +152,7 @@
 	. = ..()
 	if(. && isliving(user))
 		var/mob/living/L = user
-		L.SetSleeping(2 SECONDS)
+		L.Paralyse(2 SECONDS)
 
 /datum/emote/living/carbon/twirl
 	key = "twirl"
@@ -163,20 +160,46 @@
 	message = "twirls something around in their hand."
 	hands_use_check = TRUE
 
-/datum/emote/living/carbon/twirl/can_run_emote(mob/living/user, status_check, intentional)
-	. = ..()
-	if(!.)
-		return
-
-	if(user.l_hand || user.r_hand)
-		return TRUE
-
-	to_chat(user, "<span class='warning'>You need something in your hand to use this emote!</span>")
-	return FALSE
-
 /datum/emote/living/carbon/twirl/run_emote(mob/user, params, type_override, intentional)
 
-	var/obj/item/thing = user.l_hand || user.r_hand
-	message = "twirls [thing] around in their hand!"
+	if(!(user.get_active_hand() || user.get_inactive_hand()))
+		to_chat(user, "<span class='warning'>You need something in your hand to use this emote!</span>")
+		return TRUE
+
+	var/obj/item/thing
+
+	if(user.get_active_hand())
+		thing = user.get_active_hand()
+	else
+		thing = user.get_inactive_hand()
+
+	if(istype(thing, /obj/item/grab))
+		var/obj/item/grab/grabbed = thing
+		message = "twirls [grabbed.affecting.name] around!"
+		grabbed.affecting.emote("spin")
+	else if(istype(thing, /obj/item/gun/energy/laser/lever_action))
+		var/obj/item/gun/energy/laser/lever_action/gun = thing
+		if(HAS_TRAIT(user, TRAIT_CLUMSY))
+			message = "attempts to twirl [thing] around in their hand, but pulls the trigger instead!"
+			gun.cycle_action(user)
+			var/shot_leg = pick("l_foot", "r_foot")
+			gun.process_fire(user, user, 0, params, zone_override = shot_leg)
+			user.drop_item()
+		else if(prob(50) && !HAS_TRAIT(user, TRAIT_BADASS))
+			message = "attempts to twirl [thing] around in their hand, but fumbles!"
+			user.drop_item()
+		else
+			message = "twirls [thing] around in their hand!"
+			gun.cycle_action(user)
+		if(HAS_TRAIT(user, TRAIT_BADASS) && istype(user.get_inactive_hand(), /obj/item/gun/energy/laser/lever_action))
+			var/obj/item/gun/energy/laser/lever_action/offhand = user.get_inactive_hand()
+			offhand.cycle_action()
+			message = "twirls [thing] around in their hand, and [offhand] in the other! What a badass!"
+	else if(!(thing.flags & ABSTRACT))
+		message = "twirls [thing] around in their hand!"
+	else
+		to_chat(user, "<span class='warning'>You cannot twirl [thing]!</span>")
+		return TRUE
+
 	. = ..()
 	message = initial(message)

@@ -4,27 +4,53 @@ GLOBAL_VAR_INIT(deathsquad_sent, FALSE)
 
 /client/proc/send_deathsquad()
 	var/client/proccaller = usr.client
+	var/ai_laws_change = FALSE
 	if(!check_rights(R_EVENT))
 		return
 	if(SSticker.current_state == GAME_STATE_PREGAME)
 		to_chat(usr, "<span class='warning'>The round hasn't started yet!</span>")
 		return
 	if(GLOB.deathsquad_sent)
-		if(alert("A Deathsquad is already being sent, are you sure you want to send another?",, "Yes", "No") != "Yes")
+		if(alert("A Deathsquad is already being sent, are you sure you want to send another?", null, "Yes", "No") != "Yes")
 			return
 	else
-		if(alert("Do you want to send in the Deathsquad? Once enabled, this is irreversible.",, "Yes", "No") != "Yes")
+		if(alert("Do you want to send in the Deathsquad? Once enabled, this is irreversible.", null, "Yes", "No") != "Yes")
 			return
+		if(alert("Do you want to set AI and cyborgs laws to Terminator?", null, "Yes", "No") != "No")
+			ai_laws_change = TRUE
+
 	message_admins("<span class='notice'>[key_name_admin(proccaller)] has started to spawn a DeathSquad.</span>")
 	log_admin("[key_name_admin(proccaller)] has started to spawn a DeathSquad.")
 	to_chat(proccaller, "<span class='boldwarning'>This 'mode' will go on until everyone is dead or the station is destroyed. You may also admin-call the evac shuttle or use the end round verb when appropriate. Spawned commandos have internals cameras which are viewable through a monitor inside the Spec. Ops. Office. The first one selected will be the team leader.</span>")
 
-	var/mission = sanitize(copytext(input(src, "Please specify which mission the Deathsquad shall undertake.", "Specify Mission", "",), 1, MAX_MESSAGE_LEN))
+	var/mission = sanitize(copytext_char(input(src, "Please specify which mission the Deathsquad shall undertake.", "Specify Mission", "",), 1, MAX_MESSAGE_LEN))
 	if(!mission)
-		if(alert("Error, no mission set. Do you want to exit the setup process?",, "Yes", "No") == "Yes")
+		if(alert("Error, no mission set. Do you want to exit the setup process?", null, "Yes", "No") == "Yes")
 			message_admins("[key_name_admin(proccaller)] cancelled their Deathsquad.")
 			log_admin("[key_name(proccaller)] cancelled their Deathsquad.")
 			return
+
+	if(ai_laws_change)
+		var/list/ais = active_ais()
+		var/datum/ai_laws/death_squad_ai_law_set = new /datum/ai_laws/epsilon()
+		var/notice_sound = sound('sound/AI/epsilon_laws.ogg')
+		for(var/mob/living/silicon/ai/AI in ais)
+			death_squad_ai_law_set.sync(AI, TRUE, FALSE) // Reset all laws exept zero
+			to_chat(AI, "<span class='userdanger'>Central command has uploaded a new set of laws you must follow. Make sure you follow them.</span>")
+			SEND_SOUND(AI, notice_sound)
+			AI.show_laws()
+			var/obj/item/radio/headset/heads/ai_integrated/ai_radio = AI.get_radio()
+			ai_radio.channels |= list("Response Team" = 1, "Special Ops" = 1)
+			ai_radio.config(ai_radio.channels)
+
+			for(var/mob/living/silicon/robot/R in AI.connected_robots)
+				R.sync()
+				to_chat(R, "<span class='userdanger'>Central command has uploaded a new set of laws you must follow. Make sure you follow them.</span>")
+				SEND_SOUND(R, notice_sound)
+				R.show_laws()
+				var/obj/item/radio/borg/cyborg_radio = R.get_radio()
+				cyborg_radio.channels |= list("Response Team" = 1, "Special Ops" = 1)
+				cyborg_radio.config(cyborg_radio.channels)
 
 	// Locates commandos spawns
 	var/list/commando_spawn_locations = list()
@@ -42,7 +68,7 @@ GLOBAL_VAR_INIT(deathsquad_sent, FALSE)
 
 	var/is_leader = TRUE
 	if(GLOB.deathsquad_sent)
-		if(alert("A Deathsquad leader has previously been sent with an unrestricted NAD, would you like to spawn another unrestricted NAD?",, "Yes", "No") != "Yes")
+		if(alert("A Deathsquad leader has previously been sent with an unrestricted NAD, would you like to spawn another unrestricted NAD?", null, "Yes", "No") != "Yes")
 			is_leader = FALSE
 	GLOB.deathsquad_sent = TRUE
 	message_admins("[key_name_admin(proccaller)] has sent a Deathsquad with [commando_number] commandos.")
@@ -51,7 +77,7 @@ GLOBAL_VAR_INIT(deathsquad_sent, FALSE)
 	// Find the nuclear auth code
 	var/nuke_code
 	var/new_nuke = FALSE
-	for(var/obj/machinery/nuclearbomb/N in GLOB.machines)
+	for(var/obj/machinery/nuclearbomb/N in SSmachines.get_by_type(/obj/machinery/nuclearbomb))
 		if(istype(N, /obj/machinery/nuclearbomb/syndicate) || !N.core)
 			continue
 		var/temp_code = text2num(N.r_code)
@@ -63,17 +89,17 @@ GLOBAL_VAR_INIT(deathsquad_sent, FALSE)
 		new_nuke = TRUE
 		nuke_code = rand(10000, 99999)
 
-	if(alert("Do you want a new nuclear warhead to be spawned with this team?",, "Yes", "No") == "Yes")
+	if(alert("Do you want a new nuclear warhead to be spawned with this team?", null, "Yes", "No") == "Yes")
 		new_nuke = TRUE
 
 	// Find ghosts willing to be Deathsquad
 	var/list/commando_ghosts = list()
-	if(alert("Would you like to custom pick your Deathsquad?",, "Yes", "No") == "Yes")
+	if(alert("Would you like to custom pick your Deathsquad?", null, "Yes", "No") == "Yes")
 		var/image/source = image('icons/obj/cardboard_cutout.dmi', "cutout_deathsquad")
-		commando_ghosts = pollCandidatesWithVeto(src, usr, commando_number, "Join the DeathSquad?",, 21, 60 SECONDS, TRUE, GLOB.role_playtime_requirements[ROLE_DEATHSQUAD], TRUE, FALSE, source = source)
+		commando_ghosts = pollCandidatesWithVeto(src, usr, commando_number, "Join the DeathSquad?", null, 21, 45 SECONDS, TRUE, GLOB.role_playtime_requirements[ROLE_DEATHSQUAD], TRUE, FALSE, source = source)
 	else
 		var/image/source = image('icons/obj/cardboard_cutout.dmi', "cutout_deathsquad")
-		commando_ghosts = SSghost_spawns.poll_candidates("Join the Deathsquad?",, GLOB.responseteam_age, 60 SECONDS, TRUE, GLOB.role_playtime_requirements[ROLE_DEATHSQUAD], TRUE, FALSE, source = source)
+		commando_ghosts = SSghost_spawns.poll_candidates("Join the Deathsquad?", null, GLOB.responseteam_age, 45 SECONDS, TRUE, GLOB.role_playtime_requirements[ROLE_DEATHSQUAD], TRUE, FALSE, source = source)
 		if(length(commando_ghosts) > commando_number)
 			commando_ghosts.Cut(commando_number + 1) //cuts the ghost candidates down to the amount requested
 	if(!length(commando_ghosts))
@@ -137,7 +163,7 @@ GLOBAL_VAR_INIT(deathsquad_sent, FALSE)
 		R.custom_name = borgname
 		R.real_name = R.name
 		R.mind = new
-		R.mind.current = R
+		R.mind.bind_to(R)
 		R.mind.set_original_mob(R)
 		R.mind.assigned_role = SPECIAL_ROLE_DEATHSQUAD
 		R.mind.special_role = SPECIAL_ROLE_DEATHSQUAD

@@ -57,9 +57,10 @@
 	record_security = null
 	return ..()
 
-/obj/machinery/computer/secure_data/attackby(obj/item/O, mob/user, params)
-	if(ui_login_attackby(O, user))
-		return
+/obj/machinery/computer/secure_data/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(ui_login_attackby(used, user))
+		return ITEM_INTERACT_COMPLETE
+
 	return ..()
 
 /obj/machinery/computer/secure_data/attack_hand(mob/user)
@@ -71,10 +72,13 @@
 	add_fingerprint(user)
 	ui_interact(user)
 
-/obj/machinery/computer/secure_data/ui_interact(mob/user, ui_key = "main", datum/tgui/ui = null, force_open = TRUE, datum/tgui/master_ui = null, datum/ui_state/state = GLOB.default_state)
-	ui = SStgui.try_update_ui(user, src, ui_key, ui, force_open)
+/obj/machinery/computer/secure_data/ui_state(mob/user)
+	return GLOB.default_state
+
+/obj/machinery/computer/secure_data/ui_interact(mob/user, datum/tgui/ui = null)
+	ui = SStgui.try_update_ui(user, src, ui)
 	if(!ui)
-		ui = new(user, src, ui_key, "SecurityRecords", name, 800, 800)
+		ui = new(user, src, "SecurityRecords", name)
 		ui.open()
 		ui.set_autoupdate(FALSE)
 
@@ -199,6 +203,7 @@
 			G.fields["m_stat"] = "Stable"
 			G.fields["species"] = "Human"
 			G.fields["notes"] = "No notes."
+			G.fields["nt_relation"] = "Unknown relation."
 			GLOB.data_core.general += G
 			record_general = G
 			record_security = null

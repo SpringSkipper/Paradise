@@ -2,7 +2,7 @@
 	name = "door"
 	desc = "It opens and closes."
 	icon = 'icons/obj/doors/doorint.dmi'
-	icon_state = "door1"
+	icon_state = null
 	anchored = TRUE
 	opacity = TRUE
 	density = TRUE
@@ -37,6 +37,8 @@
 	var/unres_sides = 0
 	//Multi-tile doors
 	var/width = 1
+	/// List. Player view blocking fillers for multi-tile doors.
+	var/list/fillers
 	//Whether nonstandard door sounds (cmag laughter) are off cooldown.
 	var/sound_ready = TRUE
 	var/sound_cooldown = 1 SECONDS
@@ -46,10 +48,19 @@
 	var/polarized_glass = FALSE
 	var/polarized_on
 
+	/// How many levels of foam do we have on us? Capped at 5
+	var/foam_level = 0
+
+	/// How much this door reduces superconductivity to when closed.
+	var/superconductivity = DOOR_HEAT_TRANSFER_COEFFICIENT
+	/// So explosion doesn't deal extra damage for multitile airlocks
+	COOLDOWN_DECLARE(explosion_cooldown)
+
+
 /obj/machinery/door/Initialize(mapload)
 	. = ..()
 	set_init_door_layer()
-	update_dir()
+	update_bounds()
 	update_freelook_sight()
 	spark_system = new /datum/effect_system/spark_spread
 	spark_system.set_up(2, 1, src)
@@ -62,7 +73,7 @@
 	explosion_block = EXPLOSION_BLOCK_PROC
 
 	update_icon()
-	air_update_turf(1)
+	recalculate_atmos_connectivity()
 
 /obj/machinery/door/proc/set_init_door_layer()
 	if(density)
@@ -72,32 +83,32 @@
 
 /obj/machinery/door/setDir(newdir)
 	..()
-	update_dir()
+	update_bounds()
 
 /obj/machinery/door/power_change()
 	if(!..())
 		return
 	update_icon()
 
-/obj/machinery/door/proc/update_dir()
+/// We don't wanna end up getting ex_act() multiple times because we are located at multiple tiles
+/obj/machinery/door/ex_act()
 	if(width > 1)
-		if(dir in list(EAST, WEST))
-			bound_width = width * world.icon_size
-			bound_height = world.icon_size
-		else
-			bound_width = world.icon_size
-			bound_height = width * world.icon_size
+		if(!COOLDOWN_FINISHED(src, explosion_cooldown))
+			return
+		COOLDOWN_START(src, explosion_cooldown, 1 SECONDS)
+	return ..()
 
 /obj/machinery/door/Destroy()
 	density = FALSE
-	air_update_turf(1)
+	recalculate_atmos_connectivity()
 	update_freelook_sight()
 	GLOB.airlocks -= src
 	QDEL_NULL(spark_system)
 	return ..()
 
 /obj/machinery/door/Bumped(atom/AM)
-	if(operating || emagged)
+	. = ..()
+	if(operating || emagged || foam_level)
 		return
 	if(ismob(AM))
 		var/mob/B = AM
@@ -131,15 +142,9 @@
 	. = ..()
 	move_update_air(T)
 
-	if(width > 1)
-		if(dir in list(EAST, WEST))
-			bound_width = width * world.icon_size
-			bound_height = world.icon_size
-		else
-			bound_width = world.icon_size
-			bound_height = width * world.icon_size
+	update_bounds()
 
-/obj/machinery/door/CanPass(atom/movable/mover, turf/target, height=0)
+/obj/machinery/door/CanPass(atom/movable/mover, border_dir)
 	if(istype(mover))
 		if(mover.checkpass(PASSDOOR) && !locked)
 			return TRUE
@@ -147,13 +152,23 @@
 			return !opacity
 	return !density
 
-/obj/machinery/door/CanAtmosPass()
-	return !density
+/obj/machinery/door/CanAtmosPass(direction)
+	return operating || !density
+
+/obj/machinery/door/get_superconductivity(direction)
+	if(!density)
+		return ..()
+	if(heat_proof)
+		return ZERO_HEAT_TRANSFER_COEFFICIENT
+	return superconductivity
 
 /obj/machinery/door/proc/bumpopen(mob/user)
 	if(operating)
 		return
 	add_fingerprint(user)
+
+	if(foam_level)
+		return
 
 	if(density && !emagged)
 		if(allowed(user))
@@ -177,8 +192,12 @@
 	if(isterrorspider(user))
 		return
 
+	if(foam_level)
+		return
+
 	if(!HAS_TRAIT(user, TRAIT_FORCE_DOORS))
 		return FALSE
+
 	var/datum/antagonist/vampire/V = user.mind?.has_antag_datum(/datum/antagonist/vampire)
 	if(V && HAS_TRAIT_FROM(user, TRAIT_FORCE_DOORS, VAMPIRE_TRAIT))
 		if(!V.bloodusable)
@@ -205,6 +224,7 @@
 		return attack_hand(user)
 
 /obj/machinery/door/attack_hand(mob/user)
+	. = ..()
 	return try_to_activate_door(user)
 
 /obj/machinery/door/attack_tk(mob/user)
@@ -214,7 +234,7 @@
 
 /obj/machinery/door/proc/try_to_activate_door(mob/user)
 	add_fingerprint(user)
-	if(operating || emagged)
+	if(operating || emagged || foam_level)
 		return
 	if(requiresID() && (allowed(user) || user.can_advanced_admin_interact()))
 		if(density)
@@ -248,16 +268,14 @@
 /obj/machinery/door/proc/try_to_crowbar(mob/user, obj/item/I)
 	return
 
-/obj/machinery/door/attackby(obj/item/I, mob/user, params)
-	if(HAS_TRAIT(src, TRAIT_CMAGGED) && I.can_clean()) //If the cmagged door is being hit with cleaning supplies, don't open it, it's being cleaned!
-		return
+/obj/machinery/door/item_interaction(mob/living/user, obj/item/used, list/modifiers)
+	if(HAS_TRAIT(src, TRAIT_CMAGGED) && used.can_clean()) //If the cmagged door is being hit with cleaning supplies, don't open it, it's being cleaned!
+		return ITEM_INTERACT_SKIP_TO_AFTER_ATTACK
 
-	if(user.a_intent != INTENT_HARM && HAS_TRAIT(I, TRAIT_FORCES_OPEN_DOORS_ITEM))
-		try_to_crowbar(user, I)
-		return TRUE
-	else if(!(I.flags & NOBLUDGEON) && user.a_intent != INTENT_HARM)
+	else if(!(used.flags & NOBLUDGEON) && user.a_intent != INTENT_HARM)
 		try_to_activate_door(user)
-		return TRUE
+		return ITEM_INTERACT_COMPLETE
+
 	return ..()
 
 /obj/machinery/door/crowbar_act(mob/user, obj/item/I)
@@ -298,7 +316,7 @@
 
 /obj/machinery/door/cmag_act(mob/user)
 	if(!density)
-		return
+		return FALSE
 	flick("door_spark", src)
 	sleep(6) //The cmag doesn't automatically open doors. It inverts access, not provides it!
 	ADD_TRAIT(src, TRAIT_CMAGGED, CLOWN_EMAG)
@@ -355,7 +373,7 @@
 			else
 				flick("doorc1", src)
 		if("deny")
-			if(!stat)
+			if(stat == CONSCIOUS)
 				flick("door_deny", src)
 
 /obj/machinery/door/proc/open()
@@ -365,16 +383,22 @@
 		return
 	SEND_SIGNAL(src, COMSIG_DOOR_OPEN)
 	operating = DOOR_OPENING
+	recalculate_atmos_connectivity()
 	do_animate("opening")
-	set_opacity(0)
+	set_opacity(FALSE)
+	if(width > 1)
+		set_fillers_opacity(0)
 	sleep(5)
 	density = FALSE
+	if(width > 1)
+		set_fillers_density(FALSE)
 	sleep(5)
 	layer = initial(layer)
 	update_icon()
-	set_opacity(0)
+	set_opacity(FALSE)
+	if(width > 1)
+		set_fillers_opacity(0)
 	operating = NONE
-	air_update_turf(1)
 	update_freelook_sight()
 	if(autoclose)
 		autoclose_in(normalspeed ? auto_close_time : auto_close_time_dangerous)
@@ -400,41 +424,54 @@
 	layer = closingLayer
 	sleep(5)
 	density = TRUE
+	if(width > 1)
+		set_fillers_density(TRUE)
 	sleep(5)
 	update_icon()
 	if(!glass || polarized_on)
 		set_opacity(TRUE)
+		if(width > 1)
+			set_fillers_opacity(TRUE)
 	operating = NONE
-	air_update_turf(1)
+	recalculate_atmos_connectivity()
 	update_freelook_sight()
 	if(safe)
-		CheckForMobs()
+		check_for_mobs()
 	else
 		crush()
 	return TRUE
 
-/obj/machinery/door/proc/CheckForMobs()
-	if(locate(/mob/living) in get_turf(src))
-		sleep(1)
-		open()
+/obj/machinery/door/proc/get_airlock_turfs()
+	var/list/airlock_turfs = list(get_turf(src))
+	if(width > 1)
+		for(var/i in 1 to width - 1)
+			airlock_turfs |= get_step(airlock_turfs[i], turn(dir, 90))
+	return airlock_turfs
+
+/obj/machinery/door/proc/check_for_mobs()
+	for(var/turf/T in get_airlock_turfs())
+		if(locate(/mob/living) in T)
+			sleep(1)
+			open()
+			break
 
 /obj/machinery/door/proc/crush()
-	for(var/mob/living/L in get_turf(src))
-		L.visible_message("<span class='warning'>[src] closes on [L], crushing [L.p_them()]!</span>", "<span class='userdanger'>[src] closes on you and crushes you!</span>")
-		if(isalien(L))  //For xenos
-			L.adjustBruteLoss(DOOR_CRUSH_DAMAGE * 1.5) //Xenos go into crit after aproximately the same amount of crushes as humans.
-			L.emote("roar")
-		else if(ishuman(L)) //For humans
-			L.adjustBruteLoss(DOOR_CRUSH_DAMAGE)
-			if(L.stat == CONSCIOUS)
-				L.emote("scream")
-			L.Weaken(10 SECONDS)
-		else //for simple_animals & borgs
-			L.adjustBruteLoss(DOOR_CRUSH_DAMAGE)
-		var/turf/location = get_turf(src)
-		L.add_splatter_floor(location)
-	for(var/obj/mecha/M in get_turf(src))
-		M.take_damage(DOOR_CRUSH_DAMAGE)
+	for(var/turf/T in get_airlock_turfs())
+		for(var/mob/living/L in T)
+			L.visible_message("<span class='warning'>[src] closes on [L], crushing [L.p_them()]!</span>", "<span class='userdanger'>[src] closes on you and crushes you!</span>")
+			if(isalien(L))  //For xenos
+				L.adjustBruteLoss(DOOR_CRUSH_DAMAGE * 1.5) //Xenos go into crit after aproximately the same amount of crushes as humans.
+				L.emote("roar")
+			else if(ishuman(L)) //For humans
+				L.adjustBruteLoss(DOOR_CRUSH_DAMAGE)
+				if(L.stat == CONSCIOUS)
+					L.emote("scream")
+				L.Weaken(10 SECONDS)
+			else //for simple_animals & borgs
+				L.adjustBruteLoss(DOOR_CRUSH_DAMAGE)
+			L.add_splatter_floor(T)
+		for(var/obj/mecha/M in T)
+			M.take_damage(DOOR_CRUSH_DAMAGE)
 
 /obj/machinery/door/proc/requiresID()
 	return 1
@@ -451,12 +488,7 @@
 
 /obj/machinery/door/proc/update_freelook_sight()
 	if(!glass && GLOB.cameranet)
-		GLOB.cameranet.updateVisibility(src, 0)
-
-/obj/machinery/door/BlockSuperconductivity() // Only heatproof airlocks block heat, currently only varedited doors have this
-	if(heat_proof)
-		return 1
-	return 0
+		GLOB.cameranet.update_visibility(src, 0)
 
 /obj/machinery/door/proc/check_unres() //unrestricted sides. This overlay indicates which directions the player can access even without an ID
 	if(hasPower() && unres_sides)
@@ -481,6 +513,7 @@
 
 /obj/machinery/door/morgue
 	icon = 'icons/obj/doors/doormorgue.dmi'
+	icon_state = "door1"
 
 /obj/machinery/door/proc/lock()
 	return
@@ -502,3 +535,108 @@
 /obj/machinery/door/zap_act(power, zap_flags)
 	zap_flags &= ~ZAP_OBJ_DAMAGE
 	. = ..()
+
+/obj/machinery/door/CanPathfindPass(to_dir, datum/can_pass_info/pass_info)
+	if(!locateUID(pass_info.caller_uid))
+		return ..()
+	if(pass_info.pass_flags & PASSDOOR && !locked)
+		return TRUE
+	if(pass_info.pass_flags & PASSGLASS)
+		return !opacity
+	return ..()
+
+/**
+ * Checks which way the airlock is facing and adjusts the direction accordingly.
+ * For use with multi-tile airlocks.
+ */
+
+/**
+ * Sets the bounds of the airlock. For use with multi-tile airlocks.
+ * If the airlock is multi-tile, it will set the bounds to be the size of the airlock.
+ * If the airlock doesn't already have fillers, it will create them.
+ * If the airlock already has fillers, it will move them to the correct location.
+ */
+/obj/machinery/door/proc/update_bounds()
+	if(width <= 1)
+		return
+
+	QDEL_LIST_CONTENTS(fillers)
+
+	if(dir in list(SOUTH, NORTH))
+		bound_width = width * world.icon_size
+		bound_height = world.icon_size
+		bound_y = 0
+		pixel_y = 0
+		if(dir == NORTH)
+			bound_x = -(width - 1) * world.icon_size
+			pixel_x = -(width - 1) * world.icon_size
+		else
+			bound_x = 0
+			pixel_x = 0
+
+	else
+		bound_width = world.icon_size
+		bound_height = width * world.icon_size
+		bound_x = 0
+		pixel_x = 0
+		if(dir == WEST)
+			bound_y = -(width - 1) * world.icon_size
+			pixel_y = -(width - 1) * world.icon_size
+		else
+			bound_y = 0
+			pixel_y = 0
+
+	LAZYINITLIST(fillers)
+
+	var/obj/last_filler = src
+	for(var/i in 1 to width - 1)
+		var/obj/airlock_filler_object/filler
+
+		filler = new(src)
+		filler.pair_airlock(src)
+		filler.loc = get_step(last_filler, turn(dir, 90))
+		filler.density = density
+		filler.set_opacity(opacity)
+
+		fillers += filler
+		last_filler = filler
+
+/obj/machinery/door/proc/set_fillers_density(density)
+	if(!length(fillers))
+		return
+
+	for(var/obj/airlock_filler_object/filler as anything in fillers)
+		filler.density = density
+
+/obj/machinery/door/proc/set_fillers_opacity(opacity)
+	if(!length(fillers))
+		return
+
+	for(var/obj/airlock_filler_object/filler as anything in fillers)
+		filler.set_opacity(opacity)
+
+#define MAX_FOAM_LEVEL 5
+// Adds foam to the airlock, which will block it from being opened
+/obj/machinery/door/proc/foam_up()
+	if(!foam_level)
+		new /obj/structure/barricade/foam(get_turf(src))
+		foam_level++
+		return
+
+	if(foam_level == MAX_FOAM_LEVEL)
+		return
+
+	for(var/obj/structure/barricade/foam/blockage in loc.contents)
+		blockage.foam_level = min(++blockage.foam_level, 5)
+		// The last level will increase the integrity by 50 instead of 25
+		if(foam_level == 4)
+			blockage.obj_integrity += 50
+			blockage.max_integrity += 50
+		else
+			blockage.obj_integrity += 25
+			blockage.max_integrity += 25
+		foam_level++
+		blockage.icon_state = "foamed_[foam_level]"
+		blockage.update_icon(UPDATE_ICON_STATE)
+
+#undef MAX_FOAM_LEVEL

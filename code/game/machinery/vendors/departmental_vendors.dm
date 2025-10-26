@@ -5,9 +5,9 @@
 	icon_deny = "engivend_deny"
 	icon_panel = "generic"
 	category = VENDOR_TYPE_DEPARTMENTAL
-	req_one_access_txt = "11;24" // Engineers and atmos techs can use this
+	req_one_access = list(ACCESS_ENGINE_EQUIP, ACCESS_ATMOSPHERICS)
 	products = list(/obj/item/clothing/glasses/meson/engine = 2,
-					/obj/item/clothing/glasses/meson/engine/tray = 4,
+					/obj/item/clothing/glasses/meson/engine/atmos = 4,
 					/obj/item/multitool = 4,
 					/obj/item/geiger_counter = 5,
 					/obj/item/airlock_electronics = 10,
@@ -28,7 +28,7 @@
 	icon_state = "engi"
 	icon_deny = "engi_deny"
 	category = VENDOR_TYPE_DEPARTMENTAL
-	req_access_txt = "11"
+	req_access = list(ACCESS_ENGINE_EQUIP)
 	products = list(/obj/item/clothing/under/rank/engineering/chief_engineer = 4,
 					/obj/item/clothing/under/rank/engineering/engineer = 40,
 					/obj/item/clothing/shoes/workboots = 4,
@@ -62,7 +62,7 @@
 	icon_deny = "robotics_deny"
 	category = VENDOR_TYPE_DEPARTMENTAL
 	icon_lightmask = "robotics"
-	req_access_txt = "29"
+	req_access = list(ACCESS_ROBOTICS)
 	products = list(/obj/item/clothing/suit/storage/labcoat = 4,
 					/obj/item/clothing/under/rank/rnd/roboticist = 4,
 					/obj/item/stack/cable_coil = 4, /obj/item/flash = 4,
@@ -99,24 +99,24 @@
 					/obj/item/trash/bowl = 20,
 					/obj/item/kitchen/knife = 3,
 					/obj/item/kitchen/rollingpin = 2,
-					/obj/item/kitchen/sushimat = 3,
-					/obj/item/reagent_containers/food/drinks/drinkingglass = 8,
-					/obj/item/clothing/suit/chef/classic = 2,
-					/obj/item/storage/belt/chef = 2,
-					/obj/item/reagent_containers/food/condiment/pack/ketchup = 5,
-					/obj/item/reagent_containers/food/condiment/pack/hotsauce = 5,
-					/obj/item/reagent_containers/food/condiment/saltshaker =5,
-					/obj/item/reagent_containers/food/condiment/peppermill =5,
+					/obj/item/reagent_containers/cooking/sushimat = 3,
+					/obj/item/reagent_containers/drinks/drinkingglass = 8,
+					/obj/item/reagent_containers/condiment/pack/ketchup = 5,
+					/obj/item/reagent_containers/condiment/pack/hotsauce = 5,
+					/obj/item/reagent_containers/condiment/saltshaker =5,
+					/obj/item/reagent_containers/condiment/peppermill =5,
 					/obj/item/whetstone = 2,
-					/obj/item/mixing_bowl = 10,
-					/obj/item/kitchen/mould/bear = 1,
-					/obj/item/kitchen/mould/worm = 1,
-					/obj/item/kitchen/mould/bean = 1,
-					/obj/item/kitchen/mould/ball = 1,
-					/obj/item/kitchen/mould/cane = 1,
-					/obj/item/kitchen/mould/cash = 1,
-					/obj/item/kitchen/mould/coin = 1,
-					/obj/item/kitchen/mould/loli = 1,
+					/obj/item/storage/box/papersack = 20,
+					/obj/item/kitchen/knife/cheese = 2,
+					/obj/item/kitchen/knife/pizza_cutter = 2,
+					/obj/item/reagent_containers/cooking/mould/bear = 1,
+					/obj/item/reagent_containers/cooking/mould/worm = 1,
+					/obj/item/reagent_containers/cooking/mould/bean = 1,
+					/obj/item/reagent_containers/cooking/mould/ball = 1,
+					/obj/item/reagent_containers/cooking/mould/cane = 1,
+					/obj/item/reagent_containers/cooking/mould/cash = 1,
+					/obj/item/reagent_containers/cooking/mould/coin = 1,
+					/obj/item/reagent_containers/cooking/mould/loli = 1,
 					/obj/item/kitchen/cutter = 2)
 
 	contraband = list(/obj/item/kitchen/rollingpin = 2,
@@ -142,17 +142,22 @@
 	icon_panel = "thin_vendor"
 	category = VENDOR_TYPE_DEPARTMENTAL
 	products = list(/obj/item/reagent_containers/glass/bottle/nutrient/ez = 20,
+					/obj/item/reagent_containers/glass/bottle/nutrient/mut = 15,
 					/obj/item/reagent_containers/glass/bottle/nutrient/l4z = 13,
 					/obj/item/reagent_containers/glass/bottle/nutrient/rh = 6,
 					/obj/item/reagent_containers/spray/pestspray = 20,
 					/obj/item/reagent_containers/syringe = 5,
+					/obj/item/reagent_containers/dropper = 5,
+					/obj/item/storage/bag/plants/seed_sorting_tray = 3,
 					/obj/item/storage/bag/plants = 5,
 					/obj/item/cultivator = 3,
 					/obj/item/shovel/spade = 3,
 					/obj/item/plant_analyzer = 4)
 
-	contraband = list(/obj/item/reagent_containers/glass/bottle/ammonia = 10,
-					/obj/item/reagent_containers/glass/bottle/diethylamine = 5)
+	contraband = list(/obj/item/reagent_containers/glass/bottle/ash = 10,
+					/obj/item/reagent_containers/glass/bottle/saltpetre = 2,
+					/obj/item/reagent_containers/glass/bottle/charcoal = 2,
+					/obj/item/reagent_containers/glass/bottle/mutagen = 2)
 
 	refill_canister = /obj/item/vending_refill/hydronutrients
 
@@ -175,6 +180,7 @@
 	products = list(/obj/item/seeds/aloe = 3,
 					/obj/item/seeds/ambrosia = 3,
 					/obj/item/seeds/apple = 3,
+					/obj/item/seeds/bamboo = 3,
 					/obj/item/seeds/banana = 3,
 					/obj/item/seeds/berry = 3,
 					/obj/item/seeds/cabbage = 3,
@@ -184,15 +190,17 @@
 					/obj/item/seeds/chili = 3,
 					/obj/item/seeds/cocoapod = 3,
 					/obj/item/seeds/coffee = 3,
-					/obj/item/seeds/comfrey =3,
+					/obj/item/seeds/comfrey = 3,
 					/obj/item/seeds/corn = 3,
 					/obj/item/seeds/cotton = 3,
-					/obj/item/seeds/nymph =3,
+					/obj/item/seeds/nymph = 3,
 					/obj/item/seeds/eggplant = 3,
 					/obj/item/seeds/garlic = 3,
+					/obj/item/seeds/glowshroom = 3,
 					/obj/item/seeds/grape = 3,
 					/obj/item/seeds/grass = 3,
 					/obj/item/seeds/lemon = 3,
+					/obj/item/seeds/lettuce = 3,
 					/obj/item/seeds/lime = 3,
 					/obj/item/seeds/mint = 3,
 					/obj/item/seeds/olive = 3,
@@ -200,6 +208,7 @@
 					/obj/item/seeds/orange = 3,
 					/obj/item/seeds/peanuts = 3,
 					/obj/item/seeds/pineapple = 3,
+					/obj/item/seeds/plum = 3,
 					/obj/item/seeds/poppy = 3,
 					/obj/item/seeds/potato = 3,
 					/obj/item/seeds/pumpkin = 3,
@@ -218,17 +227,55 @@
 					/obj/item/seeds/whitebeet = 3)
 
 	contraband = list(/obj/item/seeds/cannabis = 3,
-					/obj/item/seeds/amanita = 2,
+					/obj/item/seeds/amanita = 3,
 					/obj/item/seeds/fungus = 3,
-					/obj/item/seeds/glowshroom = 2,
-					/obj/item/seeds/liberty = 2,
-					/obj/item/seeds/nettle = 2,
-					/obj/item/seeds/plump = 2,
-					/obj/item/seeds/reishi = 2,
-					/obj/item/seeds/starthistle = 2,
+					/obj/item/seeds/liberty = 3,
+					/obj/item/seeds/nettle = 3,
+					/obj/item/seeds/plump = 3,
+					/obj/item/seeds/reishi = 3,
+					/obj/item/seeds/starthistle = 3,
 					/obj/item/seeds/random = 2)
 
 	refill_canister = /obj/item/vending_refill/hydroseeds
+
+/obj/machinery/economy/vending/hydroseeds/perma
+	name = "\improper PrisonSeed Servitor"
+	desc = "Dispenses seeds for prisoners to grow plants with. It's supposed to help reform them into good citizens, or something."
+	slogan_list = list("You've got nothing better to do. Might as well take up gardening!",
+					"Hands down the best restricted seed selection in prison!",
+					"No crimes against God or your money back!")
+	products = list(/obj/item/seeds/apple = 3,
+					/obj/item/seeds/cabbage = 3,
+					/obj/item/seeds/carrot = 3,
+					/obj/item/seeds/chili = 3,
+					/obj/item/seeds/cocoapod = 3,
+					/obj/item/seeds/corn = 3,
+					/obj/item/seeds/eggplant = 3,
+					/obj/item/seeds/garlic = 3,
+					/obj/item/seeds/grape = 3,
+					/obj/item/seeds/grass = 3,
+					/obj/item/seeds/lettuce = 3,
+					/obj/item/seeds/lime = 3,
+					/obj/item/seeds/olive = 3,
+					/obj/item/seeds/onion = 3,
+					/obj/item/seeds/orange = 3,
+					/obj/item/seeds/pineapple = 3,
+					/obj/item/seeds/plum = 3,
+					/obj/item/seeds/plump = 3,
+					/obj/item/seeds/potato = 3,
+					/obj/item/seeds/pumpkin = 3,
+					/obj/item/seeds/wheat/rice = 3,
+					/obj/item/seeds/soya = 3,
+					/obj/item/seeds/sugarcane = 3,
+					/obj/item/seeds/tobacco = 3,
+					/obj/item/seeds/watermelon = 3,
+					/obj/item/seeds/wheat = 3,)
+
+	contraband = list(/obj/item/seeds/cannabis = 3,
+					/obj/item/seeds/fungus = 3,
+					/obj/item/seeds/liberty = 3,
+					/obj/item/seeds/reishi = 3,
+					/obj/item/seeds/starthistle = 3,)
 
 /obj/machinery/economy/vending/medical
 	name = "\improper NanoMed Plus"
@@ -245,15 +292,17 @@
 					"Don't you want some?",
 					"Ping!")
 
-	req_access_txt = "5"
+	req_access = list(ACCESS_MEDICAL)
 	category = VENDOR_TYPE_DEPARTMENTAL
 	products = list(/obj/item/reagent_containers/hypospray/autoinjector/epinephrine = 4,
 					/obj/item/stack/medical/bruise_pack/advanced = 2,
 					/obj/item/stack/medical/ointment/advanced = 2,
-					/obj/item/reagent_containers/food/pill/patch/styptic = 3,
-					/obj/item/reagent_containers/food/pill/patch/silver_sulf = 3,
-					/obj/item/reagent_containers/applicator/brute = 2,
-					/obj/item/reagent_containers/applicator/burn = 2,
+					/obj/item/reagent_containers/patch/styptic = 3,
+					/obj/item/reagent_containers/patch/silver_sulf = 3,
+					/obj/item/stack/medical/suture/medicated = 3,
+					/obj/item/stack/medical/suture = 5,
+					/obj/item/stack/medical/suture/regen_mesh/advanced = 3,
+					/obj/item/stack/medical/suture/regen_mesh = 5,
 					/obj/item/stack/medical/bruise_pack = 2,
 					/obj/item/stack/medical/splint = 3,
 					/obj/item/reagent_containers/syringe = 6,
@@ -268,9 +317,9 @@
 					/obj/item/reagent_containers/syringe/antiviral = 3,
 					/obj/item/reagent_containers/syringe/calomel = 3,
 					/obj/item/reagent_containers/syringe/heparin = 3,
-					/obj/item/reagent_containers/food/pill/salbutamol = 5,
-					/obj/item/reagent_containers/food/pill/mannitol = 5,
-					/obj/item/reagent_containers/food/pill/mutadone = 5,
+					/obj/item/reagent_containers/pill/salbutamol = 5,
+					/obj/item/reagent_containers/pill/mannitol = 5,
+					/obj/item/reagent_containers/pill/mutadone = 5,
 					/obj/item/reagent_containers/glass/beaker = 3,
 					/obj/item/reagent_containers/dropper = 3,
 					/obj/item/reagent_containers/hypospray/safety = 2,
@@ -280,7 +329,8 @@
 
 	contraband = list(/obj/item/reagent_containers/syringe/insulin = 4,
 					/obj/item/reagent_containers/glass/bottle/sulfonal = 1,
-					/obj/item/reagent_containers/glass/bottle/pancuronium = 1)
+					/obj/item/reagent_containers/glass/bottle/pancuronium = 1,
+					/obj/item/food/candy/sucker = 2)
 
 	armor = list(MELEE = 50, BULLET = 20, LASER = 20, ENERGY = 20, BOMB = 0, RAD = 0, FIRE = 100, ACID = 70)
 	resistance_flags = FIRE_PROOF
@@ -322,23 +372,48 @@
 	icon_deny = "sec_deny"
 	icon_panel = "wide_vendor"
 	category = VENDOR_TYPE_DEPARTMENTAL
-	req_access_txt = "1"
+	req_access = list(ACCESS_SECURITY)
 	products = list(/obj/item/restraints/handcuffs = 8,
 					/obj/item/restraints/handcuffs/cable/zipties = 8,
 					/obj/item/grenade/flashbang = 4,
 					/obj/item/flash = 5,
 					/obj/item/reagent_containers/spray/pepper = 5,
-					/obj/item/reagent_containers/food/snacks/donut = 12,
+					/obj/item/food/donut = 12,
 					/obj/item/storage/box/evidence = 6,
 					/obj/item/flashlight/seclite = 4,
 					/obj/item/restraints/legcuffs/bola/energy = 7,
 					/obj/item/clothing/mask/muzzle/safety = 4,
-					/obj/item/judobelt = 3)
+					/obj/item/storage/belt/judobelt = 3)
 
 	contraband = list(/obj/item/clothing/glasses/sunglasses = 2,
 					/obj/item/storage/fancy/donut_box = 2,
 					/obj/item/hailer = 5)
 
 	refill_canister = /obj/item/vending_refill/security
-	prices = list(/obj/item/reagent_containers/food/snacks/donut = 40,
+	prices = list(/obj/item/food/donut = 40,
 				/obj/item/storage/fancy/donut_box = 200) //Bulk discount
+
+
+/obj/machinery/economy/vending/smith
+	name = "\improper Castivend"
+	desc = "Everything you need to start your own smithing workshop."
+	icon_state = "castivend"
+	category = VENDOR_TYPE_DEPARTMENTAL
+	req_access = list(ACCESS_SMITH)
+	products = list(/obj/item/smithing_cast/sheet = 6,
+					/obj/item/smithing_cast/component/insert_frame = 3,
+					/obj/item/smithing_cast/component/insert_lining = 3,
+					/obj/item/smithing_cast/component/bit_mount = 3,
+					/obj/item/smithing_cast/component/bit_head = 3,
+					/obj/item/smithing_cast/component/lens_focus = 3,
+					/obj/item/smithing_cast/component/lens_frame = 3,
+					/obj/item/smithing_cast/component/trim = 3,
+					/obj/item/smithing_cast/misc/egun_parts = 3,
+					/obj/item/storage/bag/smith = 2,
+					/obj/item/storage/box/crewvend = 1)
+
+	refill_canister = /obj/item/vending_refill/smith
+
+	prices = list(
+		/obj/item/storage/box/crewvend = 100
+	)

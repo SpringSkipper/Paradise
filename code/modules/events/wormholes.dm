@@ -27,7 +27,7 @@
 	if(activeFor % shift_frequency == 0)
 		for(var/obj/effect/portal/wormhole/O in wormholes)
 			var/turf/T = pick(pick_turfs)
-			if(T)	O.loc = T
+			if(T)	O.forceMove(T)
 
 /datum/event/wormholes/end()
 	for(var/obj/effect/portal/wormhole/O in wormholes)
@@ -37,9 +37,8 @@
 /obj/effect/portal/wormhole
 	name = "wormhole"
 	desc = "It looks highly unstable; It could close at any moment."
-	icon = 'icons/obj/objects.dmi'
+	icon = 'icons/effects/effects.dmi'
 	icon_state = "anom"
-	failchance = 0
 
 /obj/effect/portal/wormhole/can_teleport(atom/movable/M)
 	. = ..()
@@ -52,7 +51,7 @@
 		return FALSE
 
 	var/turf/target
-	if(GLOB.portals.len)
+	if(length(GLOB.portals))
 		var/obj/effect/portal/P = pick(GLOB.portals)
 		if(P && isturf(P.loc))
 			target = P.loc

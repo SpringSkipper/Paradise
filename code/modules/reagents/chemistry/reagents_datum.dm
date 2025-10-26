@@ -11,6 +11,7 @@
 	/// The color of the agent outside of containers.
 	var/color = "#000000" // rgb: 0, 0, 0 (does not support alpha channels - yet!)
 	var/shock_reduction = 0
+	var/view_true_health = FALSE // Determines if a painkiller messes with someone seeing their actual health on the health doll or not
 	var/heart_rate_increase = 0
 	var/heart_rate_decrease = 0
 	var/heart_rate_stop = 0
@@ -38,6 +39,22 @@
 	/// how quickly the addiction threshold var decays
 	var/addiction_decay_rate = 0.01
 
+	// Which department's (if any) reagent goals this is eligible for.
+	// Must match the values used by request consoles.
+	var/goal_department = "Unknown"
+	// How difficult is this chemical for the department to make?
+	// Affects the quantity of the reagent that is requested by CC.
+	var/goal_difficulty = REAGENT_GOAL_SKIP
+
+	/// At what temperature does this reagent burn? Currently only used for chemical flamethrowers
+	var/burn_temperature = T0C
+	/// How long would a fire burn using this reagent? Currently only used for chemical flamethrowers
+	var/burn_duration = 30 SECONDS
+	/// How many firestacks will the reagent apply when it is burning? Currently only used for chemical flamethrowers
+	var/fire_stack_applications = 1
+	/// If we burn in a fire, what color do we have?
+	var/burn_color
+
 /datum/reagent/Destroy()
 	. = ..()
 	holder = null
@@ -45,7 +62,12 @@
 		data.Cut()
 	data = null
 
-/datum/reagent/proc/reaction_temperature(exposed_temperature, exposed_volume) //By default we do nothing.
+/// By default do nothing
+/datum/reagent/proc/reaction_temperature(exposed_temperature, exposed_volume)
+	return
+
+/// By default do nothing
+/datum/reagent/proc/reaction_radiation(amount, emission_type)
 	return
 
 /**
@@ -78,7 +100,8 @@
 		if(id == "blood" && !(data?["blood_type"] in get_safe_blood(C.dna?.blood_type)) || C.dna?.species.name != data?["species"] && (data?["species_only"] || C.dna?.species.own_species_blood))
 			C.reagents.add_reagent("toxin", volume * 0.5)
 		else
-			C.blood_volume = min(C.blood_volume + round(volume, 0.1), BLOOD_VOLUME_NORMAL)
+			if(data?["blood_type"] != BLOOD_TYPE_FAKE_BLOOD)
+				C.blood_volume = min(C.blood_volume + round(volume, 0.1), BLOOD_VOLUME_NORMAL)
 		// This does not absorb the blood we are getting in *this* reagent transfer operation,
 		// (because the actual transfer has not happened yet. Because reasons) but it does process
 		// the blood already in the mob.
@@ -202,6 +225,9 @@
 	return list(effect, update_flags)
 
 /datum/reagent/proc/overdose_start(mob/living/M)
+	return
+
+/datum/reagent/proc/overdose_end(mob/living/M)
 	return
 
 /datum/reagent/proc/addiction_act_stage1(mob/living/M)

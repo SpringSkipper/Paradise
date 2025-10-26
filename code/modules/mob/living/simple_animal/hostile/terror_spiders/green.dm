@@ -22,7 +22,6 @@
 	maxHealth = 150
 	health = 150
 	melee_damage_lower = 10
-	melee_damage_upper = 20
 	web_type = /obj/structure/spider/terrorweb/green
 	var/feedings_to_lay = 2
 
@@ -48,10 +47,10 @@
 		eggtypes += TS_DESC_BLACK
 	var/eggtype = pick(eggtypes)
 	if(client)
-		eggtype = input("What kind of eggs?") as null|anything in eggtypes
+		eggtype = tgui_input_list(src, "What kind of eggs?", "Egg Laying", eggtypes)
 		if(!(eggtype in eggtypes))
 			to_chat(src, "<span class='danger'>Unrecognized egg type.</span>")
-			return 0
+			return FALSE
 	if(!isturf(loc))
 		// This has to be checked after we ask the user what egg type. Otherwise they could trigger prompt THEN move into a vent.
 		to_chat(src, "<span class='danger'>Eggs can only be laid while standing on a floor.</span>")
@@ -89,13 +88,14 @@
 		..()
 		return
 	var/inject_target = pick("chest","head")
+	if(!L.attack_animal(src))
+		return
 	if(L.IsStunned() || L.can_inject(null, FALSE, inject_target, FALSE))
 		L.AdjustEyeBlurry(20 SECONDS, 0, 120 SECONDS)
 		// instead of having a venom that only lasts seconds, we just add the eyeblur directly.
 		visible_message("<span class='danger'>[src] buries its fangs deep into the [inject_target] of [target]!</span>")
 	else
 		visible_message("<span class='danger'>[src] bites [target], but cannot inject venom into [target.p_their()] [inject_target]!</span>")
-	L.attack_animal(src)
 
 /obj/structure/spider/terrorweb/green
 	name = "slimy web"

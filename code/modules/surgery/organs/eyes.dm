@@ -3,11 +3,11 @@
 	icon_state = "eyes"
 	gender = PLURAL
 	organ_tag = "eyes"
-	parent_organ = "head"
+	parent_organ = "eyes"
 	slot = "eyes"
 	var/eye_color = "#000000" // Should never be null
-	var/list/colourmatrix = null
-	var/list/colourblind_matrix = MATRIX_GREYSCALE //Special colourblindness parameters. By default, it's black-and-white.
+	var/list/colormatrix = null
+	var/list/colorblind_matrix = MATRIX_GREYSCALE //Special colourblindness parameters. By default, it's black-and-white.
 	var/list/replace_colours = GREYSCALE_COLOR_REPLACE
 	var/dependent_disabilities = list() //Gets set by eye-dependent disabilities such as colourblindness so the eyes can transfer the disability during transplantation.
 	var/weld_proof = FALSE //If set, the eyes will not take damage during welding. eg. IPC optical sensors do not take damage when they weld things while all other eyes will.
@@ -18,6 +18,8 @@
 	var/flash_protect = FLASH_PROTECTION_NONE
 	var/see_invisible = SEE_INVISIBLE_LIVING
 	var/lighting_alpha = LIGHTING_PLANE_ALPHA_VISIBLE
+	/// If someone with the colorblind trait who has these eyes will actually be colorblind
+	var/can_be_colorblind = TRUE
 
 /obj/item/organ/internal/eyes/proc/update_colour()
 	dna.write_eyes_attributes(src)
@@ -31,11 +33,11 @@
 
 	return eyes_icon
 
-/obj/item/organ/internal/eyes/proc/get_colourmatrix() //Returns a special colour matrix if the eyes are organic and the mob is colourblind, otherwise it uses the current one.
-	if(!is_robotic() && HAS_TRAIT(owner, TRAIT_COLORBLIND))
-		return colourblind_matrix
+/obj/item/organ/internal/eyes/proc/get_colormatrix() //Returns a special colour matrix if the eyes are organic and the mob is colourblind, otherwise it uses the current one.
+	if(can_be_colorblind && HAS_TRAIT(owner, TRAIT_COLORBLIND))
+		return colorblind_matrix
 	else
-		return colourmatrix
+		return colormatrix
 
 /obj/item/organ/internal/eyes/proc/shine()
 	if(is_robotic() || (see_in_dark > EYE_SHINE_THRESHOLD))
@@ -63,6 +65,8 @@
 		M.dna.SetSEState(GLOB.colourblindblock, FALSE)
 		singlemutcheck(M, GLOB.colourblindblock, MUTCHK_FORCED)
 	. = ..()
+	if(!M)
+		return
 	M.update_tint()
 	M.update_sight()
 
@@ -101,7 +105,7 @@
 	icon_state = "burning_eyes"
 
 /obj/item/organ/internal/eyes/robotize(make_tough)
-	colourmatrix = null
+	colormatrix = null
 	..() //Make sure the organ's got the robotic status indicators before updating the client colour.
 	if(owner)
 		owner.update_client_colour(0) //Since mechanical eyes give see_in_dark of 2 and full colour vision atm, just having this here is fine.
@@ -112,6 +116,8 @@
 	desc = "An electronic device designed to mimic the functions of a pair of human eyes. It has no benefits over organic eyes, but is easy to produce."
 	origin_tech = "biotech=4"
 	status = ORGAN_ROBOT
+	can_be_colorblind = FALSE // I PRINTED 400 PAIRS OF NEW EYES TO CURE COLORBLIND KIDS! -Space Beast
+	var/flash_intensity = 1
 
 /obj/item/organ/internal/eyes/cybernetic/emp_act(severity)
 	if(!owner || emp_proof)
@@ -119,12 +125,13 @@
 	if(prob(10 * severity))
 		return
 	to_chat(owner, "<span class='warning'>Static obfuscates your vision!</span>")
-	owner.flash_eyes(visual = TRUE)
+	owner.flash_eyes(flash_intensity, visual = TRUE)
 	..()
 
 /obj/item/organ/internal/eyes/cybernetic/meson
 	name = "meson eyes"
 	desc = "These cybernetic eyes will allow you to see the structural layout of the station, and, well, everything else."
+	icon_state = "eyes-c-meson"
 	eye_color = "#199900"
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_VISIBLE
 	origin_tech = "materials=4;engineering=4;biotech=4;magnets=4"
@@ -140,6 +147,7 @@
 /obj/item/organ/internal/eyes/cybernetic/xray
 	name = "\improper X-ray eyes"
 	desc = "These cybernetic eyes will give you X-ray vision. Blinking is futile."
+	icon_state = "eyes-c-xray"
 	see_in_dark = 8
 	vision_flags = SEE_MOBS | SEE_OBJS | SEE_TURFS
 	origin_tech = "materials=4;programming=4;biotech=7;magnets=4"
@@ -147,13 +155,15 @@
 /obj/item/organ/internal/eyes/cybernetic/xray/hardened
 	name = "hardened X-ray eyes"
 	desc = "These cybernetic eyes will give you X-ray vision. Blinking is futile. This pair has been hardened for special operations personnel."
+	eye_color = "#FFCC00"
 	emp_proof = TRUE
 	origin_tech = "materials=6;programming=5;biotech=7;magnets=6;syndicate=3"
 
 /obj/item/organ/internal/eyes/cybernetic/thermals
 	name = "thermal eyes"
 	desc = "These cybernetic eye implants will give you thermal vision. Vertical slit pupil included."
-	eye_color = "#FFCC00"
+	icon_state = "eyes-c-thermal"
+	eye_color = "#E12224"
 	vision_flags = SEE_MOBS
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_VISIBLE
 	flash_protect = FLASH_PROTECTION_SENSITIVE
@@ -165,6 +175,39 @@
 	desc = "These cybernetic eye implants will give you thermal vision. Vertical slit pupil included. This pair has been hardened for special operations personnel."
 	emp_proof = TRUE
 	origin_tech = "materials=6;programming=5;biotech=6;magnets=6;syndicate=3"
+
+/obj/item/organ/internal/eyes/cybernetic/scope
+	name = "\improper Kaleido Optics eyes"
+	desc = "These cybernetic eye implants will let you zoom in on far away objects. Many users find it disorienting, and find it hard to interact with things near them when active."
+	icon_state = "eyes-c-kaleido"
+	eye_color = "#6f00ff"
+	flash_protect = FLASH_PROTECTION_EXTRA_SENSITIVE
+	origin_tech = "materials=5;programming=4;biotech=4;magnets=4"
+	var/scope_range = 0.8 //Only used in initialize. Greatly nerfed zoom range, since you are not taking the time zoom delay the lwap has.
+	var/active = FALSE
+
+/obj/item/organ/internal/eyes/cybernetic/scope/Initialize(mapload)
+	. = ..()
+	AddComponent(/datum/component/scope, range_modifier = scope_range, item_action_type = /datum/action/item_action/organ_action/toggle, flags = SCOPE_CLICK_MIDDLE)
+
+/obj/item/organ/internal/eyes/cybernetic/scope/insert(mob/living/carbon/human/M, special)
+	. = ..()
+	flash_protect = FLASH_PROTECTION_NONE //Resets it to none, so we can just flip to inital each time it is used.
+
+/obj/item/organ/internal/eyes/cybernetic/scope/ui_action_click(mob/user, actiontype)
+	active = !active
+	if(active)
+		flash_protect = initial(flash_protect)
+	else
+		flash_protect = FLASH_PROTECTION_NONE
+
+/obj/item/organ/internal/eyes/cybernetic/scope/hardened
+	name = "\improper Hardened Kaleido Optics eyes"
+	desc = "These cybernetic eye implants will let you zoom in on far away objects. Many users find it disorienting, and find it hard to interact with things near them when active. This pair has been hardened for special operations personnel, and has enhanced zoom functionality."
+	flash_protect = FLASH_PROTECTION_SENSITIVE
+	origin_tech = "materials=6;programming=5;biotech=6;magnets=6;syndicate=3"
+	scope_range = 1.25
+	emp_proof = TRUE
 
 /obj/item/organ/internal/eyes/cybernetic/flashlight
 	name = "flashlight eyes"
@@ -204,17 +247,16 @@
 	flash_protect = FLASH_PROTECTION_WELDER
 	eye_color = "#101010"
 	origin_tech = "materials=4;biotech=3;engineering=4;plasmatech=3"
-
-/obj/item/organ/internal/eyes/cybernetic/shield/emp_act(severity)
-	return
+	flash_intensity = 3
 
 #define INTACT 0
 #define ONE_SHATTERED 1
 #define BOTH_SHATTERED 2
 
-/obj/item/organ/internal/eyes/cybernetic/eyesofgod //no occuline allowed
+// no occuline allowed
+/obj/item/organ/internal/eyes/cybernetic/eyesofgod
 	name = "\improper Eyes of the Gods"
-	desc = "Two eyes said to belong to the gods. But such vision comes at a price"
+	desc = "Two eyes said to belong to the gods. But such vision comes at a price."
 	icon_state = "eyesofgod"
 	eye_color = "#58a5ec"
 	see_in_dark = 8
@@ -325,7 +367,7 @@
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
 	flash_protect = FLASH_PROTECTION_VERYVUNERABLE //Flashing is it's weakness. I don't care how many protections you have up
 	owner?.client?.color = LIGHT_COLOR_PURE_CYAN
-	colourmatrix = list(0, 0, 0,\
+	colormatrix = list(0, 0, 0,\
 						0, 1, 0,\
 						0, 0, 1)
 	owner.update_sight()
@@ -339,7 +381,7 @@
 	lighting_alpha = initial(lighting_alpha)
 	flash_protect = initial(flash_protect)
 	owner?.client?.color = null
-	colourmatrix = null
+	colormatrix = null
 	owner.update_sight()
 	owner.update_eyes_overlay_layer()
 
@@ -358,3 +400,7 @@
 	icon_state = "shield_reversed"
 	duration = 2 SECONDS
 	invisibility = INVISIBILITY_LEVEL_TWO
+
+#undef INTACT
+#undef ONE_SHATTERED
+#undef BOTH_SHATTERED

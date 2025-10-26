@@ -1,6 +1,6 @@
 // tgstation-server DMAPI
 
-#define TGS_DMAPI_VERSION "6.5.0"
+#define TGS_DMAPI_VERSION "7.0.0"
 
 // All functions and datums outside this document are subject to change with any version and should not be relied on.
 
@@ -73,17 +73,17 @@
 #define TGS_EVENT_REPO_MERGE_PULL_REQUEST 3
 /// Before the repository makes a sychronize operation. Parameters: Absolute repostiory path.
 #define TGS_EVENT_REPO_PRE_SYNCHRONIZE 4
-/// Before a BYOND install operation begins. Parameters: [/datum/tgs_version] of the installing BYOND.
-#define TGS_EVENT_BYOND_INSTALL_START 5
-/// When a BYOND install operation fails. Parameters: Error message
-#define TGS_EVENT_BYOND_INSTALL_FAIL 6
-/// When the active BYOND version changes.  Parameters: (Nullable) [/datum/tgs_version] of the current BYOND, [/datum/tgs_version] of the new BYOND.
-#define TGS_EVENT_BYOND_ACTIVE_VERSION_CHANGE 7
+/// Before a engine install operation begins. Parameters: Version string of the installing engine.
+#define TGS_EVENT_ENGINE_INSTALL_START 5
+/// When a engine install operation fails. Parameters: Error message
+#define TGS_EVENT_ENGINE_INSTALL_FAIL 6
+/// When the active engine version changes. Parameters: (Nullable) Version string of the current engine, version string of the new engine.
+#define TGS_EVENT_ENGINE_ACTIVE_VERSION_CHANGE 7
 /// When the compiler starts running. Parameters: Game directory path, origin commit SHA.
 #define TGS_EVENT_COMPILE_START 8
 /// When a compile is cancelled. No parameters.
 #define TGS_EVENT_COMPILE_CANCELLED 9
-/// When a compile fails. Parameters: Game directory path, [TRUE]/[FALSE] based on if the cause for failure was DMAPI validation.
+/// When a compile fails. Parameters: Game directory path, `TRUE`/`FALSE` based on if the cause for failure was DMAPI validation.
 #define TGS_EVENT_COMPILE_FAILURE 10
 /// When a compile operation completes. Note, this event fires before the new .dmb is loaded into the watchdog. Consider using the [TGS_EVENT_DEPLOYMENT_COMPLETE] instead. Parameters: Game directory path.
 #define TGS_EVENT_COMPILE_COMPLETE 11
@@ -108,7 +108,7 @@
 // #define TGS_EVENT_DREAM_DAEMON_LAUNCH 22
 /// After a single submodule update is performed. Parameters: Updated submodule name.
 #define TGS_EVENT_REPO_SUBMODULE_UPDATE 23
-/// After CodeModifications are applied, before DreamMaker is run. Parameters: Game directory path, origin commit sha, byond version.
+/// After CodeModifications are applied, before DreamMaker is run. Parameters: Game directory path, origin commit sha, version string of the used engine.
 #define TGS_EVENT_PRE_DREAM_MAKER 24
 /// Whenever a deployment folder is deleted from disk. Parameters: Game directory path.
 #define TGS_EVENT_DEPLOYMENT_CLEANUP 25
@@ -122,12 +122,25 @@
 /// The watchdog will restart on reboot.
 #define TGS_REBOOT_MODE_RESTART 2
 
+// Note that security levels are currently meaningless in OpenDream
 /// DreamDaemon Trusted security level.
 #define TGS_SECURITY_TRUSTED 0
 /// DreamDaemon Safe security level.
 #define TGS_SECURITY_SAFE 1
 /// DreamDaemon Ultrasafe security level.
 #define TGS_SECURITY_ULTRASAFE 2
+
+/// DreamDaemon public visibility level.
+#define TGS_VISIBILITY_PUBLIC 0
+/// DreamDaemon private visibility level.
+#define TGS_VISIBILITY_PRIVATE 1
+/// DreamDaemon invisible visibility level.
+#define TGS_VISIBILITY_INVISIBLE 2
+
+/// The Build Your Own Net Dream engine.
+#define TGS_ENGINE_TYPE_BYOND 0
+/// The OpenDream engine.
+#define TGS_ENGINE_TYPE_OPENDREAM 1
 
 //REQUIRED HOOKS
 
@@ -138,6 +151,7 @@
  * * minimum_required_security_level: The minimum required security level to run the game in which the DMAPI is integrated. Can be one of [TGS_SECURITY_ULTRASAFE], [TGS_SECURITY_SAFE], or [TGS_SECURITY_TRUSTED].
  */
 /world/proc/TgsNew(datum/tgs_event_handler/event_handler, minimum_required_security_level = TGS_SECURITY_ULTRASAFE)
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /**
@@ -148,15 +162,17 @@
  * This function should not be called before ..() in [/world/proc/New].
  */
 /world/proc/TgsInitializationComplete()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Put this at the start of [/world/proc/Topic].
 #define TGS_TOPIC var/tgs_topic_return = TgsTopic(args[1]); if(tgs_topic_return) return tgs_topic_return
 
 /**
- * Call this as late as possible in [world/proc/Reboot].
+ * Call this as late as possible in [world/proc/Reboot] (BEFORE ..()).
  */
 /world/proc/TgsReboot()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 // DATUM DEFINITIONS
@@ -194,6 +210,7 @@
  * Returns [TRUE]/[FALSE] based on if the [/datum/tgs_version] contains wildcards.
  */
 /datum/tgs_version/proc/Wildcard()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /**
@@ -202,6 +219,7 @@
  * other_version - The [/datum/tgs_version] to compare against.
  */
 /datum/tgs_version/proc/Equals(datum/tgs_version/other_version)
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Represents a merge of a GitHub pull request.
@@ -229,13 +247,13 @@
 	var/friendly_name
 	/// Name of the chat connection. This is the IRC server address or the Discord guild.
 	var/connection_name
-	/// [TRUE]/[FALSE] based on if the server operator has marked this channel for game admins only.
+	/// `TRUE`/`FALSE` based on if the server operator has marked this channel for game admins only.
 	var/is_admin_channel
-	/// [TRUE]/[FALSE] if the channel is a private message channel for a [/datum/tgs_chat_user].
+	/// `TRUE`/`FALSE` if the channel is a private message channel for a [/datum/tgs_chat_user].
 	var/is_private_channel
 	/// Tag string associated with the channel in TGS.
 	var/custom_tag
-	/// [TRUE]/[FALSE] if the channel supports embeds.
+	/// `TRUE`/`FALSE` if the channel supports embeds.
 	var/embeds_supported
 
 // Represents a chat user
@@ -388,16 +406,19 @@
 
 /// Returns the maximum supported [/datum/tgs_version] of the DMAPI.
 /world/proc/TgsMaximumApiVersion()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Returns the minimum supported [/datum/tgs_version] of the DMAPI.
 /world/proc/TgsMinimumApiVersion()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /**
  * Returns [TRUE] if DreamDaemon was launched under TGS, the API matches, and was properly initialized. [FALSE] will be returned otherwise.
  */
 /world/proc/TgsAvailable()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 // No function below this succeeds if it TgsAvailable() returns FALSE or if TgsNew() has yet to be called.
@@ -409,6 +430,7 @@
  * If TGS has not requested a [TGS_REBOOT_MODE_SHUTDOWN] DreamDaemon will be launched again.
  */
 /world/proc/TgsEndProcess()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /**
@@ -418,6 +440,7 @@
  * admin_only: If [TRUE], message will be sent to admin connected chats. Vice-versa applies.
  */
 /world/proc/TgsTargetedChatBroadcast(datum/tgs_message_content/message, admin_only = FALSE)
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /**
@@ -427,6 +450,7 @@
  * user: The [/datum/tgs_chat_user] to PM.
  */
 /world/proc/TgsChatPrivateMessage(datum/tgs_message_content/message, datum/tgs_chat_user/user)
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /**
@@ -436,34 +460,52 @@
  * channels - Optional list of [/datum/tgs_chat_channel]s to restrict the message to.
  */
 /world/proc/TgsChatBroadcast(datum/tgs_message_content/message, list/channels = null)
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Returns the current [/datum/tgs_version] of TGS if it is running the server, null otherwise. This function may sleep if the call to [/world/proc/TgsNew] is sleeping!
 /world/proc/TgsVersion()
+	CAN_BE_REDEFINED(TRUE)
+	return
+
+/// Returns the running engine type
+/world/proc/TgsEngine()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Returns the current [/datum/tgs_version] of the DMAPI being used if it was activated, null otherwise. This function may sleep if the call to [/world/proc/TgsNew] is sleeping!
 /world/proc/TgsApiVersion()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Returns the name of the TGS instance running the game if TGS is present, null otherwise. This function may sleep if the call to [/world/proc/TgsNew] is sleeping!
 /world/proc/TgsInstanceName()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Return the current [/datum/tgs_revision_information] of the running server if TGS is present, null otherwise. This function may sleep if the call to [/world/proc/TgsNew] is sleeping!
 /world/proc/TgsRevision()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Returns the current BYOND security level as a TGS_SECURITY_ define if TGS is present, null otherwise. This function may sleep if the call to [/world/proc/TgsNew] is sleeping!
 /world/proc/TgsSecurityLevel()
+	CAN_BE_REDEFINED(TRUE)
+	return
+
+/// Returns the current BYOND visibility level as a TGS_VISIBILITY_ define if TGS is present, null otherwise. Requires TGS to be using interop API version 5 or higher otherwise the string "___unimplemented" wil be returned. This function may sleep if the call to [/world/proc/TgsNew] is sleeping!
+/world/proc/TgsVisibility()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Returns a list of active [/datum/tgs_revision_information/test_merge]s if TGS is present, null otherwise. This function may sleep if the call to [/world/proc/TgsNew] is sleeping!
 /world/proc/TgsTestMerges()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /// Returns a list of connected [/datum/tgs_chat_channel]s if TGS is present, null otherwise. This function may sleep if the call to [/world/proc/TgsNew] is sleeping!
 /world/proc/TgsChatChannelInfo()
+	CAN_BE_REDEFINED(TRUE)
 	return
 
 /*

@@ -2,27 +2,23 @@
 /obj/item/mod
 	name = "Base MOD"
 	desc = "You should not see this, yell at a coder!"
-	icon = 'icons/obj/clothing/modsuit/mod_clothing.dmi'// figure out how to work with 2 of these
-	icon_override = 'icons/mob/clothing/modsuit/mod_clothing.dmi'
+	icon = 'icons/obj/clothing/modsuit/mod_clothing.dmi'
+	worn_icon = 'icons/mob/clothing/modsuit/mod_clothing.dmi'
 
 /obj/item/mod/control
 	name = "MOD control unit"
 	desc = "The control unit of a Modular Outerwear Device, a powered suit that protects against various environments."
-	icon_state = "standard-control"
-	icon_state = "mod_control"
-	item_state = "mod_control"
 	base_icon_state = "control"
+	inhand_icon_state = "mod_control"
 	w_class = WEIGHT_CLASS_BULKY
-	slot_flags = SLOT_FLAG_BACK
+	slot_flags = ITEM_SLOT_BACK
 	strip_delay = 10 SECONDS
-	armor = list(MELEE = 0, BULLET = 0, LASER = 0, ENERGY = 0, BOMB = 0, RAD = 0, FIRE = 0, ACID = 0)
 	actions_types = list(
 		/datum/action/item_action/mod/deploy,
 		/datum/action/item_action/mod/activate,
 		/datum/action/item_action/mod/panel,
 		/datum/action/item_action/mod/module,
 	)
-	resistance_flags = NONE
 	max_heat_protection_temperature = SPACE_SUIT_MAX_TEMP_PROTECT
 	min_cold_protection_temperature = SPACE_SUIT_MIN_TEMP_PROTECT
 	siemens_coefficient = 0.5
@@ -88,8 +84,14 @@
 	var/emp_proof = FALSE
 	/// List of overlays the mod has. Needs to be cut onremoval / module deactivation
 	var/list/mod_overlays = list()
-	/// Is the jetpack on so we should make ion effects?
-	var/jetpack_active = FALSE
+	/// Cham option for when the cham module is installed.
+	var/datum/action/item_action/chameleon_change/modsuit/chameleon_action
+	/// Is the control unit disquised?
+	var/current_disguise = FALSE
+	/// The MODlink datum, letting us call people from the suit.
+	var/datum/mod_link/mod_link
+	/// The starting MODlink frequency, by default NT to make it easier for everyone to use.
+	var/starting_frequency = MODLINK_FREQ_NANOTRASEN
 
 /obj/item/mod/control/serialize()
 	var/list/data = ..()
@@ -145,6 +147,7 @@
 		part.max_heat_protection_temperature = theme.max_heat_protection_temperature
 		part.min_cold_protection_temperature = theme.min_cold_protection_temperature
 		part.siemens_coefficient = theme.siemens_coefficient
+		part.flags_2 = theme.flag_2_flags
 	for(var/obj/item/part as anything in mod_parts)
 		RegisterSignal(part, COMSIG_OBJ_DECONSTRUCT, PROC_REF(on_part_destruction)) //look into
 		RegisterSignal(part, COMSIG_PARENT_QDELETING, PROC_REF(on_part_deletion))
@@ -154,10 +157,20 @@
 	for(var/obj/item/mod/module/module as anything in theme.inbuilt_modules)
 		module = new module(src)
 		install(module)
+	ADD_TRAIT(src, TRAIT_ADJACENCY_TRANSPARENT, ROUNDSTART_TRAIT)
+	START_PROCESSING(SSobj, src)
+	mod_link = new(
+		src,
+		starting_frequency,
+		CALLBACK(src, PROC_REF(get_wearer)),
+		CALLBACK(src, PROC_REF(can_call)),
+		CALLBACK(src, PROC_REF(make_link_visual)),
+		CALLBACK(src, PROC_REF(get_link_visual)),
+		CALLBACK(src, PROC_REF(delete_link_visual))
+	)
 
 /obj/item/mod/control/Destroy()
-	if(active)
-		STOP_PROCESSING(SSobj, src)
+	STOP_PROCESSING(SSobj, src)
 	for(var/obj/item/mod/module/module as anything in modules)
 		uninstall(module, deleting = TRUE)
 	for(var/obj/item/part as anything in mod_parts)
@@ -176,6 +189,7 @@
 		QDEL_NULL(boots)
 	if(core)
 		QDEL_NULL(core)
+	QDEL_NULL(mod_link)
 	QDEL_NULL(wires)
 	wearer = null
 	selected_module = null
@@ -203,14 +217,22 @@
 			. += "You could remove [core] with a <b>wrench</b>."
 		else
 			. += "You could use a <b>MOD core</b> on it to install one."
-	. += "<i>[extended_desc]</i>" //god is dead
+	. += "You could copy/set link frequency with a <b>multitool</b>."
+
+/obj/item/mod/control/examine_more(mob/user)
+	. = ..()
+	. += "<i>[extended_desc]</i>"
 
 /obj/item/mod/control/process()
 	if(seconds_electrified > 0)
 		seconds_electrified--
+	if(mod_link.link_call)
+		subtract_charge((DEFAULT_CHARGE_DRAIN * 0.25))
+	if(!active)
+		return
 	if(get_charge() <= 10 && active && !activating) //Sometimes we get power being funky, this should fix it.
 		power_off()
-		return PROCESS_KILL
+		return
 	var/malfunctioning_charge_drain = 0
 	if(malfunctioning)
 		malfunctioning_charge_drain = rand(1, 20)
@@ -223,33 +245,27 @@
 
 /obj/item/mod/control/equipped(mob/user, slot)
 	..()
-	if(slot == SLOT_HUD_BACK)
+	if(slot == ITEM_SLOT_BACK)
 		set_wearer(user)
 	else if(wearer)
 		unset_wearer()
 
 
 /obj/item/mod/control/item_action_slot_check(slot)
-	if(slot == SLOT_HUD_BACK)
+	if(slot == ITEM_SLOT_BACK)
 		return TRUE
-
-/obj/item/mod/control/on_mob_move(direction, mob/user)
-	if(!jetpack_active)
-		return
-	var/turf/T = get_step(src, GetOppositeDir(direction))
-	if(!has_gravity(T))
-		new /obj/effect/particle_effect/ion_trails(T, direction)
 
 /obj/item/mod/control/Moved(atom/old_loc, movement_dir, forced, list/old_locs, momentum_change = TRUE)
 	. = ..()
 	if(!wearer || old_loc != wearer || loc == wearer)
 		return
 	clean_up()
+	bag?.update_viewers()
 
 /obj/item/mod/control/MouseDrop(atom/over_object)
 	if(iscarbon(usr))
 		var/mob/M = usr
-		if(get_dist(usr, src) > 1) //1 as we want to access it if beside the user
+		if(!Adjacent(usr, src))
 			return
 
 		if(!over_object)
@@ -258,23 +274,38 @@
 		if(ismecha(M.loc))
 			return
 
+		if(ismodcontrol(over_object))
+			var/obj/item/mod/control/target = over_object
+			bag?.dump_storage(M, target.bag)
+			return
+		if(isstorage(over_object))
+			bag?.dump_storage(M, over_object)
+			return
+
 		if(!M.restrained() && !M.stat)
 			playsound(loc, "rustle", 50, TRUE, -5)
 
-			if(istype(over_object, /obj/screen/inventory/hand))
+			if(istype(over_object, /atom/movable/screen/inventory/hand))
 				for(var/obj/item/part as anything in mod_parts)
 					if(part.loc != src)
 						to_chat(wearer, "<span class='warning'>Retract parts first!</span>")
 						playsound(src, 'sound/machines/scanbuzz.ogg', 25, FALSE, SILENCED_SOUND_EXTRARANGE)
 						return
-				if(!M.unEquip(src, silent = TRUE))
+				if(!M.unequip(src, force = TRUE))
 					return
 				M.put_in_active_hand(src)
-			else if(bag)
-				bag.forceMove(usr)
-				bag.show_to(usr)
+			else
+				bag?.open(usr)
 
 			add_fingerprint(M)
+
+/obj/item/mod/control/wirecutter_act(mob/living/user, obj/item/I)
+	if(open)
+		if(seconds_electrified && get_charge() && shock(user))
+			return TRUE
+		wires.Interact(user)
+		return TRUE
+	return ..()
 
 /obj/item/mod/control/wrench_act(mob/living/user, obj/item/wrench)
 	if(..())
@@ -290,11 +321,58 @@
 			return TRUE
 		if(!core)
 			return TRUE
-		wrench.play_tool_sound(src, 100)
 		core.forceMove(drop_location())
 		update_charge_alert()
 		return TRUE
 	return ..()
+
+/obj/item/mod/control/multitool_act(mob/living/user, obj/item/I)
+	. = TRUE
+	if(!I.use_tool(src, user, 0, volume = I.tool_volume))
+		return
+	if(open)
+		if(seconds_electrified && get_charge() && shock(user))
+			return TRUE
+		wires.Interact(user)
+		return TRUE
+	if(!I.multitool_check_buffer(user))
+		return
+	var/obj/item/multitool/M = I
+	var/obj/item/linked_thing = locateUID(M.buffer_uid)
+
+	if(!linked_thing)
+		to_chat(user, "<span class='notice'>You save the frequency of [src] to the buffer.</span>")
+		M.buffer_uid = UID()
+		return TRUE
+	if(ismodcontrol(linked_thing))
+		var/obj/item/mod/control/chosen_control = linked_thing
+		var/response = tgui_alert(user, "Would you like to copy the frequency to the multitool or imprint the frequency to [src]?", "MODlink Frequency", list("Copy", "Imprint"))
+		if(!user.is_holding(I))
+			return FALSE
+		switch(response)
+			if("Copy")
+				to_chat(user, "<span class='notice'>You save the frequency of [src] to the buffer.</span>")
+				M.buffer_uid = UID()
+				return TRUE
+			if("Imprint")
+				mod_link.frequency = chosen_control.mod_link.frequency
+				to_chat(user, "<span class='notice'>You imprint the frequency to [src].</span>")
+				return TRUE
+	else
+		var/obj/item/clothing/neck/link_scryer/chosen_scryer = linked_thing
+		var/response = tgui_alert(user, "Would you like to copy the frequency to the multitool or imprint the frequency to [src]?", "MODlink Frequency", list("Copy", "Imprint"))
+		if(!user.is_holding(I))
+			return FALSE
+		switch(response)
+			if("Copy")
+				to_chat(user, "<span class='notice'>You save the frequency of [src] to the buffer.</span>")
+				M.buffer_uid = UID()
+				return TRUE
+			if("Imprint")
+				mod_link.frequency = chosen_scryer.mod_link.frequency
+				to_chat(user, "<span class='notice'>You imprint the frequency to [src].</span>")
+				return TRUE
+
 
 /obj/item/mod/control/screwdriver_act(mob/living/user, obj/item/screwdriver)
 	if(..())
@@ -308,7 +386,6 @@
 	if(screwdriver.use_tool(src, user, 1 SECONDS))
 		if(active || activating)
 			to_chat(user, "<span class='warning'>Deactivate the suit first!</span>")
-		screwdriver.play_tool_sound(src, 100)
 		to_chat(user, "<span class='notice'>Cover [open ? "closed" : "opened"]</span>")
 		open = !open
 	return TRUE
@@ -334,7 +411,7 @@
 			if(!module.removable)
 				continue
 			removable_modules += module
-		var/obj/item/mod/module/module_to_remove = input(user, "Which module do you want to pry out?", "Module Removal") as null|anything in removable_modules
+		var/obj/item/mod/module/module_to_remove = tgui_input_list(user, "Which module do you want to pry out?", "Module Removal", removable_modules)
 		if(!module_to_remove?.mod)
 			return FALSE
 		uninstall(module_to_remove)
@@ -346,7 +423,7 @@
 	playsound(src, 'sound/machines/scanbuzz.ogg', 25, TRUE, SILENCED_SOUND_EXTRARANGE)
 	return FALSE
 
-/obj/item/mod/control/attackby(obj/item/attacking_item, mob/living/user, params)
+/obj/item/mod/control/attackby__legacy__attackchain(obj/item/attacking_item, mob/living/user, params)
 	if(istype(attacking_item, /obj/item/mod/module))
 		if(!open)
 			to_chat(user, "<span class='warning'>Open the cover first!</span>")
@@ -370,11 +447,6 @@
 		attacking_core.install(src)
 		update_charge_alert()
 		return TRUE
-	else if(istype(attacking_item, /obj/item/multitool) && open)
-		if(seconds_electrified && get_charge() && shock(user))
-			return TRUE
-		wires.Interact(user)
-		return TRUE
 	else if(open && attacking_item.GetID())
 		update_access(user, attacking_item.GetID())
 		return TRUE
@@ -393,8 +465,7 @@
 	else if(istype(attacking_item, /obj/item/mod/skin_applier))
 		return ..()
 	else if(bag && istype(attacking_item))
-		bag.forceMove(user)
-		bag.attackby(attacking_item, user, params)
+		bag.attackby__legacy__attackchain(attacking_item, user, params)
 
 	return ..()
 
@@ -402,28 +473,31 @@
 	if(!iscarbon(user))
 		return
 	if(loc == user && user.back && user.back == src)
-		if(bag)
-			bag.forceMove(user)
-			bag.show_to(user)
+		bag?.open(user)
 	else
 		..()
 
 /obj/item/mod/control/AltClick(mob/user)
-	. = ..()
-	if(ishuman(user) && Adjacent(user) && !user.incapacitated(FALSE, TRUE) && bag)
-		bag.forceMove(user)
-		bag.show_to(user)
-		playsound(loc, "rustle", 50, TRUE, -5)
+	if(ishuman(user) && Adjacent(user) && !user.incapacitated(FALSE, TRUE))
+		bag?.open(user)
 		add_fingerprint(user)
+	else if(isobserver(user))
+		bag?.show_to(user)
+
+/obj/item/mod/control/attack_ghost(mob/user)
+	if(isobserver(user))
+		// Revenants don't get to play with the toys.
+		bag?.show_to(user)
+	return ..()
 
 /obj/item/mod/control/proc/can_be_inserted(I, stop_messages)
 	if(bag)
 		return bag.can_be_inserted(I, stop_messages)
 	return FALSE
 
-/obj/item/mod/control/proc/handle_item_insertion(I, prevent_warning)
+/obj/item/mod/control/proc/handle_item_insertion(I, mob/user, prevent_warning)
 	if(bag)
-		bag.handle_item_insertion(I, prevent_warning)
+		bag.handle_item_insertion(I, user, prevent_warning)
 
 /obj/item/mod/control/get_cell()
 	if(!open)
@@ -441,12 +515,13 @@
 /obj/item/mod/control/emag_act(mob/user)
 	locked = !locked
 	to_chat(user, "<span class='warning'>Suit access [locked ? "locked" : "unlocked"]")
+	return TRUE
 
 /obj/item/mod/control/emp_act(severity)
 	. = ..()
 	if(!active || !wearer)
 		return
-	to_chat(wearer, "<span class='warning'>[severity > 1 ? "Light" : "Strong"] electromagnetic pulse detected!")
+	to_chat(wearer, "<span class='warning'>[severity > EMP_HEAVY ? "Light" : "Strong"] electromagnetic pulse detected!")
 	if(emp_proof)
 		return
 	selected_module?.on_deactivation(display_message = TRUE)
@@ -478,7 +553,8 @@
 	return ..()
 
 /obj/item/mod/control/update_icon_state()
-	icon_state = "[skin]-[base_icon_state][active ? "-sealed" : ""]"
+	if(current_disguise || isnull(chameleon_action) || active)
+		icon_state = "[skin]-[base_icon_state][active ? "-sealed" : ""]"
 	return ..()
 
 /obj/item/mod/control/proc/set_wearer(mob/living/carbon/human/user)
@@ -495,8 +571,6 @@
 	SEND_SIGNAL(src, COMSIG_MOD_WEARER_SET, wearer)
 	RegisterSignal(wearer, COMSIG_ATOM_EXITED, PROC_REF(on_exit))
 	update_charge_alert()
-	for(var/obj/item/clothing/C in mod_parts)
-		C.refit_for_species(wearer.dna.species.sprite_sheet_name)
 	update_mod_overlays()
 	for(var/obj/item/mod/module/module as anything in modules)
 		module.on_equip()
@@ -521,6 +595,7 @@
 		retract(null, part)
 	if(active)
 		finish_activation(on = FALSE)
+		mod_link?.end_call()
 	var/mob/old_wearer = wearer
 	unset_wearer()
 	old_wearer.drop_item()
@@ -604,6 +679,10 @@
 	QDEL_LIST_ASSOC_VAL(old_module.pinned_to)
 	old_module.mod = null
 
+/// Intended for callbacks, don't use normally, just get wearer by itself.
+/obj/item/mod/control/proc/get_wearer()
+	return wearer
+
 /obj/item/mod/control/proc/update_access(mob/user, obj/item/card/id/card)
 	if(!allowed(user))
 		to_chat(user, "<span class='warning'>Insufficient access!")
@@ -648,7 +727,7 @@
 	if(!wearer)
 		return
 	if(!core)
-		wearer.throw_alert("mod_charge", /obj/screen/alert/nocell)
+		wearer.throw_alert("mod_charge", /atom/movable/screen/alert/nocell)
 		return
 	core.update_charge_alert()
 
@@ -701,7 +780,15 @@
 			overslotting_parts -= part
 			continue
 		overslotting_parts |= part
+	var/used_skin_modifiers = theme.skin_modifiers[new_skin]
+	apply_modifiers(used_skin_modifiers)
 	wearer?.regenerate_icons()
+
+/obj/item/mod/control/proc/apply_modifiers(modifiers)
+	if(modifiers & MAKE_SPACEPROOF)
+		min_cold_protection_temperature = SPACE_SUIT_MIN_TEMP_PROTECT
+		for(var/obj/item/clothing/part in mod_parts)
+			part.min_cold_protection_temperature = SPACE_SUIT_MIN_TEMP_PROTECT
 
 /obj/item/mod/control/proc/on_exit(datum/source, atom/movable/part, direction)
 	SIGNAL_HANDLER
@@ -766,3 +853,8 @@
 	. = ..()
 	for(var/obj/item/mod/module/module as anything in modules)
 		module.extinguish_light(force)
+
+/obj/item/mod/control/hear_message(mob/living/user, msg)
+	if(bag)
+		for(var/obj/object in bag)
+			object.hear_message(user, msg)

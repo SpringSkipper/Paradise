@@ -16,6 +16,17 @@
 	var/max_items = 7
 	var/obj/item/storage/backpack/modstorage/bag
 
+/obj/item/mod/module/storage/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, TRAIT_ADJACENCY_TRANSPARENT, ROUNDSTART_TRAIT)
+	var/obj/item/storage/backpack/modstorage/S = new(src)
+	bag = S
+	bag.max_w_class = max_w_class
+	bag.max_combined_w_class = max_combined_w_class
+	bag.storage_slots = max_items
+	bag.source = src
+	bag.forceMove(src)
+
 /obj/item/mod/module/storage/serialize()
 	var/list/data = ..()
 	data["bag"] = bag.serialize()
@@ -27,47 +38,27 @@
 	bag = list_to_object(data["bag"], src)
 	bag.source = src
 
-/obj/item/mod/module/storage/Initialize(mapload)
-	. = ..()
-	var/obj/item/storage/backpack/modstorage/S = new(src)
-	bag = S
-	bag.max_w_class = max_w_class
-	bag.max_combined_w_class = max_combined_w_class
-	bag.storage_slots = max_items
-	bag.source = src
-
 /obj/item/mod/module/storage/Destroy()
 	QDEL_NULL(bag)
 	return ..()
 
-
 /obj/item/mod/module/storage/on_install()
 	mod.bag = bag
-	bag.forceMove(mod)
 
 /obj/item/mod/module/storage/on_uninstall(deleting = FALSE)
 	if(!deleting)
 		for(var/obj/I in bag.contents)
 			I.forceMove(get_turf(loc))
-		bag.forceMove(src)
 		mod.bag = null
 		return
 	qdel(bag)
 	UnregisterSignal(mod.chestplate, COMSIG_ITEM_PRE_UNEQUIP)
 
-/obj/item/mod/module/storage/on_suit_deactivation(deleting)
-	. = ..()
-	bag.forceMove(src) //So the pinpointer doesnt lie.
-
-/obj/item/mod/module/storage/on_unequip()
-	. = ..()
-	bag.forceMove(src)
-
 /obj/item/mod/module/storage/large_capacity
 	name = "MOD expanded storage module"
-	desc = "Reverse engineered by Cybersun Industries from Donk Corporation designs, this system of hidden compartments \
-		is entirely within the suit, distributing items and weight evenly to ensure a comfortable experience for the user; \
-		whether smuggling, or simply hauling."
+	desc = "A collaborative effort between Cybersun Industries and Donk Corporation, this system of hidden compartments, attachment points, and pouches \
+		fits entirely within the suit, distributing items and weight evenly to ensure a comfortable carrying experience for the user \
+		in all manner of hauling tasks."
 	icon_state = "storage_large"
 	max_combined_w_class = 21
 	max_items = 14
@@ -92,7 +83,6 @@
 	max_w_class = WEIGHT_CLASS_SMALL
 	removable = FALSE
 	max_combined_w_class = 21
-	max_items = 7
 
 /obj/item/mod/module/storage/bluespace
 	name = "MOD bluespace storage module"
@@ -118,23 +108,15 @@
 	STOP_PROCESSING(SSobj, src)
 	return ..()
 
-/obj/item/storage/backpack/modstorage/process()
-	update_viewers()
-
-/obj/item/storage/backpack/modstorage/update_viewers()
-	for(var/_M in mobs_viewing)
-		var/mob/M = _M
-		if(!QDELETED(M) && M.s_active == src && (M in range(1, loc)) && (source.mod.loc == _M || (M in range(1, source.mod)))) //This ensures someone isn't taking it away from the mod unit
-			continue
-		hide_from(M)
-
+/obj/item/storage/backpack/modstorage/add_blood(list/blood_dna, b_color)
+	return
 
 ///Ion Jetpack - Lets the user fly freely through space using battery charge.
 /obj/item/mod/module/jetpack
 	name = "MOD ion jetpack module"
-	desc = "A series of electric thrusters installed across the suit, this is a module highly anticipated by trainee Engineers. \
-		Rather than using gasses for combustion thrust, these jets are capable of accelerating ions using \
-		charge from the suit's charge. Some say this isn't Cybersun Industries's first foray into jet-enabled suits."
+	desc = "A series of electric thrusters installed across the suit, allowing for precision movement in zero-G environments. \
+		Rather than using gasses for combustion thrust, this modules uses lightweight ion thrusters connected directly to the suit's energy cell, \
+		removing any reliance on external fuel systems. This does, however, mean that the thrusters are useless outside of zero-G, as any heavy weight will easily overwhelm the ion engines."
 	icon_state = "jetpack"
 	module_type = MODULE_TOGGLE
 	complexity = 3
@@ -145,39 +127,50 @@
 	overlay_state_inactive = "module_jetpack"
 	overlay_state_active = "module_jetpack_on"
 	/// Do we stop the wearer from gliding in space.
-	var/stabilizers = FALSE
+	var/stabilize = TRUE
+	var/thrust_callback
 
-/obj/item/mod/module/jetpack/proc/set_stabilizers(new_stabilizers)
-	if(stabilizers == new_stabilizers)
-		return
-	stabilizers = new_stabilizers
+/obj/item/mod/module/jetpack/Initialize(mapload)
+	. = ..()
+	thrust_callback = CALLBACK(src, PROC_REF(allow_thrust))
+	configure_jetpack(stabilize)
+
+/obj/item/mod/module/jetpack/Destroy()
+	thrust_callback = null
+	return ..()
+
+/**
+ * configures/re-configures the jetpack component
+ *
+ * Arguments
+ * stabilize - Should this jetpack be stabalized
+ */
+/obj/item/mod/module/jetpack/proc/configure_jetpack(stabilize)
+	src.stabilize = stabilize
+
+	AddComponent( \
+		/datum/component/jetpack, \
+		src.stabilize, \
+		COMSIG_MODULE_TRIGGERED, \
+		COMSIG_MODULE_DEACTIVATED, \
+		MOD_ABORT_USE, \
+		thrust_callback, \
+		/datum/effect_system/trail_follow/ion/grav_allowed \
+	)
 
 /obj/item/mod/module/jetpack/get_configuration()
 	. = ..()
-	.["stabilizers"] = add_ui_configuration("Stabilizers", "bool", stabilizers)
+	.["stabilizers"] = add_ui_configuration("Stabilizers", "bool", stabilize)
 
 /obj/item/mod/module/jetpack/configure_edit(key, value)
 	switch(key)
 		if("stabilizers")
-			set_stabilizers(text2bool(value))
+			configure_jetpack(value)
 
 /obj/item/mod/module/jetpack/proc/allow_thrust()
-	if(!active)
-		return
 	if(!drain_power(use_power_cost))
 		return FALSE
 	return TRUE
-
-/obj/item/mod/module/jetpack/proc/get_user()
-	return mod.wearer
-
-/obj/item/mod/module/jetpack/on_activation()
-	. = ..()
-	mod.jetpack_active = TRUE
-
-/obj/item/mod/module/jetpack/on_deactivation(display_message, deleting)
-	. = ..()
-	mod.jetpack_active = FALSE
 
 /obj/item/mod/module/jetpack/advanced
 	name = "MOD advanced ion jetpack module"
@@ -220,7 +213,6 @@
 	active_power_cost = DEFAULT_CHARGE_DRAIN * 0.3
 	incompatible_modules = list(/obj/item/mod/module/flashlight)
 	cooldown_time = 0.5 SECONDS
-	overlay_state_inactive = "module_light"
 	overlay_state_active = "module_light_on"
 	light_color = COLOR_WHITE
 	///The light power for the mod
@@ -268,8 +260,8 @@
 /obj/item/mod/module/flashlight/configure_edit(key, value)
 	switch(key)
 		if("light_color")
-			value = input(usr, "Pick new light color", "Flashlight Color") as color|null
-			if(!value)
+			value = tgui_input_color(usr, "Pick new light color", "Flashlight Color", light_color)
+			if(isnull(value))
 				return
 			if(is_color_dark(value, 50))
 				to_chat(mod.wearer, ("<span class='warning'>That is too dark</span>"))
@@ -303,7 +295,7 @@
 	incompatible_modules = list(/obj/item/mod/module/dispenser)
 	cooldown_time = 5 SECONDS
 	/// Path we dispense.
-	var/dispense_type = /obj/item/reagent_containers/food/snacks/cheeseburger
+	var/dispense_type = /obj/item/food/burger/cheese
 	/// Time it takes for us to dispense.
 	var/dispense_time = 0 SECONDS
 
@@ -433,7 +425,6 @@
 /obj/item/mod/module/dna_lock/emp_shield
 	name = "MOD DN-MP shield lock"
 	desc = "This syndicate module is a combination EMP shield and DNA lock. Provides the best of both worlds, with the weakness of niether."
-	icon_state = "dnalock"
 	origin_tech = "materials=6;bluespace=5;syndicate=3"
 	complexity = 3
 	use_power_cost = DEFAULT_CHARGE_DRAIN * 5

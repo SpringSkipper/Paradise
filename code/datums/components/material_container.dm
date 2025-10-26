@@ -37,7 +37,7 @@
 	precondition = _precondition
 	after_insert = _after_insert
 
-	RegisterSignal(parent, COMSIG_PARENT_ATTACKBY, PROC_REF(OnAttackBy))
+	RegisterSignal(parent, COMSIG_ATTACK_BY, PROC_REF(OnAttackBy))
 	RegisterSignal(parent, COMSIG_PARENT_EXAMINE, PROC_REF(OnExamine))
 
 	var/list/possible_mats = list()
@@ -74,7 +74,7 @@
 	if((I.flags_2 & (HOLOGRAM_2 | NO_MAT_REDEMPTION_2)) || (tc && !is_type_in_typecache(I, tc)))
 		to_chat(user, "<span class='warning'>[parent] won't accept [I]!</span>")
 		return
-	. = COMPONENT_NO_AFTERATTACK
+	. = COMPONENT_SKIP_AFTERATTACK
 	var/datum/callback/pc = precondition
 	if(pc && !pc.Invoke(user))
 		return
@@ -93,7 +93,7 @@
 	if(istype(I, /obj/item/stack) && precise_insertion)
 		var/atom/current_parent = parent
 		var/obj/item/stack/S = I
-		requested_amount = input(user, "How much do you want to insert?", "Inserting [S.singular_name]s") as num|null
+		requested_amount = tgui_input_number(user, "How much do you want to insert?", "Inserting [S.singular_name]s", max_value = S.amount)
 		if(isnull(requested_amount) || (requested_amount <= 0))
 			return
 		if(QDELETED(I) || QDELETED(user) || QDELETED(src) || parent != current_parent || user.incapacitated() || !in_range(current_parent, user) || user.l_hand != I && user.r_hand != I)
@@ -184,7 +184,7 @@
 //For consuming material
 //mats is a list of types of material to use and the corresponding amounts, example: list(MAT_METAL=100, MAT_GLASS=200)
 /datum/component/material_container/proc/use_amount(list/mats, multiplier=1)
-	if(!mats || !mats.len)
+	if(!mats || !length(mats))
 		return FALSE
 
 	var/datum/material/M
@@ -292,7 +292,7 @@
 	return (total_amount + amt) <= max_amount
 
 /datum/component/material_container/proc/has_materials(list/mats, multiplier=1)
-	if(!mats || !mats.len)
+	if(!mats || !length(mats))
 		return FALSE
 
 	var/datum/material/M
@@ -327,6 +327,41 @@
 	for(var/MAT in materials)
 		material_amount += I.materials[MAT]
 	return material_amount
+
+/datum/component/material_container/proc/get_ui_data(mob/user)
+	. = list()
+
+	var/list/data_materials = list()
+	for(var/key in materials)
+		var/datum/material/material = materials[key]
+		if(!material)
+			continue
+		data_materials += list(list(
+			"id" = key,
+			"amount" = material.amount / MINERAL_MATERIAL_AMOUNT,
+		))
+	.["materials"] = data_materials
+
+/datum/component/material_container/proc/get_ui_static_data(mob/user, show_points = FALSE, points_multiplier=1)
+	. = list()
+
+	.["icon"] = 'icons/obj/stacks/minerals.dmi'
+	.["showPoints"] = show_points
+
+	var/list/static_materials = list()
+	for(var/key in materials)
+		var/datum/material/material = materials[key]
+		var/list/static_material = list()
+		static_material["name"] = material.name
+		if(show_points && material.ore_type)
+			var/obj/item/stack/ore/ore = material.ore_type
+			static_material["points"] = ore.points * points_multiplier
+		if(material.sheet_type)
+			var/obj/item/stack/sheet/sheet = material.sheet_type
+			static_material["iconState"] = sheet.icon_state
+		static_materials[material.id] = static_material
+	.["staticMaterials"] = static_materials
+
 
 
 /datum/material
@@ -390,6 +425,30 @@
 	id = MAT_BLUESPACE
 	sheet_type = /obj/item/stack/ore/bluespace_crystal/refined
 	ore_type = /obj/item/stack/ore/bluespace_crystal
+
+/datum/material/brass
+	name = "Brass"
+	id = MAT_BRASS
+	sheet_type = /obj/item/stack/tile/brass
+	ore_type = /obj/item/stack/ore/brass
+
+/datum/material/palladium
+	name = "Palladium"
+	id = MAT_PALLADIUM
+	sheet_type = /obj/item/stack/sheet/mineral/palladium
+	ore_type = /obj/item/stack/ore/palladium
+
+/datum/material/platinum
+	name = "Platinum"
+	id = MAT_PLATINUM
+	sheet_type = /obj/item/stack/sheet/mineral/platinum
+	ore_type = /obj/item/stack/ore/platinum
+
+/datum/material/iridium
+	name = "Iridium"
+	id = MAT_IRIDIUM
+	sheet_type = /obj/item/stack/sheet/mineral/iridium
+	ore_type = /obj/item/stack/ore/iridium
 
 /datum/material/bananium
 	name = "Bananium"

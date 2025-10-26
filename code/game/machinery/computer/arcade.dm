@@ -1,7 +1,6 @@
 /obj/machinery/computer/arcade
 	name = "random arcade"
-	desc = "random arcade machine"
-	icon = 'icons/obj/computer.dmi'
+	desc = "random arcade machine."
 	icon_state = "arcade"
 	icon_keyboard = null
 	icon_screen = "invaders"
@@ -22,7 +21,7 @@
 
 
 /obj/machinery/computer/arcade/proc/prizevend(score)
-	if(!contents.len)
+	if(!length(contents))
 		var/prize_amount
 		if(score)
 			prize_amount = score
@@ -39,19 +38,18 @@
 		return
 	var/num_of_prizes = 0
 	switch(severity)
-		if(1)
+		if(EMP_HEAVY)
 			num_of_prizes = rand(1,4)
-		if(2)
+		if(EMP_LIGHT)
 			num_of_prizes = rand(0,2)
 	for(var/i = num_of_prizes; i > 0; i--)
 		prizevend()
-	explosion(get_turf(src), -1, 0, 1+num_of_prizes, flame_range = 1+num_of_prizes)
+	explosion(get_turf(src), -1, 0, 1+num_of_prizes, flame_range = 1+num_of_prizes, cause = "EMP'd arcade machine")
 
 
 /obj/machinery/computer/arcade/battle
 	name = "arcade machine"
 	desc = "Does not support Pinball."
-	icon = 'icons/obj/computer.dmi'
 	icon_state = "battle_arcade"
 	icon_screen = "battle"
 	circuit = /obj/item/circuitboard/arcade/battle
@@ -101,7 +99,6 @@
 	//onclose(user, "arcade")
 	var/datum/browser/popup = new(user, "arcade", "Space Villain 2000")
 	popup.set_content(dat)
-	popup.set_title_image(user.browse_rsc_icon(icon, icon_state))
 	popup.open()
 	return
 
@@ -259,6 +256,7 @@
 
 		add_hiddenprint(user)
 		updateUsrDialog()
+		return TRUE
 
 // *** THE ORION TRAIL ** //
 
@@ -280,7 +278,6 @@
 /obj/machinery/computer/arcade/orion_trail
 	name = "The Orion Trail"
 	desc = "Learn how our ancestors got to Orion, and have fun in the process!"
-	icon_state = "arcade"
 	icon_screen = "orion"
 	circuit = /obj/item/circuitboard/arcade/orion_trail
 	var/busy = FALSE //prevent clickspam that allowed people to ~speedrun~ the game.
@@ -354,7 +351,7 @@
 /obj/machinery/computer/arcade/orion_trail/attack_hand(mob/user)
 	if(..())
 		return
-	if(fuel <= 0 || food <=0 || settlers.len == 0)
+	if(fuel <= 0 || food <=0 || length(settlers) == 0)
 		gameover = 1
 		event = null
 	user.set_machine(src)
@@ -362,7 +359,7 @@
 	if(gameover)
 		dat = "<center><h1>Game Over</h1></center>"
 		dat += "Like many before you, your crew never made it to Orion, lost to space... <br><b>Forever</b>."
-		if(settlers.len == 0)
+		if(length(settlers) == 0)
 			dat += "<br>Your entire crew died, your ship joins the fleet of ghost-ships littering the galaxy."
 		else
 			if(food <= 0)
@@ -411,7 +408,6 @@
 		dat += "<P ALIGN=Right><a href='byond://?src=[UID()];close=1'>Close</a></P>"
 	var/datum/browser/popup = new(user, "arcade", "The Orion Trail",400,700)
 	popup.set_content(dat)
-	popup.set_title_image(user.browse_rsc_icon(icon, icon_state))
 	popup.open()
 	return
 
@@ -758,7 +754,7 @@
 
 		if(ORION_TRAIL_LING)
 			eventdat += "Strange reports warn of changelings infiltrating crews on trips to Orion..."
-			if(settlers.len <= 2)
+			if(length(settlers) <= 2)
 				eventdat += "<br>Your crew's chance of reaching Orion is so slim the changelings likely avoided your ship..."
 				eventdat += "<P ALIGN=Right><a href='byond://?src=[UID()];eventclose=1'>Continue</a></P>"
 				eventdat += "<P ALIGN=Right><a href='byond://?src=[UID()];close=1'>Close</a></P>"
@@ -925,7 +921,6 @@
 		alive++
 	return newcrew
 
-
 //Remove Random/Specific crewmember
 /obj/machinery/computer/arcade/orion_trail/proc/remove_crewmember(specific = "", dont_remove = "")
 	var/list/safe2remove = settlers
@@ -935,7 +930,7 @@
 	if(specific && specific != dont_remove)
 		safe2remove = list(specific)
 	else
-		if(safe2remove.len >= 1) //need to make sure we even have anyone to remove
+		if(length(safe2remove) >= 1) //need to make sure we even have anyone to remove
 			removed = pick(safe2remove)
 
 	if(removed)
@@ -969,13 +964,13 @@
 		add_hiddenprint(user)
 		newgame()
 		emagged = TRUE
+		return TRUE
 
 /mob/living/simple_animal/hostile/syndicate/ranged/orion
 	name = "spaceport security"
 	desc = "Premier corporate security forces for all spaceports found along the Orion Trail."
 	faction = list("orion")
 	loot = list()
-	del_on_death = TRUE
 
 /obj/item/orion_ship
 	name = "model settler ship"
@@ -993,7 +988,7 @@
 		else
 			. += "<span class='notice'>There's a little switch on the bottom. It's flipped up.</span>"
 
-/obj/item/orion_ship/attack_self(mob/user) //Minibomb-level explosion. Should probably be more because of how hard it is to survive the machine! Also, just over a 5-second fuse
+/obj/item/orion_ship/attack_self__legacy__attackchain(mob/user) //Minibomb-level explosion. Should probably be more because of how hard it is to survive the machine! Also, just over a 5-second fuse
 	if(active)
 		return
 
@@ -1013,7 +1008,7 @@
 	playsound(loc, 'sound/machines/buzz-sigh.ogg', 25, TRUE)
 	sleep(3.6)
 	visible_message("<span class='userdanger'>[src] explodes!</span>")
-	explosion(src.loc, 1,2,4, flame_range = 3)
+	explosion(src.loc, 1,2,4, flame_range = 3, cause = "Orion Ship Minibomb")
 	qdel(src)
 
 

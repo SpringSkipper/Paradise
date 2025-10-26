@@ -4,9 +4,10 @@
 	helptext = "We will bring all our abilities with us, but we will lose our old form DNA in exchange for the new one. The process will seem suspicious to any observers."
 	button_icon_state = "cling_mindswap"
 	chemical_cost = 40
-	dna_cost = 1
+	dna_cost = 2
 	req_human = TRUE //Monkeys can't grab
 	power_type = CHANGELING_PURCHASABLE_POWER
+	category = /datum/changeling_power_category/offence
 
 /datum/action/changeling/swap_form/can_sting(mob/living/carbon/user)
 	if(!..())
@@ -19,10 +20,10 @@
 	if(HAS_TRAIT(target, TRAIT_BADDNA) || HAS_TRAIT(target, TRAIT_HUSK) || HAS_TRAIT(target, TRAIT_SKELETONIZED))
 		to_chat(user, "<span class='warning'>DNA of [target] is ruined beyond usability!</span>")
 		return FALSE
-	if(!istype(target) || !target.mind || issmall(target) || HAS_TRAIT(target, TRAIT_GENELESS))
+	if(!istype(target) || !target.mind || issmall(target) || HAS_TRAIT(target, TRAIT_GENELESS) || isgolem(target))
 		to_chat(user, "<span class='warning'>[target] is not compatible with this ability.</span>")
 		return FALSE
-	if(ischangeling(target))
+	if(IS_CHANGELING(target))
 		to_chat(user, "<span class='warning'>We are unable to swap forms with another changeling!</span>")
 		return FALSE
 	return TRUE
@@ -53,11 +54,10 @@
 		ghosted = TRUE
 		target.grab_ghost() //GET OVER HERE!
 
-	var/mob/dead/observer/ghost = target.ghostize(FALSE)
+	var/mob/dead/observer/ghost = target.ghostize()
 	user.mind.transfer_to(target)
 	if(ghost && ghost.mind)
 		ghost.mind.transfer_to(user)
-		GLOB.non_respawnable_keys -= ghost.ckey // Better make sure they can re-enter their new body
 		user.key = ghost.key
 	qdel(ghost)
 	if(ghosted)
